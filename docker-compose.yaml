@@ -1,0 +1,129 @@
+# This is used by my editors LSP for autocomplete
+# yaml-language-server: $schema=https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
+
+# This specifies the networks our containers are going to use.
+# We are only using one network since this mostly for development, and it just keeps things tidy
+networks:
+  app_network:
+    driver: bridge
+
+# This is a named volume. It is used because of a an issue I was facing with permissions when mounting a volume for the database
+volumes:
+  pgdata:
+
+# Specifies the services that Docker Compose will start if we run this compose file
+services:
+  # This service is the web app. For the source code, checkout the web directory
+  web:
+    # This specifies the docker file/context to build for the web app container
+    build:
+      context: ./web
+      dockerfile: dev.Dockerfile
+    # Attach this container to our dedicated network for the services in this compose file
+    networks:
+      - app_network
+    # Expose the port that the web app uses so you can access it at localhost:3000
+    ports:
+      - 3000:3000
+    # Use the .env file from the web dir
+    env_file:
+      - ./web/.env
+    # This container will wait for the api container to start before starting
+    depends_on:
+      - api
+    # This is used for dev purposes so we can auto reload containers wehen files change
+    develop:
+      watch:
+        - path: ./web/package.json
+          action: rebuild
+        - path: ./web
+          target: /app
+          action: sync
+          ignore:
+            - ./web/node_modules
+  # This service is the api. For the source code, checkout the api directory
+  api:
+    # This specifies the docker file/context to build for the web app container
+    build:
+      context: ./api
+      dockerfile: dev.Dockerfile
+    # Attach this container to our dedicated network for the services in this compose file
+    networks:
+      - app_network
+    # Expose the port that the api uses so you can access it at localhost:8000
+    ports:
+      - 8000:8000
+    # Use the .env file from the api dir
+    env_file:
+      - ./api/.env
+    # This container will wait for the db container to start before starting
+    depends_on:
+      - db
+    # This is used for dev purposes so we can auto reload containers wehen files change
+    develop:
+      watch:
+        - path: ./api/go.mod
+          action: rebuild
+        - path: ./api
+          target: /app
+          action: sync+restart
+          ignore:
+            - ./api/node_modules
+  # This service is the database
+  db:
+    # We are using the PostgreSQL v16 image for this container
+    image: postgres:16
+    # Expose the default port for if we need to access the database from tools outside the docker context
+    ports:
+      - 5432:5432
+    # Attach this container to our dedicated network for the services in this compose file
+    networks:
+      - app_network
+    # Always restart this service, even on graceful exit
+    restart: always
+    # Mount a local volume so the db data will persist on your local machine
+    volumes:
+      # pgdata is a dedicated volume mount specified earlier in the file under `volumes:`
+      - pgdata:/var/lib/postgresql/data
+    # Some environment variables to get this container up and running
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: forkd
+  # A web admin for postgres
+  pgweb:
+    # Use the docker image for this web admin
+    image: sosedoff/pgweb
+    # Always restart this container if it quits
+    restart: always
+    # Expose port 8081 to the local machine so you can access it at localhost:8081
+    ports:
+      - 8081:8081
+    # This container will wait for the db container to start before starting
+    depends_on:
+      - db
+    # Attach this container to our dedicated network for the services in this compose file
+    networks:
+      - app_network
+    # Environment variables the pgweb container needs to communicate with out database
+    environment:
+      DATABASE_URL: postgres://db:postgres@postgres:5432/postgres?sslmode=disable
+  # All services below here are used for one off script runs
+  # A container to run database migrations
+  migrate:
+    # Use the `geni` docker image for https://github.com/emilpriver/geni
+    image: ghcr.io/emilpriver/geni
+    # Never restart this container
+    restart: never
+    # Some environment variables required for the geni cli to function
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
+    # Mount our migrations directory so the geni cli can access those files
+    volumes:
+      - ./api/db/migrations:/migrations
+    # Attach this container to our dedicated network for the services in this compose file
+    networks:
+      - app_network
+    # This is important, we assign a profile so this container doesn't auto start when you run `docker-compose start`
+    profiles:
+      - "scripts"

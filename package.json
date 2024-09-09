@@ -1,0 +1,11 @@
+{
+  "name": "forkd/monorepo",
+  "version": "0.0.1",
+  "description": "Monorepo containing the code for Forkd",
+  "devDependencies": {
+    "prettier": "^3.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
