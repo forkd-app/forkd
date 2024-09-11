@@ -37,7 +37,7 @@ services:
         - path: ./web/package.json
           action: rebuild
         - path: ./web
-          target: /app
+          target: /code
           action: sync
           ignore:
             - ./web/node_modules
@@ -67,8 +67,6 @@ services:
         - path: ./api
           target: /app
           action: sync+restart
-          ignore:
-            - ./api/node_modules
   # This service is the database
   db:
     # We are using the PostgreSQL v16 image for this container
@@ -102,12 +100,14 @@ services:
     # This container will wait for the db container to start before starting
     depends_on:
       - db
+    links:
+      - db:postgres
     # Attach this container to our dedicated network for the services in this compose file
     networks:
       - app_network
     # Environment variables the pgweb container needs to communicate with out database
     environment:
-      DATABASE_URL: postgres://db:postgres@postgres:5432/postgres?sslmode=disable
+      PGWEB_DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
   # All services below here are used for one off script runs
   # A container to run database migrations
   migrate:

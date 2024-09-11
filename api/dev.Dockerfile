@@ -8,4 +8,4 @@ WORKDIR /app
 
 # The build flag sets how to build after a change has been detected in the source code
 # The command flag sets how to run the app after it has been built
-ENTRYPOINT go run cmd/server.go
+ENTRYPOINT go run main.go
