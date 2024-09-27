@@ -118,9 +118,13 @@ services:
     # Some environment variables required for the geni cli to function
     environment:
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
+    depends_on:
+      - db
+    links:
+      - db:postgres
     # Mount our migrations directory so the geni cli can access those files
     volumes:
-      - ./api/db/migrations:/migrations
+      - ./db/migrations:/migrations
     # Attach this container to our dedicated network for the services in this compose file
     networks:
       - app_network
