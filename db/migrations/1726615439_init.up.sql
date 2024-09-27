@@ -23,19 +23,16 @@ CREATE TABLE IF NOT EXISTS recipe_comments (
 CREATE TABLE IF NOT EXISTS recipe_revisions (
   id bigserial PRIMARY KEY,
   recipe_id bigint NOT NULL CONSTRAINT fk_recipe_revisions REFERENCES recipes(id),
+  parent_id bigint NOT NULL CONSTRAINT fk_recipe_revision_parent REFERENCES recipe_revisions(id),
+  child_id bigint CONSTRAINT fk_recipe_revision_child REFERENCES recipe_revisions(id),
   -- Free form content, maybe like an "about" section. Maybe this should be like explaining the changes made
   description text,
   publish_date timestamp NOT NULL DEFAULT now()
 );
-CREATE TABLE IF NOT EXISTS recipe_revision_delta (
-  id bigserial PRIMARY KEY,
-  -- TODO: Add check constraint that these are not the same
-  from_recipe_revision_id bigint NOT NULL CONSTRAINT fk_recipe_revision_deltas_to REFERENCES recipe_revisions(id),
-  to_recipe_revision_id bigint NOT NULL CONSTRAINT fk_recipe_revision_deltas_from REFERENCES recipe_revisions(id)
-  -- TODO: Figure out delta shape. Maybe something like:
-  -- added: new ingredients
-  -- removed: removed ingredients
-  -- changed: ingredients that have changes to measurements (either quantity and/or unit) or the comment
+CREATE TABLE IF NOT EXISTS linked_recipes (
+  from_recipe_id bigint NOT NULL CONSTRAINT fk_linked_recipes_from REFERENCES recipes(id),
+  to_recipe_id bigint NOT NULL CONSTRAINT fk_linked_recipes_to REFERENCES recipes(id),
+  CONSTRAINT linked_recipe_pk PRIMARY KEY(from_recipe_id, to_recipe_id)
 );
 CREATE TABLE IF NOT EXISTS tags (
   name varchar(255) PRIMARY KEY,
@@ -65,3 +62,9 @@ CREATE TABLE IF NOT EXISTS recipe_ingredients (
   unit varchar(255) NOT NULL CONSTRAINT fk_recipe_ingredient_quantity REFERENCES measurement_units(name),
   comment text
 );
+CREATE TABLE IF NOT EXISTS recipe_steps (
+  id bigserial PRIMARY KEY,
+  revision_id bigint NOT NULL CONSTRAINT fk_recipe_revision_ingredients REFERENCES recipe_revisions(id),
+  content text NOT NULL,
+  index int NOT NULL
+)
