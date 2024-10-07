@@ -1,0 +1,6 @@
+type RecipeStep {
+    id: ID!
+    revisionId: ID!
+    content: String!
+    index: Integer!
+}

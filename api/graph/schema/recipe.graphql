@@ -1,0 +1,8 @@
+type Recipe {
+    initialPublishDate: String! #ToDo: update with timestamp type
+    authorId: Integer!
+    slug: String!
+    forkedFrom: Integer
+    id: ID!
+    description: String!
+}
