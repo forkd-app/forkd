@@ -1,9 +1,0 @@
-type Ingredient {
-    name: String!
-    description: String
-}
-
-type MeasurementUnit {
-    description: String
-    name: String!
-}
