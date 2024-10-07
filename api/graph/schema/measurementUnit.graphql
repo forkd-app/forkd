@@ -1,4 +1,0 @@
-type MeasurementUnit {
-    description: String
-    name: String!
-}

@@ -1,6 +1,0 @@
-type RecipeRevision {
-    publishDate: String! #ToDo: update with timestamp type
-    recipeId: ID!
-    description: String
-    id: ID!
-}

@@ -1,7 +1,0 @@
-type RecipeComment {
-    revisionId: Integer!
-    postDate: String! #ToDo: update with timestamp type
-    recipeId: Integer!
-    authorId: Integer!
-    content: String!
-}
