@@ -1,6 +1,6 @@
 type Recipe {
     initialPublishDate: String! #ToDo: update with timestamp type
-    authorId: Integer!
+    authorId: ID!
     slug: String!
     forkedFrom: Integer
     id: ID!
@@ -8,10 +8,10 @@ type Recipe {
 }
 
 type RecipeComment {
-    revisionId: Integer!
+    revisionId: ID!
     postDate: String! #ToDo: update with timestamp type
-    recipeId: Integer!
-    authorId: Integer!
+    recipeId: ID!
+    authorId: ID!
     content: String!
 }
 
