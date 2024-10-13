@@ -1,0 +1,18 @@
+type RecipeIngredient {
+    revisionId: ID!
+    unit: String!
+    ingredient: String!
+    quantity: Float!
+    id: ID!
+    comment: String
+}
+
+type Ingredient {
+    name: String!
+    description: String
+}
+
+type MeasurementUnit {
+    description: String
+    name: String!
+}

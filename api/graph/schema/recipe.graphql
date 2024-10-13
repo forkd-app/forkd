@@ -1,0 +1,30 @@
+type Recipe {
+    initialPublishDate: String! #ToDo: update with timestamp type
+    authorId: ID!
+    slug: String!
+    forkedFrom: Integer
+    id: ID!
+    description: String!
+}
+
+type RecipeComment {
+    revisionId: ID!
+    postDate: String! #ToDo: update with timestamp type
+    recipeId: ID!
+    authorId: ID!
+    content: String!
+}
+
+type RecipeRevision {
+    publishDate: String! #ToDo: update with timestamp type
+    recipeId: ID!
+    description: String
+    id: ID!
+}
+
+type RecipeStep {
+    id: ID!
+    revisionId: ID!
+    content: String!
+    index: Integer!
+}
