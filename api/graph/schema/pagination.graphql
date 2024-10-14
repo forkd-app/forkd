@@ -1,0 +1,9 @@
+interface PaginatedResult {
+    pagination: PaginationInfo!
+}
+
+type PaginationInfo {
+    count: Info!
+    nextCursor: String
+    prevCursor: String
+}
