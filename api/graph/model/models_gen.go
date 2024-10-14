@@ -2,5 +2,67 @@
 
 package model
 
+type Ingredient struct {
+	Name        string  `json:"name"`
+	Description *string `json:"description,omitempty"`
+}
+
+type MeasurementUnit struct {
+	Description *string `json:"description,omitempty"`
+	Name        string  `json:"name"`
+}
+
 type Query struct {
+}
+
+type Recipe struct {
+	InitialPublishDate string `json:"initialPublishDate"`
+	AuthorID           string `json:"authorId"`
+	Slug               string `json:"slug"`
+	ForkedFrom         *int   `json:"forkedFrom,omitempty"`
+	ID                 string `json:"id"`
+	Description        string `json:"description"`
+}
+
+type RecipeComment struct {
+	RevisionID string `json:"revisionId"`
+	PostDate   string `json:"postDate"`
+	RecipeID   string `json:"recipeId"`
+	AuthorID   string `json:"authorId"`
+	Content    string `json:"content"`
+}
+
+type RecipeIngredient struct {
+	RevisionID string  `json:"revisionId"`
+	Unit       string  `json:"unit"`
+	Ingredient string  `json:"ingredient"`
+	Quantity   float64 `json:"quantity"`
+	ID         string  `json:"id"`
+	Comment    *string `json:"comment,omitempty"`
+}
+
+type RecipeRevision struct {
+	PublishDate string  `json:"publishDate"`
+	RecipeID    string  `json:"recipeId"`
+	Description *string `json:"description,omitempty"`
+	ID          string  `json:"id"`
+}
+
+type RecipeStep struct {
+	ID         string `json:"id"`
+	RevisionID string `json:"revisionId"`
+	Content    string `json:"content"`
+	Index      int    `json:"index"`
+}
+
+type Tag struct {
+	Description *string `json:"description,omitempty"`
+	Name        string  `json:"name"`
+}
+
+type User struct {
+	JoinDate string `json:"joinDate"`
+	ID       string `json:"id"`
+	Email    string `json:"email"`
+	Username string `json:"username"`
 }

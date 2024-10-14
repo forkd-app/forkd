@@ -43,7 +43,7 @@ services:
             - ./web/node_modules
   # This service is the api. For the source code, checkout the api directory
   api:
-    # This specifies the docker file/context to build for the web app container
+    # This specifies the docker file/context to build for the api container
     build:
       context: ./api
       dockerfile: dev.Dockerfile
@@ -110,18 +110,37 @@ services:
       PGWEB_DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
   # All services below here are used for one off script runs
   # A container to run database migrations
+  gqlgen:
+    # Use the gqlgen.Dockerfile for this script
+    build:
+      context: ./api
+      dockerfile: gqlgen.Dockerfile
+    # Never restart this container
+    restart: never
+    # Mount our migrations directory so the geni cli can access those files
+    volumes:
+      - ./api/graph:/app/graph
+    # Attach this container to our dedicated network for the services in this compose file
+    networks:
+      - app_network
+    # This is important, we assign a profile so this container doesn't auto start when you run `docker-compose start`
+    profiles:
+      - "scripts"
+  # All services below here are used for one off script runs
+  # A container to run database migrations
   migrate:
     # Use the `geni` docker image for https://github.com/emilpriver/geni
     image: ghcr.io/emilpriver/geni
     # Never restart this container
     restart: never
-    # Some environment variables required for the geni cli to function
-    environment:
-      DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
+    # This container will wait for the db container to start before starting
     depends_on:
       - db
     links:
       - db:postgres
+    # Some environment variables required for the geni cli to function
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
     # Mount our migrations directory so the geni cli can access those files
     volumes:
       - ./db/migrations:/migrations
