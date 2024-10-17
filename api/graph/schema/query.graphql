@@ -1,7 +1,7 @@
 type Query {
   user(id: ID!): User
-  recipe(slug: String): User
-  recipe(id: ID): Recipe
-  listRecipes(limit: Integer, nextCursor: String): [Recipe!]!
-  paginate: PaginatedResult
+  users: [User!]!
+  recipe(id: ID, slug: String): Recipe
+  recipes: [Recipes!]!
+  listRecipes(limit: Int, nextCursor: String): [PaginatedRecipes!]!
 }
