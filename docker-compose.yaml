@@ -41,6 +41,7 @@ services:
           action: sync
           ignore:
             - ./web/node_modules
+    restart: unless-stopped
   # This service is the api. For the source code, checkout the api directory
   api:
     # This specifies the docker file/context to build for the api container
@@ -67,6 +68,7 @@ services:
         - path: ./api
           target: /app
           action: sync+restart
+    restart: unless-stopped
   # This service is the database
   db:
     # We are using the PostgreSQL v16 image for this container
@@ -77,8 +79,7 @@ services:
     # Attach this container to our dedicated network for the services in this compose file
     networks:
       - app_network
-    # Always restart this service, even on graceful exit
-    restart: always
+    restart: unless-stopped
     # Mount a local volume so the db data will persist on your local machine
     volumes:
       # pgdata is a dedicated volume mount specified earlier in the file under `volumes:`
@@ -92,8 +93,7 @@ services:
   pgweb:
     # Use the docker image for this web admin
     image: sosedoff/pgweb
-    # Always restart this container if it quits
-    restart: always
+    restart: unless-stopped
     # Expose port 8081 to the local machine so you can access it at localhost:8081
     ports:
       - 8081:8081
