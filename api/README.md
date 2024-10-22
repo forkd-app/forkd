@@ -6,7 +6,7 @@ This is our main backend API for Forkd. We use the following technologies:
   - This is the programming language the API is written in.
 - `GraphQL`
   - This is the main API surface.
-  - We use gqlgen for auto generating resolver stubs from our GraphQL schema.
+  - We use `gqlgen` for auto generating resolver stubs from our GraphQL schema.
 - `PostgreSQL`
   - Our main database.
 - `Docker`
