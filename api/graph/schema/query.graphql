@@ -1,7 +1,17 @@
 type Query {
-  user(id: ID!): User
-  users: [User!]!
-  recipe(id: ID, slug: String): Recipe
-  recipes: [Recipes!]!
-  listRecipes(limit: Int, nextCursor: String): [PaginatedRecipes!]!
+  user: UserQuery
+  recipe: RecipeQuery
 }
+
+type UserQuery{
+  byId(id: ID!) User
+  bySlug(slug: String!): User
+  byEmail(email: String!): User
+} 
+
+type RecipeQuery{
+  byId(id: ID!) Recipe
+  bySlug(slug: String!): Recipe
+  list(limit: Int, nextCursor: String): PaginatedRecipes!
+}
+

@@ -3,7 +3,7 @@ interface PaginatedResult {
 }
 
 type PaginationInfo {
-    count: Info!
+    count: Int!
     nextCursor: String
     prevCursor: String
 }
