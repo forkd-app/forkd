@@ -14,3 +14,4 @@ type RecipeQuery{
   bySlug(slug: String!): Recipe
   list(limit: Int, nextCursor: String): PaginatedRecipes!
 }
+
