@@ -151,7 +151,7 @@ services:
       - "scripts"
   # A container to run SQLc gen
   sqlgen:
-    # Use the `geni` docker image for https://github.com/emilpriver/geni
+    # Use the `sqlc` docker image for https://docs.sqlc.dev/en/stable/overview/install.html#docker
     image: sqlc/sqlc
     # Never restart this container
     restart: never
@@ -160,7 +160,7 @@ services:
       - db
     links:
       - db:postgres
-    # Mount our migrations directory so the geni cli can access those files
+    # Mount our db and app directories so the sqlc cli can access those files
     volumes:
       - ./db/:/db
       - ./api:/app
