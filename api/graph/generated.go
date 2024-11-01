@@ -56,6 +56,12 @@ type ComplexityRoot struct {
 		Name        func(childComplexity int) int
 	}
 
+	PaginationInfo struct {
+		Count      func(childComplexity int) int
+		NextCursor func(childComplexity int) int
+		PrevCursor func(childComplexity int) int
+	}
+
 	Query struct {
 		Hello func(childComplexity int) int
 	}
@@ -163,6 +169,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.MeasurementUnit.Name(childComplexity), true
+
+	case "PaginationInfo.count":
+		if e.complexity.PaginationInfo.Count == nil {
+			break
+		}
+
+		return e.complexity.PaginationInfo.Count(childComplexity), true
+
+	case "PaginationInfo.nextCursor":
+		if e.complexity.PaginationInfo.NextCursor == nil {
+			break
+		}
+
+		return e.complexity.PaginationInfo.NextCursor(childComplexity), true
+
+	case "PaginationInfo.prevCursor":
+		if e.complexity.PaginationInfo.PrevCursor == nil {
+			break
+		}
+
+		return e.complexity.PaginationInfo.PrevCursor(childComplexity), true
 
 	case "Query.hello":
 		if e.complexity.Query.Hello == nil {
@@ -476,7 +503,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema/query.graphql" "schema/recipe.graphql" "schema/recipeIngredient.graphql" "schema/tag.graphql" "schema/user.graphql"
+//go:embed "schema/pagination.graphql" "schema/query.graphql" "schema/recipe.graphql" "schema/recipeIngredient.graphql" "schema/tag.graphql" "schema/user.graphql"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -488,6 +515,7 @@ func sourceData(filename string) string {
 }
 
 var sources = []*ast.Source{
+	{Name: "schema/pagination.graphql", Input: sourceData("schema/pagination.graphql"), BuiltIn: false},
 	{Name: "schema/query.graphql", Input: sourceData("schema/query.graphql"), BuiltIn: false},
 	{Name: "schema/recipe.graphql", Input: sourceData("schema/recipe.graphql"), BuiltIn: false},
 	{Name: "schema/recipeIngredient.graphql", Input: sourceData("schema/recipeIngredient.graphql"), BuiltIn: false},
@@ -713,6 +741,132 @@ func (ec *executionContext) _MeasurementUnit_name(ctx context.Context, field gra
 func (ec *executionContext) fieldContext_MeasurementUnit_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "MeasurementUnit",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PaginationInfo_count(ctx context.Context, field graphql.CollectedField, obj *model.PaginationInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaginationInfo_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaginationInfo_count(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaginationInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PaginationInfo_nextCursor(ctx context.Context, field graphql.CollectedField, obj *model.PaginationInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaginationInfo_nextCursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NextCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaginationInfo_nextCursor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaginationInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PaginationInfo_prevCursor(ctx context.Context, field graphql.CollectedField, obj *model.PaginationInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaginationInfo_prevCursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PrevCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaginationInfo_prevCursor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaginationInfo",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -4025,6 +4179,15 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(_ context.Context
 
 // region    ************************** interface.gotpl ***************************
 
+func (ec *executionContext) _PaginatedResult(ctx context.Context, sel ast.SelectionSet, obj model.PaginatedResult) graphql.Marshaler {
+	switch obj := (obj).(type) {
+	case nil:
+		return graphql.Null
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
@@ -4088,6 +4251,49 @@ func (ec *executionContext) _MeasurementUnit(ctx context.Context, sel ast.Select
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var paginationInfoImplementors = []string{"PaginationInfo"}
+
+func (ec *executionContext) _PaginationInfo(ctx context.Context, sel ast.SelectionSet, obj *model.PaginationInfo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, paginationInfoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PaginationInfo")
+		case "count":
+			out.Values[i] = ec._PaginationInfo_count(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "nextCursor":
+			out.Values[i] = ec._PaginationInfo_nextCursor(ctx, field, obj)
+		case "prevCursor":
+			out.Values[i] = ec._PaginationInfo_prevCursor(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

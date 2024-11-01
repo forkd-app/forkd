@@ -126,7 +126,6 @@ services:
     # This is important, we assign a profile so this container doesn't auto start when you run `docker-compose start`
     profiles:
       - "scripts"
-  # All services below here are used for one off script runs
   # A container to run database migrations
   migrate:
     # Use the `geni` docker image for https://github.com/emilpriver/geni
@@ -144,6 +143,28 @@ services:
     # Mount our migrations directory so the geni cli can access those files
     volumes:
       - ./db/migrations:/migrations
+    # Attach this container to our dedicated network for the services in this compose file
+    networks:
+      - app_network
+    # This is important, we assign a profile so this container doesn't auto start when you run `docker-compose start`
+    profiles:
+      - "scripts"
+  # A container to run SQLc gen
+  sqlgen:
+    # Use the `geni` docker image for https://github.com/emilpriver/geni
+    image: sqlc/sqlc
+    # Never restart this container
+    restart: never
+    # This container will wait for the db container to start before starting
+    depends_on:
+      - db
+    links:
+      - db:postgres
+    # Mount our migrations directory so the geni cli can access those files
+    volumes:
+      - ./db/:/db
+      - ./api:/app
+    working_dir: /app
     # Attach this container to our dedicated network for the services in this compose file
     networks:
       - app_network
