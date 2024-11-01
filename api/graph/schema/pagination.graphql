@@ -1,9 +1,14 @@
 interface PaginatedResult {
-  pagination: PaginationInfo!
+    pagination: PaginationInfo!
 }
 
 type PaginationInfo {
-  count: Int!
-  nextCursor: String
-  prevCursor: String
+    count: Int!
+    nextCursor: String
+    prevCursor: String
+}
+
+type PaginatedRecipes implements PaginatedResult { 
+    recipes: [Recipe!]!
+    pagination: PaginationInfo!
 }
