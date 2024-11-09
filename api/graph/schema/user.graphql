@@ -3,4 +3,10 @@ type User {
     id: ID!
     email: String!
     username: String!
+    recipes(limit: Int = 10, cursor: String): PaginatedRecipeResult!
+}
+
+type PaginatedRecipeResult implements PaginatedResult {
+    items: [Recipe!]!
+    pagination: PaginationInfo!
 }
