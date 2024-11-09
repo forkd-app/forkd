@@ -6,11 +6,18 @@ package graph
 
 import (
 	"context"
+	"fmt"
+	"forkd/graph/model"
 )
 
-// Hello is the resolver for the hello field.
-func (r *queryResolver) Hello(ctx context.Context) (string, error) {
-	return "world", nil
+// User is the resolver for the user field.
+func (r *queryResolver) User(ctx context.Context) (*model.UserQuery, error) {
+	panic(fmt.Errorf("not implemented: User - user"))
+}
+
+// Recipe is the resolver for the recipe field.
+func (r *queryResolver) Recipe(ctx context.Context) (*model.RecipeQuery, error) {
+	panic(fmt.Errorf("not implemented: Recipe - recipe"))
 }
 
 // Query returns QueryResolver implementation.

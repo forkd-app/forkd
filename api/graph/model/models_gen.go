@@ -17,6 +17,14 @@ type MeasurementUnit struct {
 	Name        string  `json:"name"`
 }
 
+type PaginatedRecipes struct {
+	Recipes    []*Recipe       `json:"recipes"`
+	Pagination *PaginationInfo `json:"pagination"`
+}
+
+func (PaginatedRecipes) IsPaginatedResult()                  {}
+func (this PaginatedRecipes) GetPagination() *PaginationInfo { return this.Pagination }
+
 type PaginationInfo struct {
 	Count      int     `json:"count"`
 	NextCursor *string `json:"nextCursor,omitempty"`
@@ -52,6 +60,12 @@ type RecipeIngredient struct {
 	Comment    *string `json:"comment,omitempty"`
 }
 
+type RecipeQuery struct {
+	ByID   *Recipe           `json:"byId,omitempty"`
+	BySlug *Recipe           `json:"bySlug,omitempty"`
+	List   *PaginatedRecipes `json:"list"`
+}
+
 type RecipeRevision struct {
 	PublishDate string  `json:"publishDate"`
 	RecipeID    string  `json:"recipeId"`
@@ -76,4 +90,10 @@ type User struct {
 	ID       string `json:"id"`
 	Email    string `json:"email"`
 	Username string `json:"username"`
+}
+
+type UserQuery struct {
+	ByID    *User `json:"byId,omitempty"`
+	BySlug  *User `json:"bySlug,omitempty"`
+	ByEmail *User `json:"byEmail,omitempty"`
 }

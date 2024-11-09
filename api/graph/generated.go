@@ -56,6 +56,11 @@ type ComplexityRoot struct {
 		Name        func(childComplexity int) int
 	}
 
+	PaginatedRecipes struct {
+		Pagination func(childComplexity int) int
+		Recipes    func(childComplexity int) int
+	}
+
 	PaginationInfo struct {
 		Count      func(childComplexity int) int
 		NextCursor func(childComplexity int) int
@@ -63,7 +68,8 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Hello func(childComplexity int) int
+		Recipe func(childComplexity int) int
+		User   func(childComplexity int) int
 	}
 
 	Recipe struct {
@@ -92,6 +98,12 @@ type ComplexityRoot struct {
 		Unit       func(childComplexity int) int
 	}
 
+	RecipeQuery struct {
+		ByID   func(childComplexity int, id string) int
+		BySlug func(childComplexity int, slug string) int
+		List   func(childComplexity int, limit *int, nextCursor *string) int
+	}
+
 	RecipeRevision struct {
 		Description func(childComplexity int) int
 		ID          func(childComplexity int) int
@@ -117,10 +129,17 @@ type ComplexityRoot struct {
 		JoinDate func(childComplexity int) int
 		Username func(childComplexity int) int
 	}
+
+	UserQuery struct {
+		ByEmail func(childComplexity int, email string) int
+		ByID    func(childComplexity int, id string) int
+		BySlug  func(childComplexity int, slug string) int
+	}
 }
 
 type QueryResolver interface {
-	Hello(ctx context.Context) (string, error)
+	User(ctx context.Context) (*model.UserQuery, error)
+	Recipe(ctx context.Context) (*model.RecipeQuery, error)
 }
 
 type executableSchema struct {
@@ -170,6 +189,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.MeasurementUnit.Name(childComplexity), true
 
+	case "PaginatedRecipes.pagination":
+		if e.complexity.PaginatedRecipes.Pagination == nil {
+			break
+		}
+
+		return e.complexity.PaginatedRecipes.Pagination(childComplexity), true
+
+	case "PaginatedRecipes.recipes":
+		if e.complexity.PaginatedRecipes.Recipes == nil {
+			break
+		}
+
+		return e.complexity.PaginatedRecipes.Recipes(childComplexity), true
+
 	case "PaginationInfo.count":
 		if e.complexity.PaginationInfo.Count == nil {
 			break
@@ -191,12 +224,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PaginationInfo.PrevCursor(childComplexity), true
 
-	case "Query.hello":
-		if e.complexity.Query.Hello == nil {
+	case "Query.recipe":
+		if e.complexity.Query.Recipe == nil {
 			break
 		}
 
-		return e.complexity.Query.Hello(childComplexity), true
+		return e.complexity.Query.Recipe(childComplexity), true
+
+	case "Query.user":
+		if e.complexity.Query.User == nil {
+			break
+		}
+
+		return e.complexity.Query.User(childComplexity), true
 
 	case "Recipe.authorId":
 		if e.complexity.Recipe.AuthorID == nil {
@@ -317,6 +357,42 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.RecipeIngredient.Unit(childComplexity), true
 
+	case "RecipeQuery.byId":
+		if e.complexity.RecipeQuery.ByID == nil {
+			break
+		}
+
+		args, err := ec.field_RecipeQuery_byId_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.RecipeQuery.ByID(childComplexity, args["id"].(string)), true
+
+	case "RecipeQuery.bySlug":
+		if e.complexity.RecipeQuery.BySlug == nil {
+			break
+		}
+
+		args, err := ec.field_RecipeQuery_bySlug_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.RecipeQuery.BySlug(childComplexity, args["slug"].(string)), true
+
+	case "RecipeQuery.list":
+		if e.complexity.RecipeQuery.List == nil {
+			break
+		}
+
+		args, err := ec.field_RecipeQuery_list_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.RecipeQuery.List(childComplexity, args["limit"].(*int), args["nextCursor"].(*string)), true
+
 	case "RecipeRevision.description":
 		if e.complexity.RecipeRevision.Description == nil {
 			break
@@ -414,6 +490,42 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.Username(childComplexity), true
+
+	case "UserQuery.byEmail":
+		if e.complexity.UserQuery.ByEmail == nil {
+			break
+		}
+
+		args, err := ec.field_UserQuery_byEmail_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.UserQuery.ByEmail(childComplexity, args["email"].(string)), true
+
+	case "UserQuery.byId":
+		if e.complexity.UserQuery.ByID == nil {
+			break
+		}
+
+		args, err := ec.field_UserQuery_byId_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.UserQuery.ByID(childComplexity, args["id"].(string)), true
+
+	case "UserQuery.bySlug":
+		if e.complexity.UserQuery.BySlug == nil {
+			break
+		}
+
+		args, err := ec.field_UserQuery_bySlug_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.UserQuery.BySlug(childComplexity, args["slug"].(string)), true
 
 	}
 	return 0, false
@@ -540,6 +652,105 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_RecipeQuery_byId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_RecipeQuery_bySlug_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["slug"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slug"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["slug"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_RecipeQuery_list_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["nextCursor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nextCursor"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["nextCursor"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_UserQuery_byEmail_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["email"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["email"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_UserQuery_byId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_UserQuery_bySlug_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["slug"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slug"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["slug"] = arg0
 	return args, nil
 }
 
@@ -751,6 +962,116 @@ func (ec *executionContext) fieldContext_MeasurementUnit_name(_ context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _PaginatedRecipes_recipes(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedRecipes) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaginatedRecipes_recipes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Recipes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Recipe)
+	fc.Result = res
+	return ec.marshalNRecipe2ᚕᚖforkdᚋgraphᚋmodelᚐRecipeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaginatedRecipes_recipes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaginatedRecipes",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "initialPublishDate":
+				return ec.fieldContext_Recipe_initialPublishDate(ctx, field)
+			case "authorId":
+				return ec.fieldContext_Recipe_authorId(ctx, field)
+			case "slug":
+				return ec.fieldContext_Recipe_slug(ctx, field)
+			case "forkedFrom":
+				return ec.fieldContext_Recipe_forkedFrom(ctx, field)
+			case "id":
+				return ec.fieldContext_Recipe_id(ctx, field)
+			case "description":
+				return ec.fieldContext_Recipe_description(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Recipe", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PaginatedRecipes_pagination(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedRecipes) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaginatedRecipes_pagination(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Pagination, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.PaginationInfo)
+	fc.Result = res
+	return ec.marshalNPaginationInfo2ᚖforkdᚋgraphᚋmodelᚐPaginationInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaginatedRecipes_pagination(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaginatedRecipes",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "count":
+				return ec.fieldContext_PaginationInfo_count(ctx, field)
+			case "nextCursor":
+				return ec.fieldContext_PaginationInfo_nextCursor(ctx, field)
+			case "prevCursor":
+				return ec.fieldContext_PaginationInfo_prevCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PaginationInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PaginationInfo_count(ctx context.Context, field graphql.CollectedField, obj *model.PaginationInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PaginationInfo_count(ctx, field)
 	if err != nil {
@@ -877,8 +1198,8 @@ func (ec *executionContext) fieldContext_PaginationInfo_prevCursor(_ context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_hello(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_hello(ctx, field)
+func (ec *executionContext) _Query_user(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_user(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -891,31 +1212,85 @@ func (ec *executionContext) _Query_hello(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Hello(rctx)
+		return ec.resolvers.Query().User(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*model.UserQuery)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOUserQuery2ᚖforkdᚋgraphᚋmodelᚐUserQuery(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_hello(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_user(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "byId":
+				return ec.fieldContext_UserQuery_byId(ctx, field)
+			case "bySlug":
+				return ec.fieldContext_UserQuery_bySlug(ctx, field)
+			case "byEmail":
+				return ec.fieldContext_UserQuery_byEmail(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UserQuery", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_recipe(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_recipe(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Recipe(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.RecipeQuery)
+	fc.Result = res
+	return ec.marshalORecipeQuery2ᚖforkdᚋgraphᚋmodelᚐRecipeQuery(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_recipe(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "byId":
+				return ec.fieldContext_RecipeQuery_byId(ctx, field)
+			case "bySlug":
+				return ec.fieldContext_RecipeQuery_bySlug(ctx, field)
+			case "list":
+				return ec.fieldContext_RecipeQuery_list(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RecipeQuery", field.Name)
 		},
 	}
 	return fc, nil
@@ -1792,6 +2167,199 @@ func (ec *executionContext) fieldContext_RecipeIngredient_comment(_ context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _RecipeQuery_byId(ctx context.Context, field graphql.CollectedField, obj *model.RecipeQuery) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RecipeQuery_byId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ByID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Recipe)
+	fc.Result = res
+	return ec.marshalORecipe2ᚖforkdᚋgraphᚋmodelᚐRecipe(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RecipeQuery_byId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RecipeQuery",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "initialPublishDate":
+				return ec.fieldContext_Recipe_initialPublishDate(ctx, field)
+			case "authorId":
+				return ec.fieldContext_Recipe_authorId(ctx, field)
+			case "slug":
+				return ec.fieldContext_Recipe_slug(ctx, field)
+			case "forkedFrom":
+				return ec.fieldContext_Recipe_forkedFrom(ctx, field)
+			case "id":
+				return ec.fieldContext_Recipe_id(ctx, field)
+			case "description":
+				return ec.fieldContext_Recipe_description(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Recipe", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_RecipeQuery_byId_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RecipeQuery_bySlug(ctx context.Context, field graphql.CollectedField, obj *model.RecipeQuery) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RecipeQuery_bySlug(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BySlug, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Recipe)
+	fc.Result = res
+	return ec.marshalORecipe2ᚖforkdᚋgraphᚋmodelᚐRecipe(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RecipeQuery_bySlug(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RecipeQuery",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "initialPublishDate":
+				return ec.fieldContext_Recipe_initialPublishDate(ctx, field)
+			case "authorId":
+				return ec.fieldContext_Recipe_authorId(ctx, field)
+			case "slug":
+				return ec.fieldContext_Recipe_slug(ctx, field)
+			case "forkedFrom":
+				return ec.fieldContext_Recipe_forkedFrom(ctx, field)
+			case "id":
+				return ec.fieldContext_Recipe_id(ctx, field)
+			case "description":
+				return ec.fieldContext_Recipe_description(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Recipe", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_RecipeQuery_bySlug_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RecipeQuery_list(ctx context.Context, field graphql.CollectedField, obj *model.RecipeQuery) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RecipeQuery_list(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.List, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.PaginatedRecipes)
+	fc.Result = res
+	return ec.marshalNPaginatedRecipes2ᚖforkdᚋgraphᚋmodelᚐPaginatedRecipes(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RecipeQuery_list(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RecipeQuery",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "recipes":
+				return ec.fieldContext_PaginatedRecipes_recipes(ctx, field)
+			case "pagination":
+				return ec.fieldContext_PaginatedRecipes_pagination(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PaginatedRecipes", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_RecipeQuery_list_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _RecipeRevision_publishDate(ctx context.Context, field graphql.CollectedField, obj *model.RecipeRevision) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_RecipeRevision_publishDate(ctx, field)
 	if err != nil {
@@ -2398,6 +2966,192 @@ func (ec *executionContext) fieldContext_User_username(_ context.Context, field 
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserQuery_byId(ctx context.Context, field graphql.CollectedField, obj *model.UserQuery) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserQuery_byId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ByID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖforkdᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserQuery_byId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserQuery",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "joinDate":
+				return ec.fieldContext_User_joinDate(ctx, field)
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_UserQuery_byId_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserQuery_bySlug(ctx context.Context, field graphql.CollectedField, obj *model.UserQuery) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserQuery_bySlug(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BySlug, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖforkdᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserQuery_bySlug(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserQuery",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "joinDate":
+				return ec.fieldContext_User_joinDate(ctx, field)
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_UserQuery_bySlug_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserQuery_byEmail(ctx context.Context, field graphql.CollectedField, obj *model.UserQuery) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserQuery_byEmail(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ByEmail, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖforkdᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserQuery_byEmail(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserQuery",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "joinDate":
+				return ec.fieldContext_User_joinDate(ctx, field)
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_UserQuery_byEmail_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -4183,6 +4937,13 @@ func (ec *executionContext) _PaginatedResult(ctx context.Context, sel ast.Select
 	switch obj := (obj).(type) {
 	case nil:
 		return graphql.Null
+	case model.PaginatedRecipes:
+		return ec._PaginatedRecipes(ctx, sel, &obj)
+	case *model.PaginatedRecipes:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._PaginatedRecipes(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -4274,6 +5035,50 @@ func (ec *executionContext) _MeasurementUnit(ctx context.Context, sel ast.Select
 	return out
 }
 
+var paginatedRecipesImplementors = []string{"PaginatedRecipes", "PaginatedResult"}
+
+func (ec *executionContext) _PaginatedRecipes(ctx context.Context, sel ast.SelectionSet, obj *model.PaginatedRecipes) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, paginatedRecipesImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PaginatedRecipes")
+		case "recipes":
+			out.Values[i] = ec._PaginatedRecipes_recipes(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pagination":
+			out.Values[i] = ec._PaginatedRecipes_pagination(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var paginationInfoImplementors = []string{"PaginationInfo"}
 
 func (ec *executionContext) _PaginationInfo(ctx context.Context, sel ast.SelectionSet, obj *model.PaginationInfo) graphql.Marshaler {
@@ -4336,19 +5141,35 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
-		case "hello":
+		case "user":
 			field := field
 
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_hello(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
+				res = ec._Query_user(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "recipe":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_recipe(ctx, field)
 				return res
 			}
 
@@ -4570,6 +5391,49 @@ func (ec *executionContext) _RecipeIngredient(ctx context.Context, sel ast.Selec
 	return out
 }
 
+var recipeQueryImplementors = []string{"RecipeQuery"}
+
+func (ec *executionContext) _RecipeQuery(ctx context.Context, sel ast.SelectionSet, obj *model.RecipeQuery) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, recipeQueryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RecipeQuery")
+		case "byId":
+			out.Values[i] = ec._RecipeQuery_byId(ctx, field, obj)
+		case "bySlug":
+			out.Values[i] = ec._RecipeQuery_bySlug(ctx, field, obj)
+		case "list":
+			out.Values[i] = ec._RecipeQuery_list(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var recipeRevisionImplementors = []string{"RecipeRevision"}
 
 func (ec *executionContext) _RecipeRevision(ctx context.Context, sel ast.SelectionSet, obj *model.RecipeRevision) graphql.Marshaler {
@@ -4747,6 +5611,46 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var userQueryImplementors = []string{"UserQuery"}
+
+func (ec *executionContext) _UserQuery(ctx context.Context, sel ast.SelectionSet, obj *model.UserQuery) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, userQueryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UserQuery")
+		case "byId":
+			out.Values[i] = ec._UserQuery_byId(ctx, field, obj)
+		case "bySlug":
+			out.Values[i] = ec._UserQuery_bySlug(ctx, field, obj)
+		case "byEmail":
+			out.Values[i] = ec._UserQuery_byEmail(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5156,6 +6060,80 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
+func (ec *executionContext) marshalNPaginatedRecipes2ᚖforkdᚋgraphᚋmodelᚐPaginatedRecipes(ctx context.Context, sel ast.SelectionSet, v *model.PaginatedRecipes) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PaginatedRecipes(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPaginationInfo2ᚖforkdᚋgraphᚋmodelᚐPaginationInfo(ctx context.Context, sel ast.SelectionSet, v *model.PaginationInfo) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PaginationInfo(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNRecipe2ᚕᚖforkdᚋgraphᚋmodelᚐRecipeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Recipe) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNRecipe2ᚖforkdᚋgraphᚋmodelᚐRecipe(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNRecipe2ᚖforkdᚋgraphᚋmodelᚐRecipe(ctx context.Context, sel ast.SelectionSet, v *model.Recipe) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Recipe(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5466,6 +6444,20 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
+func (ec *executionContext) marshalORecipe2ᚖforkdᚋgraphᚋmodelᚐRecipe(ctx context.Context, sel ast.SelectionSet, v *model.Recipe) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Recipe(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalORecipeQuery2ᚖforkdᚋgraphᚋmodelᚐRecipeQuery(ctx context.Context, sel ast.SelectionSet, v *model.RecipeQuery) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._RecipeQuery(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
 	if v == nil {
 		return nil, nil
@@ -5480,6 +6472,20 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	}
 	res := graphql.MarshalString(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOUser2ᚖforkdᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._User(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOUserQuery2ᚖforkdᚋgraphᚋmodelᚐUserQuery(ctx context.Context, sel ast.SelectionSet, v *model.UserQuery) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._UserQuery(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {
