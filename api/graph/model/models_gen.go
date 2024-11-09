@@ -2,6 +2,11 @@
 
 package model
 
+type PaginatedResult interface {
+	IsPaginatedResult()
+	GetPagination() *PaginationInfo
+}
+
 type Ingredient struct {
 	Name        string  `json:"name"`
 	Description *string `json:"description,omitempty"`
@@ -10,6 +15,12 @@ type Ingredient struct {
 type MeasurementUnit struct {
 	Description *string `json:"description,omitempty"`
 	Name        string  `json:"name"`
+}
+
+type PaginationInfo struct {
+	Count      int     `json:"count"`
+	NextCursor *string `json:"nextCursor,omitempty"`
+	PrevCursor *string `json:"prevCursor,omitempty"`
 }
 
 type Query struct {

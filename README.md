@@ -39,7 +39,7 @@ We use [gqlgen](https://gqlgen.com/) for generating Go types from our GraphQL [s
 
 #### DB Migrations
 
-We use [geni](https://github.com/emilpriver/geni) for our DB migration tool. This manages the migrations in the `./db/migrations` folder. Some examples of using this from docker-compose:
+We use [geni](https://github.com/emilpriver/geni) for our DB migration tool. This manages the migrations in the [migrations](db/migrations) folder. Some examples of using this from docker-compose:
 
 - `docker-compose --profile "scripts" run --rm migrate new`
   - This creates a new migration file
@@ -47,3 +47,10 @@ We use [geni](https://github.com/emilpriver/geni) for our DB migration tool. Thi
   - This applies any needed migrations
 - `docker-compose --profile "scripts" run --rm migrate down`
   - Roll back applied migrations
+
+#### DB Queries
+
+We use [sqlc](https://github.com/sqlc-dev/sqlc) to generate typesafe `go` code based on our `sql` queries. This uses the queries in the [queries](db/queries/) folder. Some examples of using this from docker-compose:
+
+- `docker-compose --profile "scripts" run --rm sqlgen generate`
+  - This generates go files for our queries

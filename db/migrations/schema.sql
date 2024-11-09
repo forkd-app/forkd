@@ -157,33 +157,33 @@ ALTER TABLE users ADD CONSTRAINT users_username_key UNIQUE (username);
 
 -- INDEXES 
 
-CREATE UNIQUE INDEX ingredients_pkey ON public.ingredients USING btree (name)
+CREATE UNIQUE INDEX ingredients_pkey ON public.ingredients USING btree (name);
 
-CREATE UNIQUE INDEX linked_recipe_pk ON public.linked_recipes USING btree (from_recipe_id, to_recipe_id)
+CREATE UNIQUE INDEX linked_recipe_pk ON public.linked_recipes USING btree (from_recipe_id, to_recipe_id);
 
-CREATE UNIQUE INDEX measurement_units_pkey ON public.measurement_units USING btree (name)
+CREATE UNIQUE INDEX measurement_units_pkey ON public.measurement_units USING btree (name);
 
-CREATE UNIQUE INDEX recipe_comments_pkey ON public.recipe_comments USING btree (id)
+CREATE UNIQUE INDEX recipe_comments_pkey ON public.recipe_comments USING btree (id);
 
-CREATE UNIQUE INDEX recipe_ingredients_pkey ON public.recipe_ingredients USING btree (id)
+CREATE UNIQUE INDEX recipe_ingredients_pkey ON public.recipe_ingredients USING btree (id);
 
-CREATE UNIQUE INDEX recipe_revisions_pkey ON public.recipe_revisions USING btree (id)
+CREATE UNIQUE INDEX recipe_revisions_pkey ON public.recipe_revisions USING btree (id);
 
-CREATE UNIQUE INDEX recipe_steps_pkey ON public.recipe_steps USING btree (id)
+CREATE UNIQUE INDEX recipe_steps_pkey ON public.recipe_steps USING btree (id);
 
-CREATE UNIQUE INDEX recipes_pkey ON public.recipes USING btree (id)
+CREATE UNIQUE INDEX recipes_pkey ON public.recipes USING btree (id);
 
-CREATE UNIQUE INDEX recipes_slug_key ON public.recipes USING btree (slug)
+CREATE UNIQUE INDEX recipes_slug_key ON public.recipes USING btree (slug);
 
-CREATE UNIQUE INDEX schema_migrations_pkey ON public.schema_migrations USING btree (id)
+CREATE UNIQUE INDEX schema_migrations_pkey ON public.schema_migrations USING btree (id);
 
-CREATE UNIQUE INDEX tags_pkey ON public.tags USING btree (name)
+CREATE UNIQUE INDEX tags_pkey ON public.tags USING btree (name);
 
-CREATE UNIQUE INDEX users_email_key ON public.users USING btree (email)
+CREATE UNIQUE INDEX users_email_key ON public.users USING btree (email);
 
-CREATE UNIQUE INDEX users_pkey ON public.users USING btree (id)
+CREATE UNIQUE INDEX users_pkey ON public.users USING btree (id);
 
-CREATE UNIQUE INDEX users_username_key ON public.users USING btree (username)
+CREATE UNIQUE INDEX users_username_key ON public.users USING btree (username);
 
 -- SEQUENCES 
 
