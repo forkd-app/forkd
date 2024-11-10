@@ -8,7 +8,3 @@ type PaginationInfo {
     prevCursor: String
 }
 
-type PaginatedRecipes implements PaginatedResult { 
-    recipes: [Recipe!]!
-    pagination: PaginationInfo!
-}

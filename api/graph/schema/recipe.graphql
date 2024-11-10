@@ -1,6 +1,6 @@
 type Recipe {
   initialPublishDate: String! #ToDo: update with timestamp type
-  authorId: User!
+  author: User!
   slug: String!
   forkedFrom: Int
   id: ID!
@@ -8,23 +8,33 @@ type Recipe {
 }
 
 type RecipeComment {
-  revisionId: ID!
+  revision: RecipeRevision!
   postDate: String! #ToDo: update with timestamp type
-  recipeId: ID!
-  authorId: User!
+  recipe: Recipe!
+  author: User!
   content: String!
 }
 
 type RecipeRevision {
   publishDate: String! #ToDo: update with timestamp type
-  recipeId: ID!
+  recipe: Recipe!
   description: String
   id: ID!
 }
 
 type RecipeStep {
   id: ID!
-  revisionId: ID!
+  revision: RecipeRevision!
   content: String!
   index: Int!
+}
+
+type PaginatedRecipes implements PaginatedResult { 
+    recipes: [Recipe!]!
+    pagination: PaginationInfo!
+}
+
+type PaginatedComments implements PaginatedResult {
+  comments: [RecipeComment!]!
+  pagination: PaginationInfo!
 }

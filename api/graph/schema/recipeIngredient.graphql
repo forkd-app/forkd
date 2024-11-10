@@ -1,7 +1,7 @@
 type RecipeIngredient {
-    revisionId: ID!
-    unit: String!
-    ingredient: String!
+    revision: RecipeRevision!
+    unit: MeasurementUnit!
+    ingredient: Ingredient!
     quantity: Float!
     id: ID!
     comment: String
