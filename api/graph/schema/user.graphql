@@ -1,6 +1,8 @@
 type User {
-    joinDate: String! #ToDo: update with timestamp type
-    id: ID!
-    email: String!
-    username: String!
+  joinDate: String! #ToDo: update with timestamp type
+  id: ID!
+  email: String!
+  username: String!
+  recipes(limit: Int, nextCursor: String): PaginatedRecipes!
+  comments(limit: Int, nextCursor: String): PaginatedComments!
 }

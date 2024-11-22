@@ -17,6 +17,22 @@ type MeasurementUnit struct {
 	Name        string  `json:"name"`
 }
 
+type PaginatedComments struct {
+	Comments   []*RecipeComment `json:"comments"`
+	Pagination *PaginationInfo  `json:"pagination"`
+}
+
+func (PaginatedComments) IsPaginatedResult()                  {}
+func (this PaginatedComments) GetPagination() *PaginationInfo { return this.Pagination }
+
+type PaginatedRecipeRevisions struct {
+	Revisions  []*RecipeRevision `json:"revisions"`
+	Pagination *PaginationInfo   `json:"pagination"`
+}
+
+func (PaginatedRecipeRevisions) IsPaginatedResult()                  {}
+func (this PaginatedRecipeRevisions) GetPagination() *PaginationInfo { return this.Pagination }
+
 type PaginatedRecipes struct {
 	Recipes    []*Recipe       `json:"recipes"`
 	Pagination *PaginationInfo `json:"pagination"`
@@ -35,29 +51,30 @@ type Query struct {
 }
 
 type Recipe struct {
-	InitialPublishDate string `json:"initialPublishDate"`
-	AuthorID           string `json:"authorId"`
-	Slug               string `json:"slug"`
-	ForkedFrom         *int   `json:"forkedFrom,omitempty"`
-	ID                 string `json:"id"`
-	Description        string `json:"description"`
+	InitialPublishDate string                    `json:"initialPublishDate"`
+	Author             *User                     `json:"author"`
+	Slug               string                    `json:"slug"`
+	ForkedFrom         *int                      `json:"forkedFrom,omitempty"`
+	ID                 string                    `json:"id"`
+	Description        string                    `json:"description"`
+	RecipeRevisions    *PaginatedRecipeRevisions `json:"recipeRevisions"`
 }
 
 type RecipeComment struct {
-	RevisionID string `json:"revisionId"`
-	PostDate   string `json:"postDate"`
-	RecipeID   string `json:"recipeId"`
-	AuthorID   string `json:"authorId"`
-	Content    string `json:"content"`
+	Revision *RecipeRevision `json:"revision"`
+	PostDate string          `json:"postDate"`
+	Recipe   *Recipe         `json:"recipe"`
+	Author   *User           `json:"author"`
+	Content  string          `json:"content"`
 }
 
 type RecipeIngredient struct {
-	RevisionID string  `json:"revisionId"`
-	Unit       string  `json:"unit"`
-	Ingredient string  `json:"ingredient"`
-	Quantity   float64 `json:"quantity"`
-	ID         string  `json:"id"`
-	Comment    *string `json:"comment,omitempty"`
+	Revision   *RecipeRevision  `json:"revision"`
+	Unit       *MeasurementUnit `json:"unit"`
+	Ingredient *Ingredient      `json:"ingredient"`
+	Quantity   float64          `json:"quantity"`
+	ID         string           `json:"id"`
+	Comment    *string          `json:"comment,omitempty"`
 }
 
 type RecipeQuery struct {
@@ -68,16 +85,16 @@ type RecipeQuery struct {
 
 type RecipeRevision struct {
 	PublishDate string  `json:"publishDate"`
-	RecipeID    string  `json:"recipeId"`
+	Recipe      *Recipe `json:"recipe"`
 	Description *string `json:"description,omitempty"`
 	ID          string  `json:"id"`
 }
 
 type RecipeStep struct {
-	ID         string `json:"id"`
-	RevisionID string `json:"revisionId"`
-	Content    string `json:"content"`
-	Index      int    `json:"index"`
+	ID       string          `json:"id"`
+	Revision *RecipeRevision `json:"revision"`
+	Content  string          `json:"content"`
+	Index    int             `json:"index"`
 }
 
 type Tag struct {
@@ -86,10 +103,12 @@ type Tag struct {
 }
 
 type User struct {
-	JoinDate string `json:"joinDate"`
-	ID       string `json:"id"`
-	Email    string `json:"email"`
-	Username string `json:"username"`
+	JoinDate string             `json:"joinDate"`
+	ID       string             `json:"id"`
+	Email    string             `json:"email"`
+	Username string             `json:"username"`
+	Recipes  *PaginatedRecipes  `json:"recipes"`
+	Comments *PaginatedComments `json:"comments"`
 }
 
 type UserQuery struct {
