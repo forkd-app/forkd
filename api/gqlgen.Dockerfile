@@ -5,8 +5,5 @@ FROM golang:1.23-alpine
 RUN mkdir /app
 COPY .. /app
 WORKDIR /app
-RUN go mod download
-
-# The build flag sets how to build after a change has been detected in the source code
-# The command flag sets how to run the app after it has been built
+RUN go mod tidy
 ENTRYPOINT ["go", "run", "github.com/99designs/gqlgen"]

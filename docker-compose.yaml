@@ -31,6 +31,8 @@ services:
     # This container will wait for the api container to start before starting
     depends_on:
       - api
+    volumes:
+      - ./api:/app
     # This is used for dev purposes so we can auto reload containers wehen files change
     develop:
       watch:
