@@ -14,8 +14,8 @@ type Ingredient struct {
 }
 
 type IngredientTag struct {
-	Tag        string
 	Ingredient string
+	Tag        string
 }
 
 type LinkedRecipe struct {
@@ -24,8 +24,8 @@ type LinkedRecipe struct {
 }
 
 type MeasurementUnit struct {
-	Description pgtype.Text
 	Name        string
+	Description pgtype.Text
 }
 
 type MeasurementUnitsTag struct {
@@ -34,12 +34,12 @@ type MeasurementUnitsTag struct {
 }
 
 type Recipe struct {
-	Description        pgtype.Text
-	ForkedFrom         pgtype.Int8
-	AuthorID           int64
-	InitialPublishDate pgtype.Timestamp
 	ID                 int64
+	AuthorID           int64
+	ForkedFrom         pgtype.Int8
 	Slug               string
+	Description        pgtype.Text
+	InitialPublishDate pgtype.Timestamp
 }
 
 type RecipeComment struct {
@@ -51,27 +51,27 @@ type RecipeComment struct {
 }
 
 type RecipeIngredient struct {
-	Comment    pgtype.Text
+	ID         int64
 	RevisionID int64
 	Ingredient string
 	Quantity   float32
 	Unit       string
-	ID         int64
+	Comment    pgtype.Text
 }
 
 type RecipeRevision struct {
-	PublishDate pgtype.Timestamp
+	ID          int64
 	RecipeID    int64
 	ParentID    int64
 	ChildID     pgtype.Int8
 	Description pgtype.Text
-	ID          int64
+	PublishDate pgtype.Timestamp
 }
 
 type RecipeStep struct {
-	Content    string
-	RevisionID int64
 	ID         int64
+	RevisionID int64
+	Content    string
 	Index      int32
 }
 
@@ -85,8 +85,8 @@ type Tag struct {
 }
 
 type User struct {
-	JoinDate pgtype.Timestamp
+	ID       int64
 	Username string
 	Email    string
-	ID       int64
+	JoinDate pgtype.Timestamp
 }

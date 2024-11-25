@@ -17,7 +17,7 @@ INSERT INTO users (
 	$1,
 	$2
 )
-RETURNING join_date, username, email, id
+RETURNING id, username, email, join_date
 `
 
 type CreateUserParams struct {
@@ -29,26 +29,26 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	row := q.db.QueryRow(ctx, createUser, arg.Username, arg.Email)
 	var i User
 	err := row.Scan(
-		&i.JoinDate,
+		&i.ID,
 		&i.Username,
 		&i.Email,
-		&i.ID,
+		&i.JoinDate,
 	)
 	return i, err
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT join_date, username, email, id FROM users WHERE id = $1 LIMIT 1
+SELECT id, username, email, join_date FROM users WHERE id = $1 LIMIT 1
 `
 
 func (q *Queries) GetUserById(ctx context.Context, id int64) (User, error) {
 	row := q.db.QueryRow(ctx, getUserById, id)
 	var i User
 	err := row.Scan(
-		&i.JoinDate,
+		&i.ID,
 		&i.Username,
 		&i.Email,
-		&i.ID,
+		&i.JoinDate,
 	)
 	return i, err
 }

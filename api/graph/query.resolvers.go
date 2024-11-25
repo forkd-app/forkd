@@ -20,7 +20,45 @@ func (r *queryResolver) Recipe(ctx context.Context) (*model.RecipeQuery, error) 
 	panic(fmt.Errorf("not implemented: Recipe - recipe"))
 }
 
+// ByID is the resolver for the byId field.
+func (r *recipeQueryResolver) ByID(ctx context.Context, obj *model.RecipeQuery, id string) (*model.Recipe, error) {
+	panic(fmt.Errorf("not implemented: ByID - byId"))
+}
+
+// BySlug is the resolver for the bySlug field.
+func (r *recipeQueryResolver) BySlug(ctx context.Context, obj *model.RecipeQuery, slug string) (*model.Recipe, error) {
+	panic(fmt.Errorf("not implemented: BySlug - bySlug"))
+}
+
+// List is the resolver for the list field.
+func (r *recipeQueryResolver) List(ctx context.Context, obj *model.RecipeQuery, limit *int, nextCursor *string) (*model.PaginatedRecipes, error) {
+	panic(fmt.Errorf("not implemented: List - list"))
+}
+
+// ByID is the resolver for the byId field.
+func (r *userQueryResolver) ByID(ctx context.Context, obj *model.UserQuery, id string) (*model.User, error) {
+	panic(fmt.Errorf("not implemented: ByID - byId"))
+}
+
+// BySlug is the resolver for the bySlug field.
+func (r *userQueryResolver) BySlug(ctx context.Context, obj *model.UserQuery, slug string) (*model.User, error) {
+	panic(fmt.Errorf("not implemented: BySlug - bySlug"))
+}
+
+// ByEmail is the resolver for the byEmail field.
+func (r *userQueryResolver) ByEmail(ctx context.Context, obj *model.UserQuery, email string) (*model.User, error) {
+	panic(fmt.Errorf("not implemented: ByEmail - byEmail"))
+}
+
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
+// RecipeQuery returns RecipeQueryResolver implementation.
+func (r *Resolver) RecipeQuery() RecipeQueryResolver { return &recipeQueryResolver{r} }
+
+// UserQuery returns UserQueryResolver implementation.
+func (r *Resolver) UserQuery() UserQueryResolver { return &userQueryResolver{r} }
+
 type queryResolver struct{ *Resolver }
+type recipeQueryResolver struct{ *Resolver }
+type userQueryResolver struct{ *Resolver }
