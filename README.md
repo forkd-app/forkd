@@ -31,7 +31,7 @@ I've tried to make this pretty easy to develop with. We use Docker and Docker Co
   - Prettier
   - GraphQL linting
 - [PNPM](https://pnpm.io/installation)
-  - Package manager if yoy want to run the app without docker
+  - Package manager if you want to run the app without docker
 - [Go](https://go.dev/doc/install) >= v1.22
   - Backend
 
@@ -51,7 +51,6 @@ We use [gqlgen](https://gqlgen.com/) for generating Go types from our GraphQL [s
 
 - `task gqlgen`
   - This generates the GraphQL types for our API from the schema files.
-  - `docker-compose --profile "scripts" run --rm gqlgen "generate"`
 
 #### DB Migrations
 
@@ -59,12 +58,9 @@ We use [go migrate](https://github.com/golang-migrate/migrate) for our DB migrat
 
 - `task migrate-new`
   - This creates a new migration file
-  - `docker-compose --profile "scripts" run --rm migrate create`
 - `task migrate-up`
-  - `docker-compose --profile "scripts" run --rm migrate up`
   - This applies any needed migrations
 - `task migrate-down`
-  - `docker-compose --profile "scripts" run --rm migrate down`
   - Roll back applied migrations
 
 #### DB Queries
@@ -73,4 +69,3 @@ We use [sqlc](https://github.com/sqlc-dev/sqlc) to generate typesafe `go` code b
 
 - `task sqlc-gen`
   - This generates go files for our queries
-  - `docker-compose --profile "scripts" run --rm sqlc generate`
