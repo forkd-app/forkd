@@ -1,0 +1,19 @@
+version: "3"
+
+tasks:
+  up:
+    cmd: docker-compose up -d {{.CLI_ARGS}}
+  watch:
+    cmd: docker-compose up --watch {{.CLI_ARGS}}
+  down:
+    cmd: docker-compose down --remove-orphans {{.CLI_ARGS}}
+  migrate-new:
+    cmd: docker-compose --profile "scripts" run --rm migrate -verbose -path="/migrations/" -database="postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable" create {{.CLI_ARGS}}
+  migrate-up:
+    cmd: docker-compose --profile "scripts" run --rm migrate -verbose -path="/migrations/" -database="postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable" up {{.CLI_ARGS}}
+  migrate-down:
+    cmd: docker-compose --profile "scripts" run --rm migrate -verbose -path="/migrations/" -database="postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable" down {{.CLI_ARGS}}
+  sqlc-gen:
+    cmd: docker-compose --profile "scripts" run --rm sqlc generate {{.CLI_ARGS}}
+  gqlgen:
+    cmd: docker-compose --profile "scripts" run --rm gqlgen generate {{.CLI_ARGS}}

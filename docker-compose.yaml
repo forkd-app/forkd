@@ -130,8 +130,8 @@ services:
       - "scripts"
   # A container to run database migrations
   migrate:
-    # Use the `geni` docker image for https://github.com/emilpriver/geni
-    image: ghcr.io/emilpriver/geni
+    # Use the `migrate` docker image for https://github.com/golang-migrate/migrate
+    image: migrate/migrate
     # Never restart this container
     restart: never
     # This container will wait for the db container to start before starting
@@ -152,7 +152,7 @@ services:
     profiles:
       - "scripts"
   # A container to run SQLc gen
-  sqlgen:
+  sqlc:
     # Use the `sqlc` docker image for https://docs.sqlc.dev/en/stable/overview/install.html#docker
     image: sqlc/sqlc
     # Never restart this container

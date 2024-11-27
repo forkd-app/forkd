@@ -4,5 +4,7 @@ type User {
   email: String!
   username: String!
   recipes(limit: Int, nextCursor: String): PaginatedRecipes!
+    @goField(forceResolver: true)
   comments(limit: Int, nextCursor: String): PaginatedComments!
+    @goField(forceResolver: true)
 }

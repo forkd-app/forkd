@@ -17,40 +17,55 @@ I've tried to make this pretty easy to develop with. We use Docker and Docker Co
 
 ### Dependencies
 
-- Docker
-- Probably Node >= v20
-- PNPM
-- Go >= v1.22
+#### Required
+
+- [Docker](https://docs.docker.com/engine/install/)
+  - For running all the services together and reducing the required deps to install
+- [Task](https://taskfile.dev/installation/)
+  - For running commands in a simpler fashion
+
+#### Optional
+
+- [Node](https://nodejs.org/en/download/package-manager/current) >= v20
+  - Frontend
+  - Prettier
+  - GraphQL linting
+- [PNPM](https://pnpm.io/installation)
+  - Package manager if you want to run the app without docker
+- [Go](https://go.dev/doc/install) >= v1.22
+  - Backend
 
 ### Starting the application services
 
-To spin up the application services, you just need to make sure you have the dependencies installed and run `docker-compose up -d` from the root directory. This will start all the services specifies in the `docker-compose.yml`.
+To spin up the application services, you just need to make sure you have the dependencies installed and run `task up` from the root directory. This will start all the services specifies in the `docker-compose.yml`. You can run `task watch` to start the services in `watch` mode. This will rebuild/restart the services when files change.
+
+To bring the services down run `task down`.
 
 ### Scripts
 
-We have a couple scripts setup inside the `docker-compose.yml`. Here is an overview of them:
+We have a couple scripts setup inside the [docker-compose.yml](./docker-compose.yml). I have setup additional shortcuts from them in the [taskfile](./Taskfile.yml):
 
 #### GraphQL
 
 We use [gqlgen](https://gqlgen.com/) for generating Go types from our GraphQL [schema](api/graph/schema). You can access this feature using the `gqlgen` compose service in the `scripts` profile. Here are some examples:
 
-- `docker-compose --profile "scripts" run --rm gqlgen "generate"`
+- `task gqlgen`
   - This generates the GraphQL types for our API from the schema files.
 
 #### DB Migrations
 
-We use [geni](https://github.com/emilpriver/geni) for our DB migration tool. This manages the migrations in the [migrations](db/migrations) folder. Some examples of using this from docker-compose:
+We use [go migrate](https://github.com/golang-migrate/migrate) for our DB migration tool. This manages the migrations in the [migrations](db/migrations) folder. Some examples of using this from docker-compose:
 
-- `docker-compose --profile "scripts" run --rm migrate new`
+- `task migrate-new`
   - This creates a new migration file
-- `docker-compose --profile "scripts" run --rm migrate up`
+- `task migrate-up`
   - This applies any needed migrations
-- `docker-compose --profile "scripts" run --rm migrate down`
+- `task migrate-down`
   - Roll back applied migrations
 
 #### DB Queries
 
 We use [sqlc](https://github.com/sqlc-dev/sqlc) to generate typesafe `go` code based on our `sql` queries. This uses the queries in the [queries](db/queries/) folder. Some examples of using this from docker-compose:
 
-- `docker-compose --profile "scripts" run --rm sqlgen generate`
+- `task sqlc-gen`
   - This generates go files for our queries
