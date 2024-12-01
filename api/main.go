@@ -1,6 +1,7 @@
 package main
 
 import (
+	"forkd/db"
 	"forkd/graph"
 	"log"
 	"net/http"
@@ -18,7 +19,13 @@ func main() {
 		port = defaultPort
 	}
 
-	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
+	// TODO: Make this an env var
+	queries, _, err := db.GetQueriesWithConnection("postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable")
+	if err != nil || queries == nil {
+		panic("Unable to connect to db")
+	}
+
+	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{Queries: *queries}}))
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)

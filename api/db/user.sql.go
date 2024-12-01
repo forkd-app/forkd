@@ -37,8 +37,24 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const getUserByEmail = `-- name: GetUserByEmail :one
+SELECT id, username, email, join_date FROM users WHERE users.email = $1 LIMIT 1
+`
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByEmail, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.JoinDate,
+	)
+	return i, err
+}
+
 const getUserById = `-- name: GetUserById :one
-SELECT id, username, email, join_date FROM users WHERE id = $1 LIMIT 1
+SELECT id, username, email, join_date FROM users WHERE users.id = $1 LIMIT 1
 `
 
 func (q *Queries) GetUserById(ctx context.Context, id int64) (User, error) {

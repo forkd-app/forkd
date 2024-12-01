@@ -31,19 +31,16 @@ services:
     # This container will wait for the api container to start before starting
     depends_on:
       - api
-    volumes:
-      - ./api:/app
     # This is used for dev purposes so we can auto reload containers wehen files change
     develop:
       watch:
         - path: ./web/package.json
           action: rebuild
         - path: ./web
-          target: /code
-          action: sync
+          target: /app
+          action: sync+restart
           ignore:
             - ./web/node_modules
-    restart: unless-stopped
   # This service is the api. For the source code, checkout the api directory
   api:
     # This specifies the docker file/context to build for the api container
@@ -62,6 +59,8 @@ services:
     # This container will wait for the db container to start before starting
     depends_on:
       - db
+    links:
+      - db:postgres
     # This is used for dev purposes so we can auto reload containers wehen files change
     develop:
       watch:
@@ -70,7 +69,6 @@ services:
         - path: ./api
           target: /app
           action: sync+restart
-    restart: unless-stopped
   # This service is the database
   db:
     # We are using the PostgreSQL v16 image for this container

@@ -75,10 +75,6 @@ type RecipeStep struct {
 	Index      int32
 }
 
-type SchemaMigration struct {
-	ID string
-}
-
 type Tag struct {
 	Name        string
 	Description pgtype.Text

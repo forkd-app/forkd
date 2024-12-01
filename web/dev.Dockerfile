@@ -1,5 +1,5 @@
 FROM node:alpine
-WORKDIR /code
+WORKDIR /app
 COPY . .
 RUN npm i -g pnpm
 RUN pnpm i --frozen-lockfile

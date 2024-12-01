@@ -7,6 +7,8 @@ tasks:
     cmd: docker-compose up --watch {{.CLI_ARGS}}
   down:
     cmd: docker-compose down --remove-orphans {{.CLI_ARGS}}
+  build:
+    cmd: docker-compose --profile "scripts" build {{.CLI_ARGS}}
   migrate-new:
     cmd: docker-compose --profile "scripts" run --rm migrate -verbose -path="/migrations/" -database="postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable" create {{.CLI_ARGS}}
   migrate-up:
