@@ -5,7 +5,7 @@ type Recipe {
   forkedFrom: Int
   id: ID!
   description: String!
-  recipeRevisions(limit: Int, nextCursor: String): PaginatedRecipeRevisions!
+  revisions(limit: Int, nextCursor: String): PaginatedRecipeRevisions!
     @goField(forceResolver: true)
 }
 
@@ -18,10 +18,11 @@ type RecipeComment {
 }
 
 type RecipeRevision {
-  publishDate: String! #ToDo: update with timestamp type
-  recipe: Recipe! @goField(forceResolver: true)
-  description: String
   id: ID!
+  description: String
+  publishDate: String! #ToDo: update with timestamp type
+  ingredients: [RecipeIngredient!]! @goField(forceResolver: true)
+  steps: [RecipeStep!]! @goField(forceResolver: true)
 }
 
 type RecipeStep {
@@ -29,19 +30,4 @@ type RecipeStep {
   revision: RecipeRevision! @goField(forceResolver: true)
   content: String!
   index: Int!
-}
-
-type PaginatedRecipes implements PaginatedResult {
-  recipes: [Recipe!]!
-  pagination: PaginationInfo!
-}
-
-type PaginatedComments implements PaginatedResult {
-  comments: [RecipeComment!]!
-  pagination: PaginationInfo!
-}
-
-type PaginatedRecipeRevisions implements PaginatedResult {
-  revisions: [RecipeRevision!]!
-  pagination: PaginationInfo!
 }

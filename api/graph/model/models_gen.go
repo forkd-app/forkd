@@ -18,7 +18,7 @@ type MeasurementUnit struct {
 }
 
 type PaginatedComments struct {
-	Comments   []*RecipeComment `json:"comments"`
+	Items      []*RecipeComment `json:"items"`
 	Pagination *PaginationInfo  `json:"pagination"`
 }
 
@@ -26,7 +26,7 @@ func (PaginatedComments) IsPaginatedResult()                  {}
 func (this PaginatedComments) GetPagination() *PaginationInfo { return this.Pagination }
 
 type PaginatedRecipeRevisions struct {
-	Revisions  []*RecipeRevision `json:"revisions"`
+	Items      []*RecipeRevision `json:"items"`
 	Pagination *PaginationInfo   `json:"pagination"`
 }
 
@@ -34,7 +34,7 @@ func (PaginatedRecipeRevisions) IsPaginatedResult()                  {}
 func (this PaginatedRecipeRevisions) GetPagination() *PaginationInfo { return this.Pagination }
 
 type PaginatedRecipes struct {
-	Recipes    []*Recipe       `json:"recipes"`
+	Items      []*Recipe       `json:"items"`
 	Pagination *PaginationInfo `json:"pagination"`
 }
 
@@ -57,7 +57,7 @@ type Recipe struct {
 	ForkedFrom         *int                      `json:"forkedFrom,omitempty"`
 	ID                 string                    `json:"id"`
 	Description        string                    `json:"description"`
-	RecipeRevisions    *PaginatedRecipeRevisions `json:"recipeRevisions"`
+	Revisions          *PaginatedRecipeRevisions `json:"revisions"`
 }
 
 type RecipeComment struct {
@@ -84,10 +84,11 @@ type RecipeQuery struct {
 }
 
 type RecipeRevision struct {
-	PublishDate string  `json:"publishDate"`
-	Recipe      *Recipe `json:"recipe"`
-	Description *string `json:"description,omitempty"`
-	ID          string  `json:"id"`
+	ID          string              `json:"id"`
+	Description *string             `json:"description,omitempty"`
+	PublishDate string              `json:"publishDate"`
+	Ingredients []*RecipeIngredient `json:"ingredients"`
+	Steps       []*RecipeStep       `json:"steps"`
 }
 
 type RecipeStep struct {
