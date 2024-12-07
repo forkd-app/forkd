@@ -1,5 +1,8 @@
 -- name: GetUserById :one
-SELECT * FROM users WHERE id = $1 LIMIT 1;
+SELECT users.id, users.email, users.username, users.join_date FROM users WHERE users.id = $1 LIMIT 1;
+
+-- name: GetUserByEmail :one
+SELECT users.id, users.email, users.username, users.join_date FROM users WHERE users.email = $1 LIMIT 1;
 
 -- name: CreateUser :one
 INSERT INTO users (
@@ -9,4 +12,4 @@ INSERT INTO users (
 	$1,
 	$2
 )
-RETURNING *;
+RETURNING users.id, users.email, users.username, users.join_date;
