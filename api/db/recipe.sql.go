@@ -12,18 +12,24 @@ import (
 )
 
 const createRecipe = `-- name: CreateRecipe :one
-INSERT INTO recipes (
-  slug,
-  author_id,
-  description,
-  forked_from
-) VALUES (
-	$1,
-	$2,
-  $3,
-  $4
+INSERT INTO recipes(
+slug,
+author_id,
+description,
+forked_from
 )
-RETURNING id, author_id, forked_from, slug, description, initial_publish_date
+VALUES(
+$1,
+$2,
+$3,
+$4
+) RETURNING
+recipes.id,
+recipes.slug,
+recipes.description,
+recipes.author_id,
+recipes.forked_from,
+recipes.initial_publish_date
 `
 
 type CreateRecipeParams struct {
@@ -33,20 +39,29 @@ type CreateRecipeParams struct {
 	ForkedFrom  pgtype.Int8
 }
 
-func (q *Queries) CreateRecipe(ctx context.Context, arg CreateRecipeParams) (Recipe, error) {
+type CreateRecipeRow struct {
+	ID                 int64
+	Slug               string
+	Description        pgtype.Text
+	AuthorID           int64
+	ForkedFrom         pgtype.Int8
+	InitialPublishDate pgtype.Timestamp
+}
+
+func (q *Queries) CreateRecipe(ctx context.Context, arg CreateRecipeParams) (CreateRecipeRow, error) {
 	row := q.db.QueryRow(ctx, createRecipe,
 		arg.Slug,
 		arg.AuthorID,
 		arg.Description,
 		arg.ForkedFrom,
 	)
-	var i Recipe
+	var i CreateRecipeRow
 	err := row.Scan(
 		&i.ID,
-		&i.AuthorID,
-		&i.ForkedFrom,
 		&i.Slug,
 		&i.Description,
+		&i.AuthorID,
+		&i.ForkedFrom,
 		&i.InitialPublishDate,
 	)
 	return i, err
@@ -54,7 +69,12 @@ func (q *Queries) CreateRecipe(ctx context.Context, arg CreateRecipeParams) (Rec
 
 const getRecipeById = `-- name: GetRecipeById :one
 SELECT
-  id, author_id, forked_from, slug, description, initial_publish_date
+  recipes.id,
+  recipes.slug,
+  recipes.description,
+  recipes.author_id,
+  recipes.forked_from,
+  recipes.initial_publish_date
 FROM
   recipes
 WHERE
@@ -62,15 +82,24 @@ WHERE
 LIMIT 1
 `
 
-func (q *Queries) GetRecipeById(ctx context.Context, id int64) (Recipe, error) {
+type GetRecipeByIdRow struct {
+	ID                 int64
+	Slug               string
+	Description        pgtype.Text
+	AuthorID           int64
+	ForkedFrom         pgtype.Int8
+	InitialPublishDate pgtype.Timestamp
+}
+
+func (q *Queries) GetRecipeById(ctx context.Context, id int64) (GetRecipeByIdRow, error) {
 	row := q.db.QueryRow(ctx, getRecipeById, id)
-	var i Recipe
+	var i GetRecipeByIdRow
 	err := row.Scan(
 		&i.ID,
-		&i.AuthorID,
-		&i.ForkedFrom,
 		&i.Slug,
 		&i.Description,
+		&i.AuthorID,
+		&i.ForkedFrom,
 		&i.InitialPublishDate,
 	)
 	return i, err
@@ -78,23 +107,37 @@ func (q *Queries) GetRecipeById(ctx context.Context, id int64) (Recipe, error) {
 
 const getRecipeBySlug = `-- name: GetRecipeBySlug :one
 SELECT
-  id, author_id, forked_from, slug, description, initial_publish_date
+recipes.id,
+recipes.slug,
+recipes.description,
+recipes.author_id,
+recipes.forked_from,
+recipes.initial_publish_date
 FROM
-  recipes
+recipes
 WHERE
-  recipes.slug = $1
+recipes.slug = $1
 LIMIT 1
 `
 
-func (q *Queries) GetRecipeBySlug(ctx context.Context, slug string) (Recipe, error) {
+type GetRecipeBySlugRow struct {
+	ID                 int64
+	Slug               string
+	Description        pgtype.Text
+	AuthorID           int64
+	ForkedFrom         pgtype.Int8
+	InitialPublishDate pgtype.Timestamp
+}
+
+func (q *Queries) GetRecipeBySlug(ctx context.Context, slug string) (GetRecipeBySlugRow, error) {
 	row := q.db.QueryRow(ctx, getRecipeBySlug, slug)
-	var i Recipe
+	var i GetRecipeBySlugRow
 	err := row.Scan(
 		&i.ID,
-		&i.AuthorID,
-		&i.ForkedFrom,
 		&i.Slug,
 		&i.Description,
+		&i.AuthorID,
+		&i.ForkedFrom,
 		&i.InitialPublishDate,
 	)
 	return i, err
@@ -102,13 +145,13 @@ func (q *Queries) GetRecipeBySlug(ctx context.Context, slug string) (Recipe, err
 
 const getRecipes = `-- name: GetRecipes :many
 SELECT
-  id, author_id, forked_from, slug, description, initial_publish_date
+id, author_id, forked_from, slug, description, initial_publish_date
 FROM
-  recipes
+recipes
 WHERE
-  recipes.id > $1
+recipes.id > $1
 ORDER BY
-  recipes.id
+recipes.id
 LIMIT $2
 `
 
@@ -146,14 +189,19 @@ func (q *Queries) GetRecipes(ctx context.Context, arg GetRecipesParams) ([]Recip
 
 const getRecipesByAuthor = `-- name: GetRecipesByAuthor :many
 SELECT
-  id, author_id, forked_from, slug, description, initial_publish_date
+recipes.id,
+recipes.slug,
+recipes.description,
+recipes.author_id,
+recipes.forked_from,
+recipes.initial_publish_date
 FROM
-  recipes
+recipes
 WHERE
-  recipes.author_id = $1
-  AND recipes.id > $2
+recipes.author_id = $1
+AND recipes.id > $2
 ORDER BY
-  recipes.id
+recipes.id
 LIMIT $3
 `
 
@@ -163,21 +211,30 @@ type GetRecipesByAuthorParams struct {
 	Limit    int32
 }
 
-func (q *Queries) GetRecipesByAuthor(ctx context.Context, arg GetRecipesByAuthorParams) ([]Recipe, error) {
+type GetRecipesByAuthorRow struct {
+	ID                 int64
+	Slug               string
+	Description        pgtype.Text
+	AuthorID           int64
+	ForkedFrom         pgtype.Int8
+	InitialPublishDate pgtype.Timestamp
+}
+
+func (q *Queries) GetRecipesByAuthor(ctx context.Context, arg GetRecipesByAuthorParams) ([]GetRecipesByAuthorRow, error) {
 	rows, err := q.db.Query(ctx, getRecipesByAuthor, arg.AuthorID, arg.ID, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Recipe
+	var items []GetRecipesByAuthorRow
 	for rows.Next() {
-		var i Recipe
+		var i GetRecipesByAuthorRow
 		if err := rows.Scan(
 			&i.ID,
-			&i.AuthorID,
-			&i.ForkedFrom,
 			&i.Slug,
 			&i.Description,
+			&i.AuthorID,
+			&i.ForkedFrom,
 			&i.InitialPublishDate,
 		); err != nil {
 			return nil, err

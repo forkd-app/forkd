@@ -7,6 +7,8 @@ package db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -17,7 +19,7 @@ INSERT INTO users (
 	$1,
 	$2
 )
-RETURNING id, username, email, join_date
+RETURNING users.id, users.email, users.username, users.join_date
 `
 
 type CreateUserParams struct {
@@ -25,45 +27,66 @@ type CreateUserParams struct {
 	Email    string
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+type CreateUserRow struct {
+	ID       int64
+	Email    string
+	Username string
+	JoinDate pgtype.Timestamp
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
 	row := q.db.QueryRow(ctx, createUser, arg.Username, arg.Email)
-	var i User
+	var i CreateUserRow
 	err := row.Scan(
 		&i.ID,
-		&i.Username,
 		&i.Email,
+		&i.Username,
 		&i.JoinDate,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, username, email, join_date FROM users WHERE users.email = $1 LIMIT 1
+SELECT users.id, users.email, users.username, users.join_date FROM users WHERE users.email = $1 LIMIT 1
 `
 
-func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
+type GetUserByEmailRow struct {
+	ID       int64
+	Email    string
+	Username string
+	JoinDate pgtype.Timestamp
+}
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error) {
 	row := q.db.QueryRow(ctx, getUserByEmail, email)
-	var i User
+	var i GetUserByEmailRow
 	err := row.Scan(
 		&i.ID,
-		&i.Username,
 		&i.Email,
+		&i.Username,
 		&i.JoinDate,
 	)
 	return i, err
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT id, username, email, join_date FROM users WHERE users.id = $1 LIMIT 1
+SELECT users.id, users.email, users.username, users.join_date FROM users WHERE users.id = $1 LIMIT 1
 `
 
-func (q *Queries) GetUserById(ctx context.Context, id int64) (User, error) {
+type GetUserByIdRow struct {
+	ID       int64
+	Email    string
+	Username string
+	JoinDate pgtype.Timestamp
+}
+
+func (q *Queries) GetUserById(ctx context.Context, id int64) (GetUserByIdRow, error) {
 	row := q.db.QueryRow(ctx, getUserById, id)
-	var i User
+	var i GetUserByIdRow
 	err := row.Scan(
 		&i.ID,
-		&i.Username,
 		&i.Email,
+		&i.Username,
 		&i.JoinDate,
 	)
 	return i, err

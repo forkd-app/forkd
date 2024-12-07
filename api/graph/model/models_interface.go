@@ -1,6 +1,9 @@
 package model
 
-import "forkd/db"
+import (
+	"forkd/db"
+	"time"
+)
 
 func RecipeFromDBType(result db.Recipe) *Recipe {
 	// Handle nullable "forkedFrom" value
@@ -14,7 +17,7 @@ func RecipeFromDBType(result db.Recipe) *Recipe {
 		ID:                 int(result.ID),
 		Slug:               result.Slug,
 		ForkedFrom:         forkedFrom,
-		InitialPublishDate: result.InitialPublishDate.Time.String(),
+		InitialPublishDate: result.InitialPublishDate.Time.Format(time.RFC3339),
 		Description:        result.Description.String,
 	}
 
@@ -26,7 +29,7 @@ func UserFromDBType(result db.User) *User {
 	user := User{
 		ID:       int(result.ID),
 		Email:    result.Email,
-		JoinDate: result.JoinDate.Time.String(),
+		JoinDate: result.JoinDate.Time.Format(time.RFC3339),
 		Username: result.Username,
 	}
 
