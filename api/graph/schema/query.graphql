@@ -5,7 +5,6 @@ type Query {
 
 type UserQuery {
   byId(id: ID!): User @goField(forceResolver: true)
-  bySlug(slug: String!): User @goField(forceResolver: true)
   byEmail(email: String!): User @goField(forceResolver: true)
 }
 

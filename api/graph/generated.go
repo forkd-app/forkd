@@ -118,7 +118,7 @@ type ComplexityRoot struct {
 	}
 
 	RecipeQuery struct {
-		ByID   func(childComplexity int, id string) int
+		ByID   func(childComplexity int, id int) int
 		BySlug func(childComplexity int, slug string) int
 		List   func(childComplexity int, limit *int, nextCursor *string) int
 	}
@@ -154,8 +154,7 @@ type ComplexityRoot struct {
 
 	UserQuery struct {
 		ByEmail func(childComplexity int, email string) int
-		ByID    func(childComplexity int, id string) int
-		BySlug  func(childComplexity int, slug string) int
+		ByID    func(childComplexity int, id int) int
 	}
 }
 
@@ -180,7 +179,7 @@ type RecipeIngredientResolver interface {
 	Ingredient(ctx context.Context, obj *model.RecipeIngredient) (*model.Ingredient, error)
 }
 type RecipeQueryResolver interface {
-	ByID(ctx context.Context, obj *model.RecipeQuery, id string) (*model.Recipe, error)
+	ByID(ctx context.Context, obj *model.RecipeQuery, id int) (*model.Recipe, error)
 	BySlug(ctx context.Context, obj *model.RecipeQuery, slug string) (*model.Recipe, error)
 	List(ctx context.Context, obj *model.RecipeQuery, limit *int, nextCursor *string) (*model.PaginatedRecipes, error)
 }
@@ -196,8 +195,7 @@ type UserResolver interface {
 	Comments(ctx context.Context, obj *model.User, limit *int, nextCursor *string) (*model.PaginatedComments, error)
 }
 type UserQueryResolver interface {
-	ByID(ctx context.Context, obj *model.UserQuery, id string) (*model.User, error)
-	BySlug(ctx context.Context, obj *model.UserQuery, slug string) (*model.User, error)
+	ByID(ctx context.Context, obj *model.UserQuery, id int) (*model.User, error)
 	ByEmail(ctx context.Context, obj *model.UserQuery, email string) (*model.User, error)
 }
 
@@ -466,7 +464,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.RecipeQuery.ByID(childComplexity, args["id"].(string)), true
+		return e.complexity.RecipeQuery.ByID(childComplexity, args["id"].(int)), true
 
 	case "RecipeQuery.bySlug":
 		if e.complexity.RecipeQuery.BySlug == nil {
@@ -643,19 +641,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.UserQuery.ByID(childComplexity, args["id"].(string)), true
-
-	case "UserQuery.bySlug":
-		if e.complexity.UserQuery.BySlug == nil {
-			break
-		}
-
-		args, err := ec.field_UserQuery_bySlug_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.UserQuery.BySlug(childComplexity, args["slug"].(string)), true
+		return e.complexity.UserQuery.ByID(childComplexity, args["id"].(int)), true
 
 	}
 	return 0, false
@@ -789,10 +775,10 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 func (ec *executionContext) field_RecipeQuery_byId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -882,30 +868,15 @@ func (ec *executionContext) field_UserQuery_byEmail_args(ctx context.Context, ra
 func (ec *executionContext) field_UserQuery_byId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_UserQuery_bySlug_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["slug"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slug"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["slug"] = arg0
 	return args, nil
 }
 
@@ -1657,8 +1628,6 @@ func (ec *executionContext) fieldContext_Query_user(_ context.Context, field gra
 			switch field.Name {
 			case "byId":
 				return ec.fieldContext_UserQuery_byId(ctx, field)
-			case "bySlug":
-				return ec.fieldContext_UserQuery_bySlug(ctx, field)
 			case "byEmail":
 				return ec.fieldContext_UserQuery_byEmail(ctx, field)
 			}
@@ -2059,9 +2028,9 @@ func (ec *executionContext) _Recipe_id(ctx context.Context, field graphql.Collec
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Recipe_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2670,9 +2639,9 @@ func (ec *executionContext) _RecipeIngredient_id(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RecipeIngredient_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2743,7 +2712,7 @@ func (ec *executionContext) _RecipeQuery_byId(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.RecipeQuery().ByID(rctx, obj, fc.Args["id"].(string))
+		return ec.resolvers.RecipeQuery().ByID(rctx, obj, fc.Args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2952,9 +2921,9 @@ func (ec *executionContext) _RecipeRevision_id(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RecipeRevision_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3193,9 +3162,9 @@ func (ec *executionContext) _RecipeStep_id(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RecipeStep_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3510,9 +3479,9 @@ func (ec *executionContext) _User_id(ctx context.Context, field graphql.Collecte
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3752,7 +3721,7 @@ func (ec *executionContext) _UserQuery_byId(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.UserQuery().ByID(rctx, obj, fc.Args["id"].(string))
+		return ec.resolvers.UserQuery().ByID(rctx, obj, fc.Args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3798,72 +3767,6 @@ func (ec *executionContext) fieldContext_UserQuery_byId(ctx context.Context, fie
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_UserQuery_byId_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _UserQuery_bySlug(ctx context.Context, field graphql.CollectedField, obj *model.UserQuery) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_UserQuery_bySlug(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.UserQuery().BySlug(rctx, obj, fc.Args["slug"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.User)
-	fc.Result = res
-	return ec.marshalOUser2ᚖforkdᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_UserQuery_bySlug(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "UserQuery",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "joinDate":
-				return ec.fieldContext_User_joinDate(ctx, field)
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "email":
-				return ec.fieldContext_User_email(ctx, field)
-			case "username":
-				return ec.fieldContext_User_username(ctx, field)
-			case "recipes":
-				return ec.fieldContext_User_recipes(ctx, field)
-			case "comments":
-				return ec.fieldContext_User_comments(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_UserQuery_bySlug_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -7076,39 +6979,6 @@ func (ec *executionContext) _UserQuery(ctx context.Context, sel ast.SelectionSet
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "bySlug":
-			field := field
-
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._UserQuery_bySlug(ctx, field, obj)
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "byEmail":
 			field := field
 
@@ -7521,13 +7391,13 @@ func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.S
 	return graphql.WrapContextMarshaler(ctx, res)
 }
 
-func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
-	res, err := graphql.UnmarshalID(v)
+func (ec *executionContext) unmarshalNID2int(ctx context.Context, v interface{}) (int, error) {
+	res, err := graphql.UnmarshalIntID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	res := graphql.MarshalID(v)
+func (ec *executionContext) marshalNID2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalIntID(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

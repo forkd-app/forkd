@@ -3,16 +3,16 @@ package db
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func GetQueriesWithConnection(config *pgx.ConnConfig) (*Queries, *pgx.Conn, error) {
+func GetQueriesWithConnection(connectionString string) (*Queries, *pgxpool.Pool, error) {
 	ctx := context.Background()
-	conn, err := pgx.ConnectConfig(ctx, config)
+	pool, err := pgxpool.New(ctx, connectionString)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	queries := New(conn)
-	return queries, conn, nil
+	queries := New(pool)
+	return queries, pool, nil
 }

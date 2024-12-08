@@ -6,48 +6,106 @@ package graph
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"forkd/db"
 	"forkd/graph/model"
 )
 
 // User is the resolver for the user field.
 func (r *queryResolver) User(ctx context.Context) (*model.UserQuery, error) {
-	panic(fmt.Errorf("not implemented: User - user"))
+	return &model.UserQuery{}, nil
 }
 
 // Recipe is the resolver for the recipe field.
 func (r *queryResolver) Recipe(ctx context.Context) (*model.RecipeQuery, error) {
-	panic(fmt.Errorf("not implemented: Recipe - recipe"))
+	return &model.RecipeQuery{}, nil
 }
 
 // ByID is the resolver for the byId field.
-func (r *recipeQueryResolver) ByID(ctx context.Context, obj *model.RecipeQuery, id string) (*model.Recipe, error) {
-	panic(fmt.Errorf("not implemented: ByID - byId"))
+func (r *recipeQueryResolver) ByID(ctx context.Context, obj *model.RecipeQuery, id int) (*model.Recipe, error) {
+	// Fetch the recipe by the id
+	result, err := r.Queries.GetRecipeById(ctx, int64(id))
+	return handleNoRowsOnNullableType(result, err, model.RecipeFromDBType)
 }
 
 // BySlug is the resolver for the bySlug field.
 func (r *recipeQueryResolver) BySlug(ctx context.Context, obj *model.RecipeQuery, slug string) (*model.Recipe, error) {
-	panic(fmt.Errorf("not implemented: BySlug - bySlug"))
+	// Fetch the recipe by the slug
+	result, err := r.Queries.GetRecipeBySlug(ctx, slug)
+	return handleNoRowsOnNullableType(result, err, model.RecipeFromDBType)
 }
 
 // List is the resolver for the list field.
 func (r *recipeQueryResolver) List(ctx context.Context, obj *model.RecipeQuery, limit *int, nextCursor *string) (*model.PaginatedRecipes, error) {
-	panic(fmt.Errorf("not implemented: List - list"))
+	var params db.ListParams
+	if limit != nil {
+		params.Limit = int32(*limit)
+	} else {
+		params.Limit = 20
+	}
+	if nextCursor != nil {
+		cursor, err := decodeCursor(*nextCursor)
+		if err != nil {
+			return nil, err
+		}
+		if params.Limit != int32(cursor.Limit) {
+			return nil, fmt.Errorf("limit param does not match cursor. Limit: %d, Cursor: %d", params.Limit, cursor.Limit)
+		}
+		params.ID = int64(cursor.Id)
+	}
+	result, err := r.Queries.List(ctx, params)
+	// If there was an error, early return with the error
+	if err != nil {
+		return nil, err
+	}
+	count := len(result)
+	recipes := make([]*model.Recipe, count)
+	for i, recipe := range result {
+		recipes[i] = model.RecipeFromDBType(recipe)
+	}
+
+	var NextCursor *string = nil
+
+	if count == int(params.Limit) {
+		encoded, err := encodeCursor(listRecipesCursor{
+			Id:    recipes[count-1].ID,
+			Limit: int(params.Limit),
+		})
+
+		if err != nil {
+			return nil, err
+		}
+
+		NextCursor = &encoded
+	}
+
+	paginationInfo := model.PaginationInfo{
+		Count:      count,
+		NextCursor: NextCursor,
+		// FIXME: Handle prev cursor
+		PrevCursor: nil,
+	}
+
+	paginated := model.PaginatedRecipes{
+		Items:      recipes,
+		Pagination: &paginationInfo,
+	}
+
+	return &paginated, nil
 }
 
 // ByID is the resolver for the byId field.
-func (r *userQueryResolver) ByID(ctx context.Context, obj *model.UserQuery, id string) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: ByID - byId"))
-}
-
-// BySlug is the resolver for the bySlug field.
-func (r *userQueryResolver) BySlug(ctx context.Context, obj *model.UserQuery, slug string) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: BySlug - bySlug"))
+func (r *userQueryResolver) ByID(ctx context.Context, obj *model.UserQuery, id int) (*model.User, error) {
+	result, err := r.Queries.GetUserById(ctx, int64(id))
+	return handleNoRowsOnNullableType(result, err, model.UserFromDBType)
 }
 
 // ByEmail is the resolver for the byEmail field.
 func (r *userQueryResolver) ByEmail(ctx context.Context, obj *model.UserQuery, email string) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: ByEmail - byEmail"))
+	result, err := r.Queries.GetUserByEmail(ctx, email)
+	return handleNoRowsOnNullableType(result, err, model.UserFromDBType)
 }
 
 // Query returns QueryResolver implementation.
@@ -62,3 +120,37 @@ func (r *Resolver) UserQuery() UserQueryResolver { return &userQueryResolver{r} 
 type queryResolver struct{ *Resolver }
 type recipeQueryResolver struct{ *Resolver }
 type userQueryResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+type listRecipesCursor struct {
+	Id    int
+	Limit int
+}
+
+func decodeCursor(cursor string) (*listRecipesCursor, error) {
+	decoded, err := base64.StdEncoding.DecodeString(cursor)
+	if err != nil {
+		return nil, err
+	}
+
+	var cursorStruct listRecipesCursor
+
+	err = json.Unmarshal(decoded, &cursorStruct)
+	if err != nil {
+		return nil, err
+	}
+
+	return &cursorStruct, nil
+}
+func encodeCursor(cursor listRecipesCursor) (string, error) {
+	str, err := json.Marshal(cursor)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(str), nil
+}

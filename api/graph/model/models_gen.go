@@ -55,7 +55,7 @@ type Recipe struct {
 	Author             *User                     `json:"author"`
 	Slug               string                    `json:"slug"`
 	ForkedFrom         *int                      `json:"forkedFrom,omitempty"`
-	ID                 string                    `json:"id"`
+	ID                 int                       `json:"id"`
 	Description        string                    `json:"description"`
 	Revisions          *PaginatedRecipeRevisions `json:"revisions"`
 }
@@ -73,7 +73,7 @@ type RecipeIngredient struct {
 	Unit       *MeasurementUnit `json:"unit"`
 	Ingredient *Ingredient      `json:"ingredient"`
 	Quantity   float64          `json:"quantity"`
-	ID         string           `json:"id"`
+	ID         int              `json:"id"`
 	Comment    *string          `json:"comment,omitempty"`
 }
 
@@ -84,7 +84,7 @@ type RecipeQuery struct {
 }
 
 type RecipeRevision struct {
-	ID          string              `json:"id"`
+	ID          int                 `json:"id"`
 	Description *string             `json:"description,omitempty"`
 	PublishDate string              `json:"publishDate"`
 	Ingredients []*RecipeIngredient `json:"ingredients"`
@@ -92,7 +92,7 @@ type RecipeRevision struct {
 }
 
 type RecipeStep struct {
-	ID       string          `json:"id"`
+	ID       int             `json:"id"`
 	Revision *RecipeRevision `json:"revision"`
 	Content  string          `json:"content"`
 	Index    int             `json:"index"`
@@ -105,7 +105,7 @@ type Tag struct {
 
 type User struct {
 	JoinDate string             `json:"joinDate"`
-	ID       string             `json:"id"`
+	ID       int                `json:"id"`
 	Email    string             `json:"email"`
 	Username string             `json:"username"`
 	Recipes  *PaginatedRecipes  `json:"recipes"`
@@ -114,6 +114,5 @@ type User struct {
 
 type UserQuery struct {
 	ByID    *User `json:"byId,omitempty"`
-	BySlug  *User `json:"bySlug,omitempty"`
 	ByEmail *User `json:"byEmail,omitempty"`
 }

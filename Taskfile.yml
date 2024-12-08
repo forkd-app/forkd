@@ -4,23 +4,22 @@ version: "3"
 vars:
   DB_URL: "postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable"
 
-# Docker-related tasks
 tasks:
+  # Docker-related tasks
   up:
     desc: "Start Docker containers in detached mode"
     cmds:
       - docker-compose up -d {{.CLI_ARGS}}
-
   watch:
     desc: "Start Docker containers with watch mode"
     cmds:
       - docker-compose up --watch {{.CLI_ARGS}}
-
   down:
     desc: "Stop Docker containers and remove orphans"
     cmds:
       - docker-compose down --remove-orphans {{.CLI_ARGS}}
-
+  build:
+    cmd: docker-compose --profile "scripts" build {{.CLI_ARGS}}
   # Database migration tasks
   migrate-new:
     desc: "Create a new migration"
@@ -93,6 +92,4 @@ tasks:
   ci:check:
     desc: "Run lint and format checks for CI"
     cmds:
-      - task lint
-      - task format:check
-    parallel: true
+      - task --parallel lint format:check
