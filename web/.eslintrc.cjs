@@ -6,29 +6,24 @@
 
 /** @type {import('eslint').Linter.Config} */
 module.exports = {
-  root: true,
+  root: false, // Inherit from the root-level configuration
+  extends: ["../.eslintrc.cjs"], // Extend the root configuration
   parserOptions: {
-    ecmaVersion: "latest",
-    sourceType: "module",
+    ecmaVersion: "latest", // Support the latest ECMAScript syntax
+    sourceType: "module", // Use ES modules
     ecmaFeatures: {
-      jsx: true,
+      jsx: true, // Enable JSX
     },
   },
   env: {
-    browser: true,
-    commonjs: true,
-    es6: true,
+    browser: true, // Enable browser globals for React
+    es6: true, // Enable ES6 globals
   },
-  ignorePatterns: ["!**/.server", "!**/.client"],
-
-  // Base config
-  extends: ["eslint:recommended"],
-
   overrides: [
-    // React
+    // React-specific configuration
     {
       files: ["**/*.{js,jsx,ts,tsx}"],
-      plugins: ["react", "jsx-a11y"],
+      plugins: ["react", "jsx-a11y", "react-hooks"],
       extends: [
         "plugin:react/recommended",
         "plugin:react/jsx-runtime",
@@ -37,32 +32,27 @@ module.exports = {
       ],
       settings: {
         react: {
-          version: "detect",
+          version: "detect", // Automatically detect React version
         },
-        formComponents: ["Form"],
-        linkComponents: [
-          { name: "Link", linkAttribute: "to" },
-          { name: "NavLink", linkAttribute: "to" },
-        ],
         "import/resolver": {
-          typescript: {},
+          typescript: {
+            alwaysTryTypes: true, // Resolve TypeScript imports
+            project: "./tsconfig.json", // Point to the tsconfig file in /web
+          },
         },
       },
     },
 
-    // Typescript
+    // TypeScript-specific configuration
     {
       files: ["**/*.{ts,tsx}"],
-      plugins: ["@typescript-eslint", "import"],
       parser: "@typescript-eslint/parser",
+      plugins: ["@typescript-eslint", "import"],
       settings: {
-        "import/internal-regex": "^~/",
         "import/resolver": {
-          node: {
-            extensions: [".ts", ".tsx"],
-          },
           typescript: {
             alwaysTryTypes: true,
+            project: "./tsconfig.json", // Point to the correct tsconfig file
           },
         },
       },
@@ -72,13 +62,5 @@ module.exports = {
         "plugin:import/typescript",
       ],
     },
-
-    // Node
-    {
-      files: [".eslintrc.cjs"],
-      env: {
-        node: true,
-      },
-    },
   ],
-};
+}

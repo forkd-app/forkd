@@ -1,4 +1,6 @@
+# TODO: Remove this comment when it's in use
+# eslint-disable @graphql-eslint/no-unreachable-types
 type Tag {
-    description: String
-    name: String!
+  description: String
+  name: String!
 }

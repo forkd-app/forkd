@@ -37,38 +37,9 @@ func (r *recipeQueryResolver) BySlug(ctx context.Context, obj *model.RecipeQuery
 	return handleNoRowsOnNullableType(result, err, model.RecipeFromDBType)
 }
 
-type listRecipesCursor struct {
-	Id    int
-	Limit int
-}
-
-func decodeCursor(cursor string) (*listRecipesCursor, error) {
-	decoded, err := base64.StdEncoding.DecodeString(cursor)
-	if err != nil {
-		return nil, err
-	}
-
-	var cursorStruct listRecipesCursor
-
-	err = json.Unmarshal(decoded, &cursorStruct)
-	if err != nil {
-		return nil, err
-	}
-
-	return &cursorStruct, nil
-}
-
-func encodeCursor(cursor listRecipesCursor) (string, error) {
-	str, err := json.Marshal(cursor)
-	if err != nil {
-		return "", err
-	}
-	return base64.StdEncoding.EncodeToString(str), nil
-}
-
 // List is the resolver for the list field.
 func (r *recipeQueryResolver) List(ctx context.Context, obj *model.RecipeQuery, limit *int, nextCursor *string) (*model.PaginatedRecipes, error) {
-	var params db.GetRecipesParams
+	var params db.ListParams
 	if limit != nil {
 		params.Limit = int32(*limit)
 	} else {
@@ -84,7 +55,7 @@ func (r *recipeQueryResolver) List(ctx context.Context, obj *model.RecipeQuery, 
 		}
 		params.ID = int64(cursor.Id)
 	}
-	result, err := r.Queries.GetRecipes(ctx, params)
+	result, err := r.Queries.List(ctx, params)
 	// If there was an error, early return with the error
 	if err != nil {
 		return nil, err
@@ -118,7 +89,7 @@ func (r *recipeQueryResolver) List(ctx context.Context, obj *model.RecipeQuery, 
 	}
 
 	paginated := model.PaginatedRecipes{
-		Recipes:    recipes,
+		Items:      recipes,
 		Pagination: &paginationInfo,
 	}
 
@@ -149,3 +120,37 @@ func (r *Resolver) UserQuery() UserQueryResolver { return &userQueryResolver{r} 
 type queryResolver struct{ *Resolver }
 type recipeQueryResolver struct{ *Resolver }
 type userQueryResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+type listRecipesCursor struct {
+	Id    int
+	Limit int
+}
+
+func decodeCursor(cursor string) (*listRecipesCursor, error) {
+	decoded, err := base64.StdEncoding.DecodeString(cursor)
+	if err != nil {
+		return nil, err
+	}
+
+	var cursorStruct listRecipesCursor
+
+	err = json.Unmarshal(decoded, &cursorStruct)
+	if err != nil {
+		return nil, err
+	}
+
+	return &cursorStruct, nil
+}
+func encodeCursor(cursor listRecipesCursor) (string, error) {
+	str, err := json.Marshal(cursor)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(str), nil
+}

@@ -15,9 +15,9 @@ func (r *recipeResolver) Author(ctx context.Context, obj *model.Recipe) (*model.
 	panic(fmt.Errorf("not implemented: Author - author"))
 }
 
-// RecipeRevisions is the resolver for the recipeRevisions field.
-func (r *recipeResolver) RecipeRevisions(ctx context.Context, obj *model.Recipe, limit *int, nextCursor *string) (*model.PaginatedRecipeRevisions, error) {
-	panic(fmt.Errorf("not implemented: RecipeRevisions - recipeRevisions"))
+// Revisions is the resolver for the revisions field.
+func (r *recipeResolver) Revisions(ctx context.Context, obj *model.Recipe, limit *int, nextCursor *string) (*model.PaginatedRecipeRevisions, error) {
+	panic(fmt.Errorf("not implemented: Revisions - revisions"))
 }
 
 // Revision is the resolver for the revision field.
@@ -35,9 +35,14 @@ func (r *recipeCommentResolver) Author(ctx context.Context, obj *model.RecipeCom
 	panic(fmt.Errorf("not implemented: Author - author"))
 }
 
-// Recipe is the resolver for the recipe field.
-func (r *recipeRevisionResolver) Recipe(ctx context.Context, obj *model.RecipeRevision) (*model.Recipe, error) {
-	panic(fmt.Errorf("not implemented: Recipe - recipe"))
+// Ingredients is the resolver for the ingredients field.
+func (r *recipeRevisionResolver) Ingredients(ctx context.Context, obj *model.RecipeRevision) ([]*model.RecipeIngredient, error) {
+	panic(fmt.Errorf("not implemented: Ingredients - ingredients"))
+}
+
+// Steps is the resolver for the steps field.
+func (r *recipeRevisionResolver) Steps(ctx context.Context, obj *model.RecipeRevision) ([]*model.RecipeStep, error) {
+	panic(fmt.Errorf("not implemented: Steps - steps"))
 }
 
 // Revision is the resolver for the revision field.

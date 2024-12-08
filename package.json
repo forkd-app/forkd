@@ -2,7 +2,23 @@
   "name": "forkd/monorepo",
   "version": "0.0.1",
   "description": "Monorepo containing the code for Forkd",
+  "scripts": {
+    "lint": "task lint",
+    "lint:fix": "task lint:fix",
+    "lint:eslint": "task lint:eslint",
+    "lint:go": "task lint:go",
+    "format": "task format",
+    "format:check": "task format:check",
+    "ci:check": "task ci:check",
+    "prepare": "husky"
+  },
   "devDependencies": {
+    "@graphql-eslint/eslint-plugin": "^3.20.1",
+    "@types/eslint": "^9.6.1",
+    "eslint": "^8.38.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "husky": "^9.1.7",
     "prettier": "^3.3.3"
   },
   "engines": {
