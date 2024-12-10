@@ -17,8 +17,8 @@ services:
   web:
     # This specifies the docker file/context to build for the web app container
     build:
-      context: ./web
-      dockerfile: dev.Dockerfile
+      context: .
+      dockerfile: ./web/dev.Dockerfile
     # Attach this container to our dedicated network for the services in this compose file
     networks:
       - app_network

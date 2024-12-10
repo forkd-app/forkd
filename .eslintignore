@@ -1,0 +1,25 @@
+# Ignore node_modules across the monorepo
+node_modules/
+
+# Ignore build artifacts
+dist/
+build/
+
+# Ignore logs
+*.log
+
+# Ignore package manager lock files
+pnpm-lock.yaml
+
+# Ignore environment files
+.env
+.env.* 
+
+# Ignore coverage reports (if applicable)
+coverage/
+
+# Ignore specific subdirectory files (if needed)
+web/public/
+
+# Db Migrations (auto-generated)
+db/migrations

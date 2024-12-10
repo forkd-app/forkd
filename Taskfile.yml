@@ -1,21 +1,95 @@
 version: "3"
 
+# Global variables
+vars:
+  DB_URL: "postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable"
+
 tasks:
+  # Docker-related tasks
   up:
-    cmd: docker-compose up -d {{.CLI_ARGS}}
+    desc: "Start Docker containers in detached mode"
+    cmds:
+      - docker-compose up -d {{.CLI_ARGS}}
   watch:
-    cmd: docker-compose up --watch {{.CLI_ARGS}}
+    desc: "Start Docker containers with watch mode"
+    cmds:
+      - docker-compose up --watch {{.CLI_ARGS}}
   down:
-    cmd: docker-compose down --remove-orphans {{.CLI_ARGS}}
+    desc: "Stop Docker containers and remove orphans"
+    cmds:
+      - docker-compose down --remove-orphans {{.CLI_ARGS}}
   build:
     cmd: docker-compose --profile "scripts" build {{.CLI_ARGS}}
+  # Database migration tasks
   migrate-new:
-    cmd: docker-compose --profile "scripts" run --rm migrate -verbose -path="/migrations/" -database="postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable" create {{.CLI_ARGS}}
+    desc: "Create a new migration"
+    cmds:
+      - docker-compose --profile "scripts" run --rm migrate -verbose -path="/migrations/" -database="{{.DB_URL}}" create {{.CLI_ARGS}}
+
   migrate-up:
-    cmd: docker-compose --profile "scripts" run --rm migrate -verbose -path="/migrations/" -database="postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable" up {{.CLI_ARGS}}
+    desc: "Apply all up migrations"
+    cmds:
+      - docker-compose --profile "scripts" run --rm migrate -verbose -path="/migrations/" -database="{{.DB_URL}}" up {{.CLI_ARGS}}
+
   migrate-down:
-    cmd: docker-compose --profile "scripts" run --rm migrate -verbose -path="/migrations/" -database="postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable" down {{.CLI_ARGS}}
+    desc: "Revert migrations"
+    cmds:
+      - docker-compose --profile "scripts" run --rm migrate -verbose -path="/migrations/" -database="{{.DB_URL}}" down {{.CLI_ARGS}}
+
+  # Code generation tasks
   sqlc-gen:
-    cmd: docker-compose --profile "scripts" run --rm sqlc generate {{.CLI_ARGS}}
+    desc: "Generate SQLC code"
+    cmds:
+      - docker-compose --profile "scripts" run --rm sqlc generate {{.CLI_ARGS}}
+
   gqlgen:
-    cmd: docker-compose --profile "scripts" run --rm gqlgen generate {{.CLI_ARGS}}
+    desc: "Generate GraphQL code"
+    cmds:
+      - docker-compose --profile "scripts" run --rm gqlgen generate {{.CLI_ARGS}}
+
+  # Linting and Formatting Tasks
+  lint:
+    desc: "Run linting for the entire repository (ESLint for non-Go code and golangci-lint for Go)"
+    cmds:
+      - task lint:eslint
+      - task lint:go
+
+  lint:fix:
+    desc: "Run ESLint with auto-fix for applicable files"
+    cmds:
+      - pnpm eslint . --fix
+
+  lint:eslint:
+    desc: "Run ESLint across the repository (TypeScript, GraphQL, etc.)"
+    cmds:
+      - pnpm eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .
+
+  lint:go:
+    desc: "Run Go linting with golangci-lint"
+    dir: "{{.ROOT_TASKFILE}}/api"
+    cmds:
+      - |
+        {{if eq (env `CI`) "true"}}
+          echo "Detected CI environment. Skipping Go linting as it is handled by a separate GitHub Action."
+        {{else}}
+          echo "Running Go linting..."
+          golangci-lint run
+          echo "Go linting completed."
+        {{end}}
+
+  # Formatting tasks
+  format:
+    desc: "Apply Prettier formatting"
+    cmds:
+      - pnpm prettier --write .
+
+  format:check:
+    desc: "Check Prettier formatting"
+    cmds:
+      - pnpm prettier --check .
+
+  # CI-specific tasks
+  ci:check:
+    desc: "Run lint and format checks for CI"
+    cmds:
+      - task --parallel lint format:check
