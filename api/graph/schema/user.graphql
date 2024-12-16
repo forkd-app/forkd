@@ -5,8 +5,8 @@ type User {
   # TODO: Discuss if this field should be renamed to just name?
   # eslint-disable-next-line @graphql-eslint/no-typename-prefix
   username: String!
-  recipes(limit: Int, nextCursor: String): PaginatedRecipes!
+  recipes(limit: Int, nextCursor: ID): PaginatedRecipes!
     @goField(forceResolver: true)
-  comments(limit: Int, nextCursor: String): PaginatedComments!
+  comments(limit: Int, nextCursor: ID): PaginatedComments!
     @goField(forceResolver: true)
 }

@@ -12,12 +12,14 @@ import (
 
 // Recipes is the resolver for the recipes field.
 func (r *userResolver) Recipes(ctx context.Context, obj *model.User, limit *int, nextCursor *string) (*model.PaginatedRecipes, error) {
-	panic(fmt.Errorf("not implemented: Recipes - recipes"))
+	result, err := r.Queries.ListByAuthor(ctx, int64(id), int64(limit), string(nextCursor))
+	return handleNoRowsOnNullableType(result, err, model.UserFromDBType)
 }
 
 // Comments is the resolver for the comments field.
 func (r *userResolver) Comments(ctx context.Context, obj *model.User, limit *int, nextCursor *string) (*model.PaginatedComments, error) {
-	panic(fmt.Errorf("not implemented: Comments - comments"))
+	result, err := r.Queries.ListByAuthor(ctx, int64(id), int64(limit), string(NextCursor))
+	return handleNoRowsOnNullableType(result, err, model.UserFromDBType)
 }
 
 // User returns UserResolver implementation.
