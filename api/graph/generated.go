@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
@@ -64,7 +65,7 @@ type ComplexityRoot struct {
 		Name        func(childComplexity int) int
 	}
 
-	PaginatedComments struct {
+	PaginatedRecipeComments struct {
 		Items      func(childComplexity int) int
 		Pagination func(childComplexity int) int
 	}
@@ -82,7 +83,6 @@ type ComplexityRoot struct {
 	PaginationInfo struct {
 		Count      func(childComplexity int) int
 		NextCursor func(childComplexity int) int
-		PrevCursor func(childComplexity int) int
 	}
 
 	Query struct {
@@ -103,6 +103,7 @@ type ComplexityRoot struct {
 	RecipeComment struct {
 		Author   func(childComplexity int) int
 		Content  func(childComplexity int) int
+		ID       func(childComplexity int) int
 		PostDate func(childComplexity int) int
 		Recipe   func(childComplexity int) int
 		Revision func(childComplexity int) int
@@ -192,7 +193,7 @@ type RecipeStepResolver interface {
 }
 type UserResolver interface {
 	Recipes(ctx context.Context, obj *model.User, limit *int, nextCursor *string) (*model.PaginatedRecipes, error)
-	Comments(ctx context.Context, obj *model.User, limit *int, nextCursor *string) (*model.PaginatedComments, error)
+	Comments(ctx context.Context, obj *model.User, limit *int, nextCursor *string) (*model.PaginatedRecipeComments, error)
 }
 type UserQueryResolver interface {
 	ByID(ctx context.Context, obj *model.UserQuery, id int) (*model.User, error)
@@ -246,19 +247,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.MeasurementUnit.Name(childComplexity), true
 
-	case "PaginatedComments.items":
-		if e.complexity.PaginatedComments.Items == nil {
+	case "PaginatedRecipeComments.items":
+		if e.complexity.PaginatedRecipeComments.Items == nil {
 			break
 		}
 
-		return e.complexity.PaginatedComments.Items(childComplexity), true
+		return e.complexity.PaginatedRecipeComments.Items(childComplexity), true
 
-	case "PaginatedComments.pagination":
-		if e.complexity.PaginatedComments.Pagination == nil {
+	case "PaginatedRecipeComments.pagination":
+		if e.complexity.PaginatedRecipeComments.Pagination == nil {
 			break
 		}
 
-		return e.complexity.PaginatedComments.Pagination(childComplexity), true
+		return e.complexity.PaginatedRecipeComments.Pagination(childComplexity), true
 
 	case "PaginatedRecipeRevisions.items":
 		if e.complexity.PaginatedRecipeRevisions.Items == nil {
@@ -301,13 +302,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PaginationInfo.NextCursor(childComplexity), true
-
-	case "PaginationInfo.prevCursor":
-		if e.complexity.PaginationInfo.PrevCursor == nil {
-			break
-		}
-
-		return e.complexity.PaginationInfo.PrevCursor(childComplexity), true
 
 	case "Query.recipe":
 		if e.complexity.Query.Recipe == nil {
@@ -390,6 +384,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RecipeComment.Content(childComplexity), true
+
+	case "RecipeComment.id":
+		if e.complexity.RecipeComment.ID == nil {
+			break
+		}
+
+		return e.complexity.RecipeComment.ID(childComplexity), true
 
 	case "RecipeComment.postDate":
 		if e.complexity.RecipeComment.PostDate == nil {
@@ -731,7 +732,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema/directives.graphql" "schema/ingredient.graphql" "schema/pagination.graphql" "schema/query.graphql" "schema/recipe.graphql" "schema/tag.graphql" "schema/user.graphql"
+//go:embed "schema/directives.graphql" "schema/ingredient.graphql" "schema/pagination.graphql" "schema/query.graphql" "schema/recipe.graphql" "schema/scalar.graphql" "schema/tag.graphql" "schema/user.graphql"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -748,6 +749,7 @@ var sources = []*ast.Source{
 	{Name: "schema/pagination.graphql", Input: sourceData("schema/pagination.graphql"), BuiltIn: false},
 	{Name: "schema/query.graphql", Input: sourceData("schema/query.graphql"), BuiltIn: false},
 	{Name: "schema/recipe.graphql", Input: sourceData("schema/recipe.graphql"), BuiltIn: false},
+	{Name: "schema/scalar.graphql", Input: sourceData("schema/scalar.graphql"), BuiltIn: false},
 	{Name: "schema/tag.graphql", Input: sourceData("schema/tag.graphql"), BuiltIn: false},
 	{Name: "schema/user.graphql", Input: sourceData("schema/user.graphql"), BuiltIn: false},
 }
@@ -1136,8 +1138,8 @@ func (ec *executionContext) fieldContext_MeasurementUnit_name(_ context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _PaginatedComments_items(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedComments) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_PaginatedComments_items(ctx, field)
+func (ec *executionContext) _PaginatedRecipeComments_items(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedRecipeComments) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaginatedRecipeComments_items(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1167,14 +1169,16 @@ func (ec *executionContext) _PaginatedComments_items(ctx context.Context, field 
 	return ec.marshalNRecipeComment2ᚕᚖforkdᚋgraphᚋmodelᚐRecipeCommentᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_PaginatedComments_items(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_PaginatedRecipeComments_items(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "PaginatedComments",
+		Object:     "PaginatedRecipeComments",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "id":
+				return ec.fieldContext_RecipeComment_id(ctx, field)
 			case "revision":
 				return ec.fieldContext_RecipeComment_revision(ctx, field)
 			case "postDate":
@@ -1192,8 +1196,8 @@ func (ec *executionContext) fieldContext_PaginatedComments_items(_ context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _PaginatedComments_pagination(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedComments) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_PaginatedComments_pagination(ctx, field)
+func (ec *executionContext) _PaginatedRecipeComments_pagination(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedRecipeComments) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaginatedRecipeComments_pagination(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1223,9 +1227,9 @@ func (ec *executionContext) _PaginatedComments_pagination(ctx context.Context, f
 	return ec.marshalNPaginationInfo2ᚖforkdᚋgraphᚋmodelᚐPaginationInfo(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_PaginatedComments_pagination(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_PaginatedRecipeComments_pagination(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "PaginatedComments",
+		Object:     "PaginatedRecipeComments",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -1235,8 +1239,6 @@ func (ec *executionContext) fieldContext_PaginatedComments_pagination(_ context.
 				return ec.fieldContext_PaginationInfo_count(ctx, field)
 			case "nextCursor":
 				return ec.fieldContext_PaginationInfo_nextCursor(ctx, field)
-			case "prevCursor":
-				return ec.fieldContext_PaginationInfo_prevCursor(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PaginationInfo", field.Name)
 		},
@@ -1343,8 +1345,6 @@ func (ec *executionContext) fieldContext_PaginatedRecipeRevisions_pagination(_ c
 				return ec.fieldContext_PaginationInfo_count(ctx, field)
 			case "nextCursor":
 				return ec.fieldContext_PaginationInfo_nextCursor(ctx, field)
-			case "prevCursor":
-				return ec.fieldContext_PaginationInfo_prevCursor(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PaginationInfo", field.Name)
 		},
@@ -1455,8 +1455,6 @@ func (ec *executionContext) fieldContext_PaginatedRecipes_pagination(_ context.C
 				return ec.fieldContext_PaginationInfo_count(ctx, field)
 			case "nextCursor":
 				return ec.fieldContext_PaginationInfo_nextCursor(ctx, field)
-			case "prevCursor":
-				return ec.fieldContext_PaginationInfo_prevCursor(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PaginationInfo", field.Name)
 		},
@@ -1537,47 +1535,6 @@ func (ec *executionContext) _PaginationInfo_nextCursor(ctx context.Context, fiel
 }
 
 func (ec *executionContext) fieldContext_PaginationInfo_nextCursor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "PaginationInfo",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _PaginationInfo_prevCursor(ctx context.Context, field graphql.CollectedField, obj *model.PaginationInfo) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_PaginationInfo_prevCursor(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.PrevCursor, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_PaginationInfo_prevCursor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "PaginationInfo",
 		Field:      field,
@@ -1841,9 +1798,9 @@ func (ec *executionContext) _Recipe_initialPublishDate(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Recipe_initialPublishDate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1853,7 +1810,7 @@ func (ec *executionContext) fieldContext_Recipe_initialPublishDate(_ context.Con
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Time does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2151,6 +2108,50 @@ func (ec *executionContext) fieldContext_Recipe_revisions(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _RecipeComment_id(ctx context.Context, field graphql.CollectedField, obj *model.RecipeComment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RecipeComment_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RecipeComment_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RecipeComment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _RecipeComment_revision(ctx context.Context, field graphql.CollectedField, obj *model.RecipeComment) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_RecipeComment_revision(ctx, field)
 	if err != nil {
@@ -2233,9 +2234,9 @@ func (ec *executionContext) _RecipeComment_postDate(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RecipeComment_postDate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2245,7 +2246,7 @@ func (ec *executionContext) fieldContext_RecipeComment_postDate(_ context.Contex
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Time does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3006,9 +3007,9 @@ func (ec *executionContext) _RecipeRevision_publishDate(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RecipeRevision_publishDate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3018,7 +3019,7 @@ func (ec *executionContext) fieldContext_RecipeRevision_publishDate(_ context.Co
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Time does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3435,9 +3436,9 @@ func (ec *executionContext) _User_joinDate(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_joinDate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3447,7 +3448,7 @@ func (ec *executionContext) fieldContext_User_joinDate(_ context.Context, field 
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Time does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3672,9 +3673,9 @@ func (ec *executionContext) _User_comments(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.PaginatedComments)
+	res := resTmp.(*model.PaginatedRecipeComments)
 	fc.Result = res
-	return ec.marshalNPaginatedComments2ᚖforkdᚋgraphᚋmodelᚐPaginatedComments(ctx, field.Selections, res)
+	return ec.marshalNPaginatedRecipeComments2ᚖforkdᚋgraphᚋmodelᚐPaginatedRecipeComments(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_comments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3686,11 +3687,11 @@ func (ec *executionContext) fieldContext_User_comments(ctx context.Context, fiel
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "items":
-				return ec.fieldContext_PaginatedComments_items(ctx, field)
+				return ec.fieldContext_PaginatedRecipeComments_items(ctx, field)
 			case "pagination":
-				return ec.fieldContext_PaginatedComments_pagination(ctx, field)
+				return ec.fieldContext_PaginatedRecipeComments_pagination(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type PaginatedComments", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type PaginatedRecipeComments", field.Name)
 		},
 	}
 	defer func() {
@@ -5627,13 +5628,13 @@ func (ec *executionContext) _PaginatedResult(ctx context.Context, sel ast.Select
 			return graphql.Null
 		}
 		return ec._PaginatedRecipes(ctx, sel, obj)
-	case model.PaginatedComments:
-		return ec._PaginatedComments(ctx, sel, &obj)
-	case *model.PaginatedComments:
+	case model.PaginatedRecipeComments:
+		return ec._PaginatedRecipeComments(ctx, sel, &obj)
+	case *model.PaginatedRecipeComments:
 		if obj == nil {
 			return graphql.Null
 		}
-		return ec._PaginatedComments(ctx, sel, obj)
+		return ec._PaginatedRecipeComments(ctx, sel, obj)
 	case model.PaginatedRecipeRevisions:
 		return ec._PaginatedRecipeRevisions(ctx, sel, &obj)
 	case *model.PaginatedRecipeRevisions:
@@ -5732,24 +5733,24 @@ func (ec *executionContext) _MeasurementUnit(ctx context.Context, sel ast.Select
 	return out
 }
 
-var paginatedCommentsImplementors = []string{"PaginatedComments", "PaginatedResult"}
+var paginatedRecipeCommentsImplementors = []string{"PaginatedRecipeComments", "PaginatedResult"}
 
-func (ec *executionContext) _PaginatedComments(ctx context.Context, sel ast.SelectionSet, obj *model.PaginatedComments) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, paginatedCommentsImplementors)
+func (ec *executionContext) _PaginatedRecipeComments(ctx context.Context, sel ast.SelectionSet, obj *model.PaginatedRecipeComments) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, paginatedRecipeCommentsImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("PaginatedComments")
+			out.Values[i] = graphql.MarshalString("PaginatedRecipeComments")
 		case "items":
-			out.Values[i] = ec._PaginatedComments_items(ctx, field, obj)
+			out.Values[i] = ec._PaginatedRecipeComments_items(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
 		case "pagination":
-			out.Values[i] = ec._PaginatedComments_pagination(ctx, field, obj)
+			out.Values[i] = ec._PaginatedRecipeComments_pagination(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -5882,8 +5883,6 @@ func (ec *executionContext) _PaginationInfo(ctx context.Context, sel ast.Selecti
 			}
 		case "nextCursor":
 			out.Values[i] = ec._PaginationInfo_nextCursor(ctx, field, obj)
-		case "prevCursor":
-			out.Values[i] = ec._PaginationInfo_prevCursor(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6134,6 +6133,11 @@ func (ec *executionContext) _RecipeComment(ctx context.Context, sel ast.Selectio
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("RecipeComment")
+		case "id":
+			out.Values[i] = ec._RecipeComment_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "revision":
 			field := field
 
@@ -7449,18 +7453,18 @@ func (ec *executionContext) marshalNMeasurementUnit2ᚖforkdᚋgraphᚋmodelᚐM
 	return ec._MeasurementUnit(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPaginatedComments2forkdᚋgraphᚋmodelᚐPaginatedComments(ctx context.Context, sel ast.SelectionSet, v model.PaginatedComments) graphql.Marshaler {
-	return ec._PaginatedComments(ctx, sel, &v)
+func (ec *executionContext) marshalNPaginatedRecipeComments2forkdᚋgraphᚋmodelᚐPaginatedRecipeComments(ctx context.Context, sel ast.SelectionSet, v model.PaginatedRecipeComments) graphql.Marshaler {
+	return ec._PaginatedRecipeComments(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPaginatedComments2ᚖforkdᚋgraphᚋmodelᚐPaginatedComments(ctx context.Context, sel ast.SelectionSet, v *model.PaginatedComments) graphql.Marshaler {
+func (ec *executionContext) marshalNPaginatedRecipeComments2ᚖforkdᚋgraphᚋmodelᚐPaginatedRecipeComments(ctx context.Context, sel ast.SelectionSet, v *model.PaginatedRecipeComments) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
 		}
 		return graphql.Null
 	}
-	return ec._PaginatedComments(ctx, sel, v)
+	return ec._PaginatedRecipeComments(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNPaginatedRecipeRevisions2forkdᚋgraphᚋmodelᚐPaginatedRecipeRevisions(ctx context.Context, sel ast.SelectionSet, v model.PaginatedRecipeRevisions) graphql.Marshaler {
@@ -7786,6 +7790,21 @@ func (ec *executionContext) unmarshalNString2string(ctx context.Context, v inter
 
 func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	res := graphql.MarshalString(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
+	res, err := graphql.UnmarshalTime(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	res := graphql.MarshalTime(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

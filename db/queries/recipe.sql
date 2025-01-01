@@ -24,7 +24,7 @@ FROM
 WHERE
   slug = $1
 LIMIT 1;
--- name: ListByAuthor :many
+-- name: ListRecipesByAuthor :many
 SELECT
   id,
   author_id,
@@ -38,7 +38,7 @@ WHERE
   author_id = $1 AND id > $2
 ORDER BY id
 LIMIT $3;
--- name: List :many
+-- name: ListRecipes :many
 SELECT
   id,
   author_id,

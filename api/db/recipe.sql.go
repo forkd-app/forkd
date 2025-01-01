@@ -115,7 +115,7 @@ func (q *Queries) GetRecipeBySlug(ctx context.Context, slug string) (Recipe, err
 	return i, err
 }
 
-const list = `-- name: List :many
+const listRecipes = `-- name: ListRecipes :many
 SELECT
   id,
   author_id,
@@ -131,13 +131,13 @@ ORDER BY id
 LIMIT $2
 `
 
-type ListParams struct {
+type ListRecipesParams struct {
 	ID    int64
 	Limit int32
 }
 
-func (q *Queries) List(ctx context.Context, arg ListParams) ([]Recipe, error) {
-	rows, err := q.db.Query(ctx, list, arg.ID, arg.Limit)
+func (q *Queries) ListRecipes(ctx context.Context, arg ListRecipesParams) ([]Recipe, error) {
+	rows, err := q.db.Query(ctx, listRecipes, arg.ID, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +163,7 @@ func (q *Queries) List(ctx context.Context, arg ListParams) ([]Recipe, error) {
 	return items, nil
 }
 
-const listByAuthor = `-- name: ListByAuthor :many
+const listRecipesByAuthor = `-- name: ListRecipesByAuthor :many
 SELECT
   id,
   author_id,
@@ -179,14 +179,14 @@ ORDER BY id
 LIMIT $3
 `
 
-type ListByAuthorParams struct {
+type ListRecipesByAuthorParams struct {
 	AuthorID int64
 	ID       int64
 	Limit    int32
 }
 
-func (q *Queries) ListByAuthor(ctx context.Context, arg ListByAuthorParams) ([]Recipe, error) {
-	rows, err := q.db.Query(ctx, listByAuthor, arg.AuthorID, arg.ID, arg.Limit)
+func (q *Queries) ListRecipesByAuthor(ctx context.Context, arg ListRecipesByAuthorParams) ([]Recipe, error) {
+	rows, err := q.db.Query(ctx, listRecipesByAuthor, arg.AuthorID, arg.ID, arg.Limit)
 	if err != nil {
 		return nil, err
 	}

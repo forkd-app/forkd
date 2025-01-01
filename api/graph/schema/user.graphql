@@ -1,5 +1,5 @@
 type User {
-  joinDate: String! #ToDo: update with timestamp type
+  joinDate: Time!
   id: ID!
   email: String!
   # TODO: Discuss if this field should be renamed to just name?
@@ -7,6 +7,6 @@ type User {
   username: String!
   recipes(limit: Int, nextCursor: String): PaginatedRecipes!
     @goField(forceResolver: true)
-  comments(limit: Int, nextCursor: String): PaginatedComments!
+  comments(limit: Int, nextCursor: String): PaginatedRecipeComments!
     @goField(forceResolver: true)
 }

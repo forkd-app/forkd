@@ -59,7 +59,7 @@ module.exports = {
                 "MeasurementUnit",
                 "PaginationInfo",
                 "PaginatedRecipes",
-                "PaginatedComments",
+                "PaginatedRecipeComments",
                 "PaginatedRecipeRevisions",
                 "RecipeComment",
                 "UserQuery",

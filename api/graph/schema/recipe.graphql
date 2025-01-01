@@ -1,5 +1,5 @@
 type Recipe {
-  initialPublishDate: String! #ToDo: update with timestamp type
+  initialPublishDate: Time!
   author: User! @goField(forceResolver: true)
   slug: String!
   forkedFrom: Int
@@ -10,8 +10,9 @@ type Recipe {
 }
 
 type RecipeComment {
+  id: ID!
   revision: RecipeRevision! @goField(forceResolver: true)
-  postDate: String! #ToDo: update with timestamp type
+  postDate: Time!
   recipe: Recipe! @goField(forceResolver: true)
   author: User! @goField(forceResolver: true)
   content: String!
@@ -20,7 +21,7 @@ type RecipeComment {
 type RecipeRevision {
   id: ID!
   description: String
-  publishDate: String! #ToDo: update with timestamp type
+  publishDate: Time!
   ingredients: [RecipeIngredient!]! @goField(forceResolver: true)
   steps: [RecipeStep!]! @goField(forceResolver: true)
 }

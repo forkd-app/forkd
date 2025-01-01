@@ -2,6 +2,10 @@
 
 package model
 
+import (
+	"time"
+)
+
 type PaginatedResult interface {
 	IsPaginatedResult()
 	GetPagination() *PaginationInfo
@@ -17,13 +21,13 @@ type MeasurementUnit struct {
 	Name        string  `json:"name"`
 }
 
-type PaginatedComments struct {
+type PaginatedRecipeComments struct {
 	Items      []*RecipeComment `json:"items"`
 	Pagination *PaginationInfo  `json:"pagination"`
 }
 
-func (PaginatedComments) IsPaginatedResult()                  {}
-func (this PaginatedComments) GetPagination() *PaginationInfo { return this.Pagination }
+func (PaginatedRecipeComments) IsPaginatedResult()                  {}
+func (this PaginatedRecipeComments) GetPagination() *PaginationInfo { return this.Pagination }
 
 type PaginatedRecipeRevisions struct {
 	Items      []*RecipeRevision `json:"items"`
@@ -44,14 +48,13 @@ func (this PaginatedRecipes) GetPagination() *PaginationInfo { return this.Pagin
 type PaginationInfo struct {
 	Count      int     `json:"count"`
 	NextCursor *string `json:"nextCursor,omitempty"`
-	PrevCursor *string `json:"prevCursor,omitempty"`
 }
 
 type Query struct {
 }
 
 type Recipe struct {
-	InitialPublishDate string                    `json:"initialPublishDate"`
+	InitialPublishDate time.Time                 `json:"initialPublishDate"`
 	Author             *User                     `json:"author"`
 	Slug               string                    `json:"slug"`
 	ForkedFrom         *int                      `json:"forkedFrom,omitempty"`
@@ -61,8 +64,9 @@ type Recipe struct {
 }
 
 type RecipeComment struct {
+	ID       int             `json:"id"`
 	Revision *RecipeRevision `json:"revision"`
-	PostDate string          `json:"postDate"`
+	PostDate time.Time       `json:"postDate"`
 	Recipe   *Recipe         `json:"recipe"`
 	Author   *User           `json:"author"`
 	Content  string          `json:"content"`
@@ -86,7 +90,7 @@ type RecipeQuery struct {
 type RecipeRevision struct {
 	ID          int                 `json:"id"`
 	Description *string             `json:"description,omitempty"`
-	PublishDate string              `json:"publishDate"`
+	PublishDate time.Time           `json:"publishDate"`
 	Ingredients []*RecipeIngredient `json:"ingredients"`
 	Steps       []*RecipeStep       `json:"steps"`
 }
@@ -104,12 +108,12 @@ type Tag struct {
 }
 
 type User struct {
-	JoinDate string             `json:"joinDate"`
-	ID       int                `json:"id"`
-	Email    string             `json:"email"`
-	Username string             `json:"username"`
-	Recipes  *PaginatedRecipes  `json:"recipes"`
-	Comments *PaginatedComments `json:"comments"`
+	JoinDate time.Time                `json:"joinDate"`
+	ID       int                      `json:"id"`
+	Email    string                   `json:"email"`
+	Username string                   `json:"username"`
+	Recipes  *PaginatedRecipes        `json:"recipes"`
+	Comments *PaginatedRecipeComments `json:"comments"`
 }
 
 type UserQuery struct {
