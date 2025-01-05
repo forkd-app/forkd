@@ -31,7 +31,7 @@ func handleNoRowsOnNullableType[T any, U any](result T, err error, mapper func(T
 
 type Cursor[T any] interface {
 	Encode() (string, error)
-	Decode(string) (*Cursor[T], error)
+	Decode(string) error
 	Validate(input T) bool
 }
 
@@ -40,26 +40,12 @@ type ListRecipesCursor struct {
 	Limit int
 }
 
-func (cursor *ListRecipesCursor) Decode(encoded string) (*ListRecipesCursor, error) {
-	decoded, err := base64.StdEncoding.DecodeString(encoded)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(decoded, cursor)
-	if err != nil {
-		return nil, err
-	}
-
-	return cursor, nil
+func (cursor *ListRecipesCursor) Decode(encoded string) error {
+	return decodeBase64StringToStruct(encoded, cursor)
 }
 
 func (cursor ListRecipesCursor) Encode() (string, error) {
-	str, err := json.Marshal(cursor)
-	if err != nil {
-		return "", err
-	}
-	return base64.StdEncoding.EncodeToString(str), nil
+	return encodeStructToBase64String(cursor)
 }
 
 func (cursor ListRecipesCursor) Validate(input int) bool {
@@ -71,28 +57,36 @@ type ListCommentsCursor struct {
 	Limit    int
 }
 
-func (cursor *ListCommentsCursor) Decode(encoded string) (*ListCommentsCursor, error) {
-	decoded, err := base64.StdEncoding.DecodeString(encoded)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(decoded, cursor)
-	if err != nil {
-		return nil, err
-	}
-
-	return cursor, nil
+func (cursor *ListCommentsCursor) Decode(encoded string) error {
+	return decodeBase64StringToStruct(encoded, cursor)
 }
 
 func (cursor ListCommentsCursor) Encode() (string, error) {
-	str, err := json.Marshal(cursor)
-	if err != nil {
-		return "", err
-	}
-	return base64.StdEncoding.EncodeToString(str), nil
+	return encodeStructToBase64String(cursor)
 }
 
 func (cursor ListCommentsCursor) Validate(input int) bool {
 	return cursor.Limit == input
+}
+
+func encodeStructToBase64String[T any](val T) (string, error) {
+	str, err := json.Marshal(val)
+	if err != nil {
+		return "", fmt.Errorf("error marshaling json data to string: %w", err)
+	}
+	return base64.StdEncoding.EncodeToString(str), nil
+}
+
+func decodeBase64StringToStruct[T any](str string, val *T) error {
+	decoded, err := base64.StdEncoding.DecodeString(str)
+	if err != nil {
+		return fmt.Errorf("error decoding base64 string: %w", err)
+	}
+
+	err = json.Unmarshal(decoded, val)
+	if err != nil {
+		return fmt.Errorf("error unmarshaling string to struct: %w", err)
+	}
+
+	return nil
 }

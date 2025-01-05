@@ -27,7 +27,7 @@ func (r *userResolver) Recipes(ctx context.Context, obj *model.User, limit *int,
 	}
 	if nextCursor != nil {
 		cursor := new(ListRecipesCursor)
-		cursor, err := cursor.Decode(*nextCursor)
+		err := cursor.Decode(*nextCursor)
 		if err != nil {
 			return nil, err
 		}
@@ -90,7 +90,7 @@ func (r *userResolver) Comments(ctx context.Context, obj *model.User, limit *int
 	}
 	if nextCursor != nil {
 		cursor := new(ListCommentsCursor)
-		cursor, err := cursor.Decode(*nextCursor)
+		err := cursor.Decode(*nextCursor)
 		if err != nil {
 			return nil, err
 		}

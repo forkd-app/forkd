@@ -45,7 +45,7 @@ func (r *recipeQueryResolver) List(ctx context.Context, obj *model.RecipeQuery, 
 	}
 	if nextCursor != nil {
 		cursor := new(ListRecipesCursor)
-		cursor, err := cursor.Decode(*nextCursor)
+		err := cursor.Decode(*nextCursor)
 		if err != nil {
 			return nil, err
 		}
