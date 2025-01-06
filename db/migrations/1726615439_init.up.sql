@@ -3,23 +3,20 @@ CREATE TABLE IF NOT EXISTS users (
   id bigserial PRIMARY KEY,
   username varchar(50) NOT NULL UNIQUE,
   email varchar(255) NOT NULL UNIQUE,
-  join_date timestamp NOT NULL DEFAULT now()
+  join_date timestamp NOT NULL DEFAULT now(),
+  updated_at timestamp NULL 
 );
 CREATE TABLE IF NOT EXISTS recipes (
   id bigserial PRIMARY KEY,
+  featured_revision bigint NOT NULL CONSTRAINT fk_recipe_revision_id REFERENCES recipe_revisions(id),
   author_id bigint NOT NULL CONSTRAINT fk_recipe_author REFERENCES users(id),
   forked_from bigint CONSTRAINT fk_recipe_fork REFERENCES recipes(id),
   slug varchar(75) NOT NULL UNIQUE,
+  private boolean NOT NULL,
   description text,
   initial_publish_date timestamp NOT NULL DEFAULT now()
 );
-CREATE TABLE IF NOT EXISTS recipe_comments (
-  id bigserial PRIMARY KEY,
-  recipe_id bigint NOT NULL CONSTRAINT fk_recipe_comment REFERENCES recipes(id),
-  author_id bigint NOT NULL CONSTRAINT fk_recipe_comment_author REFERENCES users(id),
-  content text NOT NULL,
-  post_date timestamp NOT NULL DEFAULT now()
-);
+
 CREATE TABLE IF NOT EXISTS recipe_revisions (
   id bigserial PRIMARY KEY,
   recipe_id bigint NOT NULL CONSTRAINT fk_recipe_revisions REFERENCES recipes(id),
@@ -27,6 +24,7 @@ CREATE TABLE IF NOT EXISTS recipe_revisions (
   child_id bigint CONSTRAINT fk_recipe_revision_child REFERENCES recipe_revisions(id),
   -- Free form content, maybe like an "about" section. Maybe this should be like explaining the changes made
   description text,
+  title text,
   publish_date timestamp NOT NULL DEFAULT now()
 );
 CREATE TABLE IF NOT EXISTS linked_recipes (
@@ -67,4 +65,4 @@ CREATE TABLE IF NOT EXISTS recipe_steps (
   revision_id bigint NOT NULL CONSTRAINT fk_recipe_revision_ingredients REFERENCES recipe_revisions(id),
   content text NOT NULL,
   index int NOT NULL
-)
+);
