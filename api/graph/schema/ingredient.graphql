@@ -8,11 +8,13 @@ type RecipeIngredient {
 }
 
 type Ingredient {
+  id: ID!
   name: String!
   description: String
 }
 
 type MeasurementUnit {
+  id: ID!
   description: String
   name: String!
 }

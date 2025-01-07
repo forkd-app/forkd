@@ -2,11 +2,7 @@ type User {
   joinDate: String! #ToDo: update with timestamp type
   id: ID!
   email: String!
-  # TODO: Discuss if this field should be renamed to just name?
-  # eslint-disable-next-line @graphql-eslint/no-typename-prefix
-  username: String!
+  displayName: String!
   recipes(limit: Int, nextCursor: String): PaginatedRecipes!
-    @goField(forceResolver: true)
-  comments(limit: Int, nextCursor: String): PaginatedComments!
     @goField(forceResolver: true)
 }

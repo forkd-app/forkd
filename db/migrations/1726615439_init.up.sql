@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS recipe_revisions (
   recipe_description text,
   --change description should be a note describing how description changed
   change_comment text,
-  title text,
+  title text NOT NULL,
   publish_date timestamp NOT NULL DEFAULT now()
 );
 
@@ -45,20 +45,24 @@ CREATE TABLE IF NOT EXISTS tags (
   user_generated boolean NOT NULL
 );
 CREATE TABLE IF NOT EXISTS measurement_units (
-  name varchar(255) PRIMARY KEY,
+  id bigserial PRIMARY KEY,
+  name varchar(255) NOT NULL UNIQUE,
   description text
 );
 CREATE TABLE IF NOT EXISTS measurement_units_tags (
-  measurement varchar(255) NOT NULL CONSTRAINT fk_measurement_tags_measurement REFERENCES measurement_units(name),
-  tag varchar(255) NOT NULL CONSTRAINT fk_measurement_tags_tag REFERENCES tags(name)
+  id bigserial PRIMARY KEY,
+  measurement bigint NOT NULL UNIQUE CONSTRAINT fk_measurement_tags_measurement REFERENCES measurement_units(id),
+  tag bigint NOT NULL CONSTRAINT fk_measurement_tags_tag REFERENCES tags(id)
 );
 CREATE TABLE IF NOT EXISTS ingredients (
-  name varchar(255) PRIMARY KEY,
+  id bigserial PRIMARY KEY,
+  name varchar(255) UNIQUE NOT NULL ,
   description text
 );
 CREATE TABLE IF NOT EXISTS ingredient_tags (
-  ingredient varchar(255) NOT NULL CONSTRAINT fk_ingredient_tags_ingredient REFERENCES ingredients(name),
-  tag varchar(255) NOT NULL CONSTRAINT fk_ingredient_tags_tag REFERENCES tags(name)
+  id bigserial PRIMARY KEY,
+  ingredient bigint NOT NULL CONSTRAINT fk_ingredient_tags_ingredient REFERENCES ingredients(id),
+  tag bigint NOT NULL CONSTRAINT fk_ingredient_tags_tag REFERENCES tags(id)
 );
 CREATE TABLE IF NOT EXISTS recipe_ingredients (
   id bigserial PRIMARY KEY,
