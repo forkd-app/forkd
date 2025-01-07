@@ -13,7 +13,6 @@ type PaginatedRecipes implements PaginatedResult {
   pagination: PaginationInfo!
 }
 
-
 type PaginatedRecipeRevisions implements PaginatedResult {
   items: [RecipeRevision!]!
   pagination: PaginationInfo!

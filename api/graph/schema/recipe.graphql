@@ -6,13 +6,13 @@ type Recipe {
   id: ID!
   revisions(limit: Int, nextCursor: String): PaginatedRecipeRevisions!
     @goField(forceResolver: true)
-  featuredRevision: RecipeRevision 
+  featuredRevision: RecipeRevision
     @goField(forceResolver: true)
 }
 
 type RecipeRevision {
   id: ID!
-  recipe: Recipe! @goField(forceResolver:true)
+  recipe: Recipe! @goField(forceResolver: true)
   recipeDescription: String
   changeComment: String
   title: String!
