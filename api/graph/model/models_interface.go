@@ -2,7 +2,6 @@ package model
 
 import (
 	"forkd/db"
-	"time"
 )
 
 func RecipeFromDBType(result db.Recipe) *Recipe {
@@ -17,8 +16,8 @@ func RecipeFromDBType(result db.Recipe) *Recipe {
 		ID:                 int(result.ID),
 		Slug:               result.Slug,
 		ForkedFrom:         forkedFrom,
-		InitialPublishDate: result.InitialPublishDate.Time.Format(time.RFC3339),
-		Description:        result.Description.String,
+		InitialPublishDate: result.InitialPublishDate.Time,
+		Private:            result.Private,
 	}
 
 	return &recipe
@@ -27,10 +26,11 @@ func RecipeFromDBType(result db.Recipe) *Recipe {
 func UserFromDBType(result db.User) *User {
 	// Map to model.User type
 	user := User{
-		ID:       int(result.ID),
-		Email:    result.Email,
-		JoinDate: result.JoinDate.Time.Format(time.RFC3339),
-		Username: result.Username,
+		ID:          int(result.ID),
+		Email:       result.Email,
+		JoinDate:    result.JoinDate.Time,
+		DisplayName: result.DisplayName,
+		UpdatedAt:   result.UpdatedAt.Time,
 	}
 
 	return &user

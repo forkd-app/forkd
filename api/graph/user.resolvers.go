@@ -15,11 +15,6 @@ func (r *userResolver) Recipes(ctx context.Context, obj *model.User, limit *int,
 	panic(fmt.Errorf("not implemented: Recipes - recipes"))
 }
 
-// Comments is the resolver for the comments field.
-func (r *userResolver) Comments(ctx context.Context, obj *model.User, limit *int, nextCursor *string) (*model.PaginatedComments, error) {
-	panic(fmt.Errorf("not implemented: Comments - comments"))
-}
-
 // User returns UserResolver implementation.
 func (r *Resolver) User() UserResolver { return &userResolver{r} }
 

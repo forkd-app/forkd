@@ -1,5 +1,6 @@
 type User {
-  joinDate: String! #ToDo: update with timestamp type
+  joinDate: Time!
+  updatedAt: Time!
   id: ID!
   email: String!
   displayName: String!

@@ -1,9 +1,10 @@
 type Recipe {
-  initialPublishDate: String! #ToDo: update with timestamp type
+  initialPublishDate: Time!
   author: User! @goField(forceResolver: true)
   slug: String!
   forkedFrom: Int
   id: ID!
+  private: Boolean!
   revisions(limit: Int, nextCursor: String): PaginatedRecipeRevisions!
     @goField(forceResolver: true)
   featuredRevision: RecipeRevision @goField(forceResolver: true)
@@ -16,7 +17,7 @@ type RecipeRevision {
   changeComment: String
   title: String!
   parent: RecipeRevision @goField(forceResolver: true)
-  publishDate: String! #ToDo: update with timestamp type
+  publishDate: Time!
   ingredients: [RecipeIngredient!]! @goField(forceResolver: true)
   steps: [RecipeStep!]! @goField(forceResolver: true)
   rating: Float @goField(forceResolver: true)

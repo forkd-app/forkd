@@ -13,10 +13,10 @@ import (
 
 const createRecipe = `-- name: CreateRecipe :one
 INSERT INTO recipes (
-  slug,
   author_id,
-  description,
-  forked_from
+  forked_from,
+  slug,
+  private
 ) VALUES (
   $1,
   $2,
@@ -27,23 +27,24 @@ INSERT INTO recipes (
   author_id,
   forked_from,
   slug,
-  description,
-  initial_publish_date
+  private,
+  initial_publish_date,
+  featured_revision
 `
 
 type CreateRecipeParams struct {
-	Slug        string
-	AuthorID    int64
-	Description pgtype.Text
-	ForkedFrom  pgtype.Int8
+	AuthorID   int64
+	ForkedFrom pgtype.Int8
+	Slug       string
+	Private    bool
 }
 
 func (q *Queries) CreateRecipe(ctx context.Context, arg CreateRecipeParams) (Recipe, error) {
 	row := q.db.QueryRow(ctx, createRecipe,
-		arg.Slug,
 		arg.AuthorID,
-		arg.Description,
 		arg.ForkedFrom,
+		arg.Slug,
+		arg.Private,
 	)
 	var i Recipe
 	err := row.Scan(
@@ -51,8 +52,9 @@ func (q *Queries) CreateRecipe(ctx context.Context, arg CreateRecipeParams) (Rec
 		&i.AuthorID,
 		&i.ForkedFrom,
 		&i.Slug,
-		&i.Description,
+		&i.Private,
 		&i.InitialPublishDate,
+		&i.FeaturedRevision,
 	)
 	return i, err
 }
@@ -63,8 +65,9 @@ SELECT
   author_id,
   forked_from,
   slug,
-  description,
-  initial_publish_date
+  private,
+  initial_publish_date,
+  featured_revision
 FROM
   recipes
 WHERE
@@ -80,8 +83,9 @@ func (q *Queries) GetRecipeById(ctx context.Context, id int64) (Recipe, error) {
 		&i.AuthorID,
 		&i.ForkedFrom,
 		&i.Slug,
-		&i.Description,
+		&i.Private,
 		&i.InitialPublishDate,
+		&i.FeaturedRevision,
 	)
 	return i, err
 }
@@ -92,8 +96,9 @@ SELECT
   author_id,
   forked_from,
   slug,
-  description,
-  initial_publish_date
+  private,
+  initial_publish_date,
+  featured_revision
 FROM
   recipes
 WHERE
@@ -109,8 +114,9 @@ func (q *Queries) GetRecipeBySlug(ctx context.Context, slug string) (Recipe, err
 		&i.AuthorID,
 		&i.ForkedFrom,
 		&i.Slug,
-		&i.Description,
+		&i.Private,
 		&i.InitialPublishDate,
+		&i.FeaturedRevision,
 	)
 	return i, err
 }
@@ -121,8 +127,9 @@ SELECT
   author_id,
   forked_from,
   slug,
-  description,
-  initial_publish_date
+  private,
+  initial_publish_date,
+  featured_revision
 FROM
   recipes
 WHERE
@@ -150,8 +157,9 @@ func (q *Queries) List(ctx context.Context, arg ListParams) ([]Recipe, error) {
 			&i.AuthorID,
 			&i.ForkedFrom,
 			&i.Slug,
-			&i.Description,
+			&i.Private,
 			&i.InitialPublishDate,
+			&i.FeaturedRevision,
 		); err != nil {
 			return nil, err
 		}
@@ -169,8 +177,9 @@ SELECT
   author_id,
   forked_from,
   slug,
-  description,
-  initial_publish_date
+  private,
+  initial_publish_date,
+  featured_revision
 FROM
   recipes
 WHERE
@@ -199,8 +208,9 @@ func (q *Queries) ListByAuthor(ctx context.Context, arg ListByAuthorParams) ([]R
 			&i.AuthorID,
 			&i.ForkedFrom,
 			&i.Slug,
-			&i.Description,
+			&i.Private,
 			&i.InitialPublishDate,
+			&i.FeaturedRevision,
 		); err != nil {
 			return nil, err
 		}
