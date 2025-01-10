@@ -10,7 +10,6 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS recipes (
   id bigserial PRIMARY KEY,
   author_id bigint NOT NULL CONSTRAINT fk_recipe_author REFERENCES users(id),
-  forked_from bigint CONSTRAINT fk_recipe_fork REFERENCES recipes(id),
   slug varchar(75) NOT NULL UNIQUE,
   private boolean NOT NULL,
   initial_publish_date timestamp NOT NULL DEFAULT now()
@@ -29,6 +28,7 @@ CREATE TABLE IF NOT EXISTS recipe_revisions (
 );
 
 ALTER TABLE IF EXISTS recipes
+ADD forked_from bigint CONSTRAINT fk_recipe_fork REFERENCES recipe_revisions(id),
 ADD featured_revision bigint NULL CONSTRAINT fk_recipe_revision_id REFERENCES recipe_revisions(id);
 
 CREATE TABLE IF NOT EXISTS linked_recipes (

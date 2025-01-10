@@ -54,10 +54,10 @@ type Rating struct {
 type Recipe struct {
 	ID                 int64
 	AuthorID           int64
-	ForkedFrom         pgtype.Int8
 	Slug               string
 	Private            bool
 	InitialPublishDate pgtype.Timestamp
+	ForkedFrom         pgtype.Int8
 	FeaturedRevision   pgtype.Int8
 }
 

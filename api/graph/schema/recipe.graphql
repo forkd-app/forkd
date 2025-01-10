@@ -2,7 +2,7 @@ type Recipe {
   initialPublishDate: Time!
   author: User! @goField(forceResolver: true)
   slug: String!
-  forkedFrom: Int
+  forkedFrom: RecipeRevision @goField(forceResolver: true)
   id: ID!
   private: Boolean!
   revisions(limit: Int, nextCursor: String): PaginatedRecipeRevisions!

@@ -2,10 +2,10 @@
 SELECT
   id,
   author_id,
-  forked_from,
   slug,
   private,
   initial_publish_date,
+  forked_from,
   featured_revision
 FROM
   recipes
@@ -16,10 +16,10 @@ LIMIT 1;
 SELECT
   id,
   author_id,
-  forked_from,
   slug,
   private,
   initial_publish_date,
+  forked_from,
   featured_revision
 FROM
   recipes
@@ -30,10 +30,10 @@ LIMIT 1;
 SELECT
   id,
   author_id,
-  forked_from,
   slug,
   private,
   initial_publish_date,
+  forked_from,
   featured_revision
 FROM
   recipes
@@ -45,10 +45,10 @@ LIMIT $3;
 SELECT
   id,
   author_id,
-  forked_from,
   slug,
   private,
   initial_publish_date,
+  forked_from,
   featured_revision
 FROM
   recipes
@@ -70,8 +70,8 @@ INSERT INTO recipes (
 ) RETURNING
   id,
   author_id,
-  forked_from,
   slug,
   private,
   initial_publish_date,
+  forked_from,
   featured_revision;

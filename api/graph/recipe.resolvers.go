@@ -15,6 +15,11 @@ func (r *recipeResolver) Author(ctx context.Context, obj *model.Recipe) (*model.
 	panic(fmt.Errorf("not implemented: Author - author"))
 }
 
+// ForkedFrom is the resolver for the forkedFrom field.
+func (r *recipeResolver) ForkedFrom(ctx context.Context, obj *model.Recipe) (*model.RecipeRevision, error) {
+	panic(fmt.Errorf("not implemented: ForkedFrom - forkedFrom"))
+}
+
 // Revisions is the resolver for the revisions field.
 func (r *recipeResolver) Revisions(ctx context.Context, obj *model.Recipe, limit *int, nextCursor *string) (*model.PaginatedRecipeRevisions, error) {
 	panic(fmt.Errorf("not implemented: Revisions - revisions"))

@@ -51,7 +51,7 @@ type Recipe struct {
 	InitialPublishDate time.Time                 `json:"initialPublishDate"`
 	Author             *User                     `json:"author"`
 	Slug               string                    `json:"slug"`
-	ForkedFrom         *int                      `json:"forkedFrom,omitempty"`
+	ForkedFrom         *RecipeRevision           `json:"forkedFrom,omitempty"`
 	ID                 int                       `json:"id"`
 	Private            bool                      `json:"private"`
 	Revisions          *PaginatedRecipeRevisions `json:"revisions"`
