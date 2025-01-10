@@ -11,34 +11,35 @@ import (
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
-	username,
+	display_name,
 	email
 ) VALUES (
 	$1,
 	$2
 )
-RETURNING users.id, users.username, users.email, users.join_date
+RETURNING users.id, users.display_name, users.email, users.join_date, users.updated_at
 `
 
 type CreateUserParams struct {
-	Username string
-	Email    string
+	DisplayName string
+	Email       string
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, createUser, arg.Username, arg.Email)
+	row := q.db.QueryRow(ctx, createUser, arg.DisplayName, arg.Email)
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.Username,
+		&i.DisplayName,
 		&i.Email,
 		&i.JoinDate,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT users.id, users.username, users.email, users.join_date FROM users WHERE users.email = $1 LIMIT 1
+SELECT users.id, users.display_name, users.email, users.join_date, users.updated_at FROM users WHERE users.email = $1 LIMIT 1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -46,15 +47,16 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.Username,
+		&i.DisplayName,
 		&i.Email,
 		&i.JoinDate,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT users.id, users.username, users.email, users.join_date FROM users WHERE users.id = $1 LIMIT 1
+SELECT users.id, users.display_name, users.email, users.join_date, users.updated_at FROM users WHERE users.id = $1 LIMIT 1
 `
 
 func (q *Queries) GetUserById(ctx context.Context, id int64) (User, error) {
@@ -62,9 +64,10 @@ func (q *Queries) GetUserById(ctx context.Context, id int64) (User, error) {
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.Username,
+		&i.DisplayName,
 		&i.Email,
 		&i.JoinDate,
+		&i.UpdatedAt,
 	)
 	return i, err
 }

@@ -9,13 +9,15 @@ import (
 )
 
 type Ingredient struct {
+	ID          int64
 	Name        string
 	Description pgtype.Text
 }
 
 type IngredientTag struct {
-	Ingredient string
-	Tag        string
+	ID         int64
+	Ingredient int64
+	Tag        int64
 }
 
 type LinkedRecipe struct {
@@ -23,14 +25,30 @@ type LinkedRecipe struct {
 	ToRecipeID   int64
 }
 
+type MagicLink struct {
+	ID     int64
+	UserID int64
+	Token  string
+	Expiry pgtype.Timestamp
+}
+
 type MeasurementUnit struct {
+	ID          int64
 	Name        string
 	Description pgtype.Text
 }
 
 type MeasurementUnitsTag struct {
-	Measurement string
-	Tag         string
+	ID          int64
+	Measurement int64
+	Tag         int64
+}
+
+type Rating struct {
+	ID         int64
+	RevisionID int64
+	UserID     int64
+	StarValue  pgtype.Int2
 }
 
 type Recipe struct {
@@ -38,16 +56,9 @@ type Recipe struct {
 	AuthorID           int64
 	ForkedFrom         pgtype.Int8
 	Slug               string
-	Description        pgtype.Text
+	Private            bool
 	InitialPublishDate pgtype.Timestamp
-}
-
-type RecipeComment struct {
-	ID       int64
-	RecipeID int64
-	AuthorID int64
-	Content  string
-	PostDate pgtype.Timestamp
+	FeaturedRevision   pgtype.Int8
 }
 
 type RecipeIngredient struct {
@@ -60,12 +71,13 @@ type RecipeIngredient struct {
 }
 
 type RecipeRevision struct {
-	ID          int64
-	RecipeID    int64
-	ParentID    int64
-	ChildID     pgtype.Int8
-	Description pgtype.Text
-	PublishDate pgtype.Timestamp
+	ID                int64
+	RecipeID          int64
+	ParentID          pgtype.Int8
+	RecipeDescription pgtype.Text
+	ChangeComment     pgtype.Text
+	Title             string
+	PublishDate       pgtype.Timestamp
 }
 
 type RecipeStep struct {
@@ -75,14 +87,23 @@ type RecipeStep struct {
 	Index      int32
 }
 
+type Session struct {
+	ID     int64
+	UserID int64
+	Expiry pgtype.Timestamp
+}
+
 type Tag struct {
-	Name        string
-	Description pgtype.Text
+	ID            int64
+	Name          string
+	Description   pgtype.Text
+	UserGenerated bool
 }
 
 type User struct {
-	ID       int64
-	Username string
-	Email    string
-	JoinDate pgtype.Timestamp
+	ID          int64
+	DisplayName string
+	Email       string
+	JoinDate    pgtype.Timestamp
+	UpdatedAt   pgtype.Timestamp
 }

@@ -36,6 +36,11 @@ tasks:
     cmds:
       - docker-compose --profile "scripts" run --rm migrate -verbose -path="/migrations/" -database="{{.DB_URL}}" down {{.CLI_ARGS}}
 
+  migrate-drop:
+    desc: "Drop all data in db"
+    cmds:
+      - docker-compose --profile "scripts" run --rm migrate -verbose -path="/migrations/" -database="{{.DB_URL}}" drop {{.CLI_ARGS}}
+
   # Code generation tasks
   sqlc-gen:
     desc: "Generate SQLC code"

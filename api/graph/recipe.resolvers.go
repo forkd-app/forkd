@@ -20,19 +20,19 @@ func (r *recipeResolver) Revisions(ctx context.Context, obj *model.Recipe, limit
 	panic(fmt.Errorf("not implemented: Revisions - revisions"))
 }
 
-// Revision is the resolver for the revision field.
-func (r *recipeCommentResolver) Revision(ctx context.Context, obj *model.RecipeComment) (*model.RecipeRevision, error) {
-	panic(fmt.Errorf("not implemented: Revision - revision"))
+// FeaturedRevision is the resolver for the featuredRevision field.
+func (r *recipeResolver) FeaturedRevision(ctx context.Context, obj *model.Recipe) (*model.RecipeRevision, error) {
+	panic(fmt.Errorf("not implemented: FeaturedRevision - featuredRevision"))
 }
 
 // Recipe is the resolver for the recipe field.
-func (r *recipeCommentResolver) Recipe(ctx context.Context, obj *model.RecipeComment) (*model.Recipe, error) {
+func (r *recipeRevisionResolver) Recipe(ctx context.Context, obj *model.RecipeRevision) (*model.Recipe, error) {
 	panic(fmt.Errorf("not implemented: Recipe - recipe"))
 }
 
-// Author is the resolver for the author field.
-func (r *recipeCommentResolver) Author(ctx context.Context, obj *model.RecipeComment) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: Author - author"))
+// Parent is the resolver for the parent field.
+func (r *recipeRevisionResolver) Parent(ctx context.Context, obj *model.RecipeRevision) (*model.RecipeRevision, error) {
+	panic(fmt.Errorf("not implemented: Parent - parent"))
 }
 
 // Ingredients is the resolver for the ingredients field.
@@ -45,6 +45,11 @@ func (r *recipeRevisionResolver) Steps(ctx context.Context, obj *model.RecipeRev
 	panic(fmt.Errorf("not implemented: Steps - steps"))
 }
 
+// Rating is the resolver for the rating field.
+func (r *recipeRevisionResolver) Rating(ctx context.Context, obj *model.RecipeRevision) (*float64, error) {
+	panic(fmt.Errorf("not implemented: Rating - rating"))
+}
+
 // Revision is the resolver for the revision field.
 func (r *recipeStepResolver) Revision(ctx context.Context, obj *model.RecipeStep) (*model.RecipeRevision, error) {
 	panic(fmt.Errorf("not implemented: Revision - revision"))
@@ -53,9 +58,6 @@ func (r *recipeStepResolver) Revision(ctx context.Context, obj *model.RecipeStep
 // Recipe returns RecipeResolver implementation.
 func (r *Resolver) Recipe() RecipeResolver { return &recipeResolver{r} }
 
-// RecipeComment returns RecipeCommentResolver implementation.
-func (r *Resolver) RecipeComment() RecipeCommentResolver { return &recipeCommentResolver{r} }
-
 // RecipeRevision returns RecipeRevisionResolver implementation.
 func (r *Resolver) RecipeRevision() RecipeRevisionResolver { return &recipeRevisionResolver{r} }
 
@@ -63,6 +65,5 @@ func (r *Resolver) RecipeRevision() RecipeRevisionResolver { return &recipeRevis
 func (r *Resolver) RecipeStep() RecipeStepResolver { return &recipeStepResolver{r} }
 
 type recipeResolver struct{ *Resolver }
-type recipeCommentResolver struct{ *Resolver }
 type recipeRevisionResolver struct{ *Resolver }
 type recipeStepResolver struct{ *Resolver }
