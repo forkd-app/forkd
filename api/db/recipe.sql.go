@@ -25,10 +25,10 @@ INSERT INTO recipes (
 ) RETURNING
   id,
   author_id,
-  forked_from,
   slug,
   private,
   initial_publish_date,
+  forked_from,
   featured_revision
 `
 
@@ -50,10 +50,10 @@ func (q *Queries) CreateRecipe(ctx context.Context, arg CreateRecipeParams) (Rec
 	err := row.Scan(
 		&i.ID,
 		&i.AuthorID,
-		&i.ForkedFrom,
 		&i.Slug,
 		&i.Private,
 		&i.InitialPublishDate,
+		&i.ForkedFrom,
 		&i.FeaturedRevision,
 	)
 	return i, err
@@ -63,10 +63,10 @@ const getRecipeById = `-- name: GetRecipeById :one
 SELECT
   id,
   author_id,
-  forked_from,
   slug,
   private,
   initial_publish_date,
+  forked_from,
   featured_revision
 FROM
   recipes
@@ -81,10 +81,10 @@ func (q *Queries) GetRecipeById(ctx context.Context, id int64) (Recipe, error) {
 	err := row.Scan(
 		&i.ID,
 		&i.AuthorID,
-		&i.ForkedFrom,
 		&i.Slug,
 		&i.Private,
 		&i.InitialPublishDate,
+		&i.ForkedFrom,
 		&i.FeaturedRevision,
 	)
 	return i, err
@@ -94,10 +94,10 @@ const getRecipeBySlug = `-- name: GetRecipeBySlug :one
 SELECT
   id,
   author_id,
-  forked_from,
   slug,
   private,
   initial_publish_date,
+  forked_from,
   featured_revision
 FROM
   recipes
@@ -112,10 +112,10 @@ func (q *Queries) GetRecipeBySlug(ctx context.Context, slug string) (Recipe, err
 	err := row.Scan(
 		&i.ID,
 		&i.AuthorID,
-		&i.ForkedFrom,
 		&i.Slug,
 		&i.Private,
 		&i.InitialPublishDate,
+		&i.ForkedFrom,
 		&i.FeaturedRevision,
 	)
 	return i, err
@@ -125,10 +125,10 @@ const listRecipes = `-- name: ListRecipes :many
 SELECT
   id,
   author_id,
-  forked_from,
   slug,
   private,
   initial_publish_date,
+  forked_from,
   featured_revision
 FROM
   recipes
@@ -155,10 +155,10 @@ func (q *Queries) ListRecipes(ctx context.Context, arg ListRecipesParams) ([]Rec
 		if err := rows.Scan(
 			&i.ID,
 			&i.AuthorID,
-			&i.ForkedFrom,
 			&i.Slug,
 			&i.Private,
 			&i.InitialPublishDate,
+			&i.ForkedFrom,
 			&i.FeaturedRevision,
 		); err != nil {
 			return nil, err
@@ -175,10 +175,10 @@ const listRecipesByAuthor = `-- name: ListRecipesByAuthor :many
 SELECT
   id,
   author_id,
-  forked_from,
   slug,
   private,
   initial_publish_date,
+  forked_from,
   featured_revision
 FROM
   recipes
@@ -206,10 +206,10 @@ func (q *Queries) ListRecipesByAuthor(ctx context.Context, arg ListRecipesByAuth
 		if err := rows.Scan(
 			&i.ID,
 			&i.AuthorID,
-			&i.ForkedFrom,
 			&i.Slug,
 			&i.Private,
 			&i.InitialPublishDate,
+			&i.ForkedFrom,
 			&i.FeaturedRevision,
 		); err != nil {
 			return nil, err

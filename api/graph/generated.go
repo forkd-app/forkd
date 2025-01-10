@@ -161,6 +161,8 @@ type QueryResolver interface {
 type RecipeResolver interface {
 	Author(ctx context.Context, obj *model.Recipe) (*model.User, error)
 
+	ForkedFrom(ctx context.Context, obj *model.Recipe) (*model.RecipeRevision, error)
+
 	Revisions(ctx context.Context, obj *model.Recipe, limit *int, nextCursor *string) (*model.PaginatedRecipeRevisions, error)
 	FeaturedRevision(ctx context.Context, obj *model.Recipe) (*model.RecipeRevision, error)
 }
@@ -1903,7 +1905,7 @@ func (ec *executionContext) _Recipe_forkedFrom(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ForkedFrom, nil
+		return ec.resolvers.Recipe().ForkedFrom(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1912,19 +1914,41 @@ func (ec *executionContext) _Recipe_forkedFrom(ctx context.Context, field graphq
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*int)
+	res := resTmp.(*model.RecipeRevision)
 	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+	return ec.marshalORecipeRevision2ᚖforkdᚋgraphᚋmodelᚐRecipeRevision(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Recipe_forkedFrom(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Recipe",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_RecipeRevision_id(ctx, field)
+			case "recipe":
+				return ec.fieldContext_RecipeRevision_recipe(ctx, field)
+			case "recipeDescription":
+				return ec.fieldContext_RecipeRevision_recipeDescription(ctx, field)
+			case "changeComment":
+				return ec.fieldContext_RecipeRevision_changeComment(ctx, field)
+			case "title":
+				return ec.fieldContext_RecipeRevision_title(ctx, field)
+			case "parent":
+				return ec.fieldContext_RecipeRevision_parent(ctx, field)
+			case "publishDate":
+				return ec.fieldContext_RecipeRevision_publishDate(ctx, field)
+			case "ingredients":
+				return ec.fieldContext_RecipeRevision_ingredients(ctx, field)
+			case "steps":
+				return ec.fieldContext_RecipeRevision_steps(ctx, field)
+			case "rating":
+				return ec.fieldContext_RecipeRevision_rating(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RecipeRevision", field.Name)
 		},
 	}
 	return fc, nil
@@ -6089,7 +6113,38 @@ func (ec *executionContext) _Recipe(ctx context.Context, sel ast.SelectionSet, o
 				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "forkedFrom":
-			out.Values[i] = ec._Recipe_forkedFrom(ctx, field, obj)
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Recipe_forkedFrom(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "id":
 			out.Values[i] = ec._Recipe_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

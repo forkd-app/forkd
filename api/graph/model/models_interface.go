@@ -5,17 +5,10 @@ import (
 )
 
 func RecipeFromDBType(result db.Recipe) *Recipe {
-	// Handle nullable "forkedFrom" value
-	var forkedFrom *int = nil
-	if result.ForkedFrom.Valid {
-		val := int(result.ForkedFrom.Int64)
-		forkedFrom = &val
-	}
 	// Map to model.Recipe type
 	recipe := Recipe{
 		ID:                 int(result.ID),
 		Slug:               result.Slug,
-		ForkedFrom:         forkedFrom,
 		InitialPublishDate: result.InitialPublishDate.Time,
 		Private:            result.Private,
 	}
