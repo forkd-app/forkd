@@ -42,7 +42,6 @@ func (this PaginatedRecipes) GetPagination() *PaginationInfo { return this.Pagin
 type PaginationInfo struct {
 	Count      int     `json:"count"`
 	NextCursor *string `json:"nextCursor,omitempty"`
-	PrevCursor *string `json:"prevCursor,omitempty"`
 }
 
 type Query struct {

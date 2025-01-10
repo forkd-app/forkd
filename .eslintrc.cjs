@@ -56,7 +56,7 @@ module.exports = {
               types: [
                 "PaginationInfo",
                 "PaginatedRecipes",
-                "PaginatedComments",
+                "PaginatedRecipeComments",
                 "PaginatedRecipeRevisions",
                 "UserQuery",
                 "RecipeQuery",

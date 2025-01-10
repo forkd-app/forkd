@@ -79,7 +79,6 @@ type ComplexityRoot struct {
 	PaginationInfo struct {
 		Count      func(childComplexity int) int
 		NextCursor func(childComplexity int) int
-		PrevCursor func(childComplexity int) int
 	}
 
 	Query struct {
@@ -297,13 +296,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PaginationInfo.NextCursor(childComplexity), true
-
-	case "PaginationInfo.prevCursor":
-		if e.complexity.PaginationInfo.PrevCursor == nil {
-			break
-		}
-
-		return e.complexity.PaginationInfo.PrevCursor(childComplexity), true
 
 	case "Query.recipe":
 		if e.complexity.Query.Recipe == nil {
@@ -1322,8 +1314,6 @@ func (ec *executionContext) fieldContext_PaginatedRecipeRevisions_pagination(_ c
 				return ec.fieldContext_PaginationInfo_count(ctx, field)
 			case "nextCursor":
 				return ec.fieldContext_PaginationInfo_nextCursor(ctx, field)
-			case "prevCursor":
-				return ec.fieldContext_PaginationInfo_prevCursor(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PaginationInfo", field.Name)
 		},
@@ -1436,8 +1426,6 @@ func (ec *executionContext) fieldContext_PaginatedRecipes_pagination(_ context.C
 				return ec.fieldContext_PaginationInfo_count(ctx, field)
 			case "nextCursor":
 				return ec.fieldContext_PaginationInfo_nextCursor(ctx, field)
-			case "prevCursor":
-				return ec.fieldContext_PaginationInfo_prevCursor(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PaginationInfo", field.Name)
 		},
@@ -1518,47 +1506,6 @@ func (ec *executionContext) _PaginationInfo_nextCursor(ctx context.Context, fiel
 }
 
 func (ec *executionContext) fieldContext_PaginationInfo_nextCursor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "PaginationInfo",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _PaginationInfo_prevCursor(ctx context.Context, field graphql.CollectedField, obj *model.PaginationInfo) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_PaginationInfo_prevCursor(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.PrevCursor, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_PaginationInfo_prevCursor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "PaginationInfo",
 		Field:      field,
@@ -5973,8 +5920,6 @@ func (ec *executionContext) _PaginationInfo(ctx context.Context, sel ast.Selecti
 			}
 		case "nextCursor":
 			out.Values[i] = ec._PaginationInfo_nextCursor(ctx, field, obj)
-		case "prevCursor":
-			out.Values[i] = ec._PaginationInfo_prevCursor(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

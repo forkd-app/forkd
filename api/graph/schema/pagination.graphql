@@ -5,7 +5,6 @@ interface PaginatedResult {
 type PaginationInfo {
   count: Int!
   nextCursor: String
-  prevCursor: String
 }
 
 type PaginatedRecipes implements PaginatedResult {
