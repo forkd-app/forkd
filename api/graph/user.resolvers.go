@@ -9,8 +9,6 @@ import (
 	"fmt"
 	"forkd/db"
 	"forkd/graph/model"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // Recipes is the resolver for the recipes field.
@@ -70,72 +68,6 @@ func (r *userResolver) Recipes(ctx context.Context, obj *model.User, limit *int,
 
 	paginated := model.PaginatedRecipes{
 		Items:      recipes,
-		Pagination: &paginationInfo,
-	}
-
-	return &paginated, nil
-}
-
-// Comments is the resolver for the comments field.
-func (r *userResolver) Comments(ctx context.Context, obj *model.User, limit *int, nextCursor *string) (*model.PaginatedRecipeComments, error) {
-	var params db.ListCommentsByAuthorParams
-	if obj == nil {
-		return nil, fmt.Errorf("missing user object")
-	}
-	params.AuthorID = int64(obj.ID)
-	if limit != nil {
-		params.Limit = int32(*limit)
-	} else {
-		params.Limit = 20
-	}
-	if nextCursor != nil {
-		cursor := new(ListCommentsCursor)
-		err := cursor.Decode(*nextCursor)
-		if err != nil {
-			return nil, err
-		}
-		if !cursor.Validate(*limit) {
-			return nil, fmt.Errorf("limit param does not match cursor. Limit: %d, Cursor: %d", params.Limit, cursor.Limit)
-		}
-		params.PostDate = pgtype.Timestamp{
-			Time:  cursor.PostDate,
-			Valid: true,
-		}
-	}
-	result, err := r.Queries.ListCommentsByAuthor(ctx, params)
-	// If there was an error, early return with the error
-	if err != nil {
-		return nil, err
-	}
-	count := len(result)
-	comments := make([]*model.RecipeComment, count)
-	for i, comment := range result {
-		comments[i] = model.RecipeCommentFromDBType(comment)
-	}
-
-	var NextCursor *string = nil
-
-	if count == int(params.Limit) {
-		cursor := ListRecipesCursor{
-			Id:    comments[count-1].ID,
-			Limit: int(params.Limit),
-		}
-		encoded, err := cursor.Encode()
-
-		if err != nil {
-			return nil, err
-		}
-
-		NextCursor = &encoded
-	}
-
-	paginationInfo := model.PaginationInfo{
-		Count:      count,
-		NextCursor: NextCursor,
-	}
-
-	paginated := model.PaginatedRecipeComments{
-		Items:      comments,
 		Pagination: &paginationInfo,
 	}
 

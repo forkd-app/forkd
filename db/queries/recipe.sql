@@ -4,8 +4,9 @@ SELECT
   author_id,
   forked_from,
   slug,
-  description,
-  initial_publish_date
+  private,
+  initial_publish_date,
+  featured_revision
 FROM
   recipes
 WHERE
@@ -17,8 +18,9 @@ SELECT
   author_id,
   forked_from,
   slug,
-  description,
-  initial_publish_date
+  private,
+  initial_publish_date,
+  featured_revision
 FROM
   recipes
 WHERE
@@ -30,8 +32,9 @@ SELECT
   author_id,
   forked_from,
   slug,
-  description,
-  initial_publish_date
+  private,
+  initial_publish_date,
+  featured_revision
 FROM
   recipes
 WHERE
@@ -44,8 +47,9 @@ SELECT
   author_id,
   forked_from,
   slug,
-  description,
-  initial_publish_date
+  private,
+  initial_publish_date,
+  featured_revision
 FROM
   recipes
 WHERE
@@ -54,10 +58,10 @@ ORDER BY id
 LIMIT $2;
 -- name: CreateRecipe :one
 INSERT INTO recipes (
-  slug,
   author_id,
-  description,
-  forked_from
+  forked_from,
+  slug,
+  private
 ) VALUES (
   $1,
   $2,
@@ -68,5 +72,6 @@ INSERT INTO recipes (
   author_id,
   forked_from,
   slug,
-  description,
-  initial_publish_date;
+  private,
+  initial_publish_date,
+  featured_revision;

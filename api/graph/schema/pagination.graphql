@@ -12,11 +12,6 @@ type PaginatedRecipes implements PaginatedResult {
   pagination: PaginationInfo!
 }
 
-type PaginatedRecipeComments implements PaginatedResult {
-  items: [RecipeComment!]!
-  pagination: PaginationInfo!
-}
-
 type PaginatedRecipeRevisions implements PaginatedResult {
   items: [RecipeRevision!]!
   pagination: PaginationInfo!

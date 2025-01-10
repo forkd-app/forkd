@@ -52,19 +52,14 @@ module.exports = {
           "error",
           {
             exceptions: {
-              // TODO: Discuss what to do with this rule? right now just ignoring these
+              // This is for wrapper types that don't have a need for an id.
               types: [
-                "RecipeIngredient",
-                "Ingredient",
-                "MeasurementUnit",
                 "PaginationInfo",
                 "PaginatedRecipes",
                 "PaginatedRecipeComments",
                 "PaginatedRecipeRevisions",
-                "RecipeComment",
                 "UserQuery",
                 "RecipeQuery",
-                "Tag",
               ],
             },
           },
