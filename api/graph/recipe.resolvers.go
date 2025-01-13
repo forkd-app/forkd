@@ -32,27 +32,49 @@ func (r *recipeResolver) FeaturedRevision(ctx context.Context, obj *model.Recipe
 
 // Recipe is the resolver for the recipe field.
 func (r *recipeRevisionResolver) Recipe(ctx context.Context, obj *model.RecipeRevision) (*model.Recipe, error) {
-	panic(fmt.Errorf("not implemented: Recipe - recipe"))
+	recipe, err := r.db.getRecipeByRecipeID(ctx, obj.RecipeID)
+
+	if err != nil {
+		return nil, Errorf("failed to fetch recipe for revision", obj.RecipeID, err)
+	}
+	return recipe, nil
 }
 
 // Parent is the resolver for the parent field.
 func (r *recipeRevisionResolver) Parent(ctx context.Context, obj *model.RecipeRevision) (*model.RecipeRevision, error) {
-	panic(fmt.Errorf("not implemented: Parent - parent"))
+	parent, err := r.db.getParentByParentID(ctx, obj.ParentID)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch parent for revision", obj.ParentID, err)
+	}
+	return parent, nil
 }
 
 // Ingredients is the resolver for the ingredients field.
 func (r *recipeRevisionResolver) Ingredients(ctx context.Context, obj *model.RecipeRevision) ([]*model.RecipeIngredient, error) {
-	panic(fmt.Errorf("not implemented: Ingredients - ingredients"))
+	ingredients, err := r.db.ListIngredientsByRevisionID(ctx, obj.RevisionID)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch ingredients for revision", obj.RevisionID, err)
+	}
+	return ingredients, nil
 }
 
 // Steps is the resolver for the steps field.
 func (r *recipeRevisionResolver) Steps(ctx context.Context, obj *model.RecipeRevision) ([]*model.RecipeStep, error) {
-	panic(fmt.Errorf("not implemented: Steps - steps"))
+	steps, err := r.db.ListStepsByRevisionID(ctx. obj.RevisionID)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch steps for revision", obj.RevisionID, err)
+	}
+	return steps, nil
 }
 
 // Rating is the resolver for the rating field.
 func (r *recipeRevisionResolver) Rating(ctx context.Context, obj *model.RecipeRevision) (*float64, error) {
-	panic(fmt.Errorf("not implemented: Rating - rating"))
+	rating := float64(0)
+
+	return &rating, nil
 }
 
 // Revision is the resolver for the revision field.
