@@ -12,17 +12,47 @@ import (
 
 // Revision is the resolver for the revision field.
 func (r *recipeIngredientResolver) Revision(ctx context.Context, obj *model.RecipeIngredient) (*model.RecipeRevision, error) {
-	panic(fmt.Errorf("not implemented: Revision - revision"))
+	if obj == nil {
+		return nil, fmt.Errorf("missing parent object on type RecipeIngredient")
+	}
+
+	id := obj.ID
+	result, err := r.Queries.GetRecipeRevisionByIngredientId(ctx, int64(id))
+	if err != nil {
+		return nil, err
+	}
+
+	return model.RevisionFromDBType(result), nil
 }
 
 // Unit is the resolver for the unit field.
 func (r *recipeIngredientResolver) Unit(ctx context.Context, obj *model.RecipeIngredient) (*model.MeasurementUnit, error) {
-	panic(fmt.Errorf("not implemented: Unit - unit"))
+	if obj == nil {
+		return nil, fmt.Errorf("missing parent object on type RecipeIngredient")
+	}
+
+	id := obj.ID
+	result, err := r.Queries.GetMeasurementUnitFromIngredientId(ctx, int64(id))
+	if err != nil {
+		return nil, err
+	}
+
+	return model.MeasurementUnitFromDBType(result), nil
 }
 
 // Ingredient is the resolver for the ingredient field.
 func (r *recipeIngredientResolver) Ingredient(ctx context.Context, obj *model.RecipeIngredient) (*model.Ingredient, error) {
-	panic(fmt.Errorf("not implemented: Ingredient - ingredient"))
+	if obj == nil {
+		return nil, fmt.Errorf("missing parent object on type RecipeIngredient")
+	}
+
+	id := obj.ID
+	result, err := r.Queries.GetIngredientFromRecipeIngredientId(ctx, int64(id))
+	if err != nil {
+		return nil, err
+	}
+
+	return model.IngredientFromDBType(result), nil
 }
 
 // RecipeIngredient returns RecipeIngredientResolver implementation.
