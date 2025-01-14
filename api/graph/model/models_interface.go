@@ -30,25 +30,25 @@ func UserFromDBType(result db.User) *User {
 }
 
 
-func getParentByParentID(result db.RecipeRevision) *RecipeRevision {
+func ParentFromDBType(result db.RecipeRevision) *RecipeRevision {
 	parent := RecipeRevision{
 		ID:			int(result.ID),
 		RecipeDescription: result.RecipeDescription.String,
 		ChangeComment: result.ChangeComment.String,
 		Title: 		result.Title,
-		PublishDate: result.PublishDate.Time
+		PublishDate: result.PublishDate.Time,
 	}
 
 	return &parent
 }
 
-func ListIngredientsByRevisionID(result []db.RecipeIngredient) []*RecipeIngredient {
-	ingredients := make([]*RecipeIngredient, len[results])
+func ListIngredientsFromDBType(results []db.RecipeIngredient) []*RecipeIngredient {
+	ingredients := make([]*RecipeIngredient, len(results))
 	
-	for i, results := range results {
-		ingredients[i] := &RecipeIngredient{
+	for i, result := range results {
+		ingredients[i] = &RecipeIngredient{
 		ID:			int(result.ID),
-		Quanity:	result.Quanity,
+		Quantity:	float64(result.Quantity),
 		Comment:	result.Comment.String,
 		}
 	}
@@ -56,14 +56,14 @@ func ListIngredientsByRevisionID(result []db.RecipeIngredient) []*RecipeIngredie
 	return ingredients
 }
 
-func ListStepsByRevisionID(results []db.RecipeStep) []*RecipeStep {
+func ListStepsFromDBType(results []db.RecipeStep) []*RecipeStep {
 	steps := make([]*RecipeStep, len(results)) 
 	
-	for i, results := range results {
+	for i, result := range results {
 		steps[i] = &RecipeStep{
 		ID: int(result.ID),
 		Content: result.Content,
-		Index: int(result.Index)
+		Index: int(result.Index),
 		}
 	}
 

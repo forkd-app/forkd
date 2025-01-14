@@ -32,40 +32,40 @@ func (r *recipeResolver) FeaturedRevision(ctx context.Context, obj *model.Recipe
 
 // Recipe is the resolver for the recipe field.
 func (r *recipeRevisionResolver) Recipe(ctx context.Context, obj *model.RecipeRevision) (*model.Recipe, error) {
-	recipe, err := r.db.getRecipeByRecipeID(ctx, obj.RecipeID)
+	recipe, err := r.Queries.RecipeFromDBType(ctx, obj.RecipeID)
 
 	if err != nil {
-		return nil, Errorf("failed to fetch recipe for revision", obj.RecipeID, err)
+		return nil, Errorf("failed to fetch recipe for revision %d: %w", obj.RecipeID, err)
 	}
 	return recipe, nil
 }
 
 // Parent is the resolver for the parent field.
 func (r *recipeRevisionResolver) Parent(ctx context.Context, obj *model.RecipeRevision) (*model.RecipeRevision, error) {
-	parent, err := r.db.getParentByParentID(ctx, obj.ParentID)
+	parent, err := r.Queries.ParentFromDBType(ctx, obj.ParentID)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch parent for revision", obj.ParentID, err)
+		return nil, fmt.Errorf("failed to fetch parent for revision %d: %w", obj.ParentID, err)
 	}
 	return parent, nil
 }
 
 // Ingredients is the resolver for the ingredients field.
 func (r *recipeRevisionResolver) Ingredients(ctx context.Context, obj *model.RecipeRevision) ([]*model.RecipeIngredient, error) {
-	ingredients, err := r.db.ListIngredientsByRevisionID(ctx, obj.RevisionID)
+	ingredients, err := r.Queries.ListIngredientsFromDBType(ctx, obj.RevisionID)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch ingredients for revision", obj.RevisionID, err)
+		return nil, fmt.Errorf("failed to fetch ingredients for revision %d: %w", obj.RevisionID, err)
 	}
 	return ingredients, nil
 }
 
 // Steps is the resolver for the steps field.
 func (r *recipeRevisionResolver) Steps(ctx context.Context, obj *model.RecipeRevision) ([]*model.RecipeStep, error) {
-	steps, err := r.db.ListStepsByRevisionID(ctx. obj.RevisionID)
+	steps, err := r.Queries.ListStepsFromDBType(ctx, obj.RevisionID)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch steps for revision", obj.RevisionID, err)
+		return nil, fmt.Errorf("failed to fetch steps for revision %d: %w", obj.RevisionID, err)
 	}
 	return steps, nil
 }
