@@ -44,3 +44,21 @@ JOIN
 WHERE
   recipe_ingredients.id = $1
 LIMIT 1;
+
+-- name: ListRecipeRevisions :many
+SELECT
+  id,
+  recipe_id,
+  parent_id,
+  recipe_description,
+  change_comment,
+  title,
+  publish_date
+FROM
+  recipe_revisions
+WHERE
+  recipe_id = $1
+  AND id > $2 -- Cursor for pagination
+ORDER BY id
+LIMIT $3; -- Limit for pagination
+

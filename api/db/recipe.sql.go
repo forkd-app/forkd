@@ -121,6 +121,178 @@ func (q *Queries) GetRecipeBySlug(ctx context.Context, slug string) (Recipe, err
 	return i, err
 }
 
+const getRecipeWithAuthorById = `-- name: GetRecipeWithAuthorById :one
+SELECT
+  r.id AS recipe_id,
+  r.slug AS recipe_slug,
+  r.private AS recipe_private,
+  r.initial_publish_date AS recipe_initial_publish_date,
+  r.forked_from AS recipe_forked_from,
+  r.featured_revision AS recipe_featured_revision,
+  u.id AS user_id,
+  u.display_name AS user_display_name,
+  u.email AS user_email,
+  u.join_date AS user_join_date,
+  u.updated_at AS user_updated_at
+FROM
+  recipes r
+JOIN
+  users u ON r.author_id = u.id
+WHERE
+  r.id = $1
+LIMIT 1
+`
+
+type GetRecipeWithAuthorByIdRow struct {
+	RecipeID                 int64
+	RecipeSlug               string
+	RecipePrivate            bool
+	RecipeInitialPublishDate pgtype.Timestamp
+	RecipeForkedFrom         pgtype.Int8
+	RecipeFeaturedRevision   pgtype.Int8
+	UserID                   int64
+	UserDisplayName          string
+	UserEmail                string
+	UserJoinDate             pgtype.Timestamp
+	UserUpdatedAt            pgtype.Timestamp
+}
+
+func (q *Queries) GetRecipeWithAuthorById(ctx context.Context, id int64) (GetRecipeWithAuthorByIdRow, error) {
+	row := q.db.QueryRow(ctx, getRecipeWithAuthorById, id)
+	var i GetRecipeWithAuthorByIdRow
+	err := row.Scan(
+		&i.RecipeID,
+		&i.RecipeSlug,
+		&i.RecipePrivate,
+		&i.RecipeInitialPublishDate,
+		&i.RecipeForkedFrom,
+		&i.RecipeFeaturedRevision,
+		&i.UserID,
+		&i.UserDisplayName,
+		&i.UserEmail,
+		&i.UserJoinDate,
+		&i.UserUpdatedAt,
+	)
+	return i, err
+}
+
+const getRecipeWithFeaturedRevisionById = `-- name: GetRecipeWithFeaturedRevisionById :one
+SELECT
+  r.id AS recipe_id,
+  r.slug AS recipe_slug,
+  r.private AS recipe_private,
+  r.initial_publish_date AS recipe_initial_publish_date,
+  r.featured_revision AS recipe_featured_revision,
+  fr.id AS featured_revision_id,
+  fr.recipe_id AS featured_recipe_id,
+  fr.parent_id AS featured_parent_id,
+  fr.recipe_description AS featured_recipe_description,
+  fr.change_comment AS featured_change_comment,
+  fr.title AS featured_title,
+  fr.publish_date AS featured_publish_date
+FROM
+  recipes r
+LEFT JOIN recipe_revisions fr ON r.featured_revision = fr.id
+WHERE
+  r.id = $1
+LIMIT 1
+`
+
+type GetRecipeWithFeaturedRevisionByIdRow struct {
+	RecipeID                  int64
+	RecipeSlug                string
+	RecipePrivate             bool
+	RecipeInitialPublishDate  pgtype.Timestamp
+	RecipeFeaturedRevision    pgtype.Int8
+	FeaturedRevisionID        pgtype.Int8
+	FeaturedRecipeID          pgtype.Int8
+	FeaturedParentID          pgtype.Int8
+	FeaturedRecipeDescription pgtype.Text
+	FeaturedChangeComment     pgtype.Text
+	FeaturedTitle             pgtype.Text
+	FeaturedPublishDate       pgtype.Timestamp
+}
+
+func (q *Queries) GetRecipeWithFeaturedRevisionById(ctx context.Context, id int64) (GetRecipeWithFeaturedRevisionByIdRow, error) {
+	row := q.db.QueryRow(ctx, getRecipeWithFeaturedRevisionById, id)
+	var i GetRecipeWithFeaturedRevisionByIdRow
+	err := row.Scan(
+		&i.RecipeID,
+		&i.RecipeSlug,
+		&i.RecipePrivate,
+		&i.RecipeInitialPublishDate,
+		&i.RecipeFeaturedRevision,
+		&i.FeaturedRevisionID,
+		&i.FeaturedRecipeID,
+		&i.FeaturedParentID,
+		&i.FeaturedRecipeDescription,
+		&i.FeaturedChangeComment,
+		&i.FeaturedTitle,
+		&i.FeaturedPublishDate,
+	)
+	return i, err
+}
+
+const getRecipeWithForkedFromById = `-- name: GetRecipeWithForkedFromById :one
+SELECT
+  r.id AS recipe_id,
+  r.slug AS recipe_slug,
+  r.private AS recipe_private,
+  r.initial_publish_date AS recipe_initial_publish_date,
+  r.forked_from AS recipe_forked_from,
+  r.featured_revision AS recipe_featured_revision,
+  fr.id AS forked_revision_id,
+  fr.recipe_id AS forked_recipe_id,
+  fr.parent_id AS forked_parent_id,
+  fr.recipe_description AS forked_recipe_description,
+  fr.change_comment AS forked_change_comment,
+  fr.title AS forked_title,
+  fr.publish_date AS forked_publish_date
+FROM
+  recipes r
+LEFT JOIN recipe_revisions fr ON r.forked_from = fr.id
+WHERE
+  r.id = $1
+LIMIT 1
+`
+
+type GetRecipeWithForkedFromByIdRow struct {
+	RecipeID                 int64
+	RecipeSlug               string
+	RecipePrivate            bool
+	RecipeInitialPublishDate pgtype.Timestamp
+	RecipeForkedFrom         pgtype.Int8
+	RecipeFeaturedRevision   pgtype.Int8
+	ForkedRevisionID         pgtype.Int8
+	ForkedRecipeID           pgtype.Int8
+	ForkedParentID           pgtype.Int8
+	ForkedRecipeDescription  pgtype.Text
+	ForkedChangeComment      pgtype.Text
+	ForkedTitle              pgtype.Text
+	ForkedPublishDate        pgtype.Timestamp
+}
+
+func (q *Queries) GetRecipeWithForkedFromById(ctx context.Context, id int64) (GetRecipeWithForkedFromByIdRow, error) {
+	row := q.db.QueryRow(ctx, getRecipeWithForkedFromById, id)
+	var i GetRecipeWithForkedFromByIdRow
+	err := row.Scan(
+		&i.RecipeID,
+		&i.RecipeSlug,
+		&i.RecipePrivate,
+		&i.RecipeInitialPublishDate,
+		&i.RecipeForkedFrom,
+		&i.RecipeFeaturedRevision,
+		&i.ForkedRevisionID,
+		&i.ForkedRecipeID,
+		&i.ForkedParentID,
+		&i.ForkedRecipeDescription,
+		&i.ForkedChangeComment,
+		&i.ForkedTitle,
+		&i.ForkedPublishDate,
+	)
+	return i, err
+}
+
 const listRecipes = `-- name: ListRecipes :many
 SELECT
   id,

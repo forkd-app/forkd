@@ -105,3 +105,55 @@ func (q *Queries) GetRecipeRevisionByStepId(ctx context.Context, id int64) (Reci
 	)
 	return i, err
 }
+
+const listRecipeRevisions = `-- name: ListRecipeRevisions :many
+SELECT
+  id,
+  recipe_id,
+  parent_id,
+  recipe_description,
+  change_comment,
+  title,
+  publish_date
+FROM
+  recipe_revisions
+WHERE
+  recipe_id = $1
+  AND id > $2 -- Cursor for pagination
+ORDER BY id
+LIMIT $3
+`
+
+type ListRecipeRevisionsParams struct {
+	RecipeID int64
+	ID       int64
+	Limit    int32
+}
+
+func (q *Queries) ListRecipeRevisions(ctx context.Context, arg ListRecipeRevisionsParams) ([]RecipeRevision, error) {
+	rows, err := q.db.Query(ctx, listRecipeRevisions, arg.RecipeID, arg.ID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []RecipeRevision
+	for rows.Next() {
+		var i RecipeRevision
+		if err := rows.Scan(
+			&i.ID,
+			&i.RecipeID,
+			&i.ParentID,
+			&i.RecipeDescription,
+			&i.ChangeComment,
+			&i.Title,
+			&i.PublishDate,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
