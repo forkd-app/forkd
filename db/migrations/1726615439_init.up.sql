@@ -72,9 +72,9 @@ CREATE TABLE IF NOT EXISTS ingredient_tags (
 CREATE TABLE IF NOT EXISTS recipe_ingredients (
   id bigserial PRIMARY KEY,
   revision_id bigint NOT NULL CONSTRAINT fk_recipe_revision_ingredients REFERENCES recipe_revisions(id),
-  ingredient varchar(255) NOT NULL CONSTRAINT fk_recipe_ingredient REFERENCES ingredients(name),
+  ingredient bigint NOT NULL CONSTRAINT fk_recipe_ingredient REFERENCES ingredients(id),
   quantity real NOT NULL,
-  unit varchar(255) NOT NULL CONSTRAINT fk_recipe_ingredient_quantity REFERENCES measurement_units(name),
+  unit bigint NOT NULL CONSTRAINT fk_recipe_ingredient_quantity REFERENCES measurement_units(id),
   comment text
 );
 
