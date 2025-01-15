@@ -68,14 +68,3 @@ func ListStepsFromDBType(results []db.RecipeStep) []*RecipeStep {
 
 	return steps
 }
-
-func RevisionFromDBType(result db.RecipeRevision) *RecipeRevision {
-	revision := RecipeRevision{
-		ID:                int(result.ID),
-		RecipeDescription: &result.RecipeDescription.String,
-		ChangeComment:     &result.ChangeComment.String,
-		Title:             result.Title,
-		PublishDate:       result.PublishDate.Time,
-	}
-	return &revision
-}
