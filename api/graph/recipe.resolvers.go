@@ -32,42 +32,57 @@ func (r *recipeResolver) FeaturedRevision(ctx context.Context, obj *model.Recipe
 
 // Recipe is the resolver for the recipe field.
 func (r *recipeRevisionResolver) Recipe(ctx context.Context, obj *model.RecipeRevision) (*model.Recipe, error) {
-	recipe, err := r.Queries.RecipeFromDBType(ctx, obj.RecipeID)
+	if obj == nil {
+		return nil, fmt.Errorf(("missing object on type RecipeRevision"))
+	}
+
+	result, err := r.Queries.GetRecipeByRecipeID(ctx, int64(obj.ID))
 
 	if err != nil {
-		return nil, Errorf("failed to fetch recipe for revision %d: %w", obj.RecipeID, err)
+		return nil, fmt.Errorf("failed to fetch recipe for revision %d: %w", obj.ID, err)
 	}
-	return recipe, nil
+	return model.RecipeFromDBType(result), nil
 }
 
 // Parent is the resolver for the parent field.
 func (r *recipeRevisionResolver) Parent(ctx context.Context, obj *model.RecipeRevision) (*model.RecipeRevision, error) {
-	parent, err := r.Queries.ParentFromDBType(ctx, obj.ParentID)
+	if obj == nil {
+		return nil, fmt.Errorf("missing object on type RecipeRevision")
+	}
+	result, err := r.Queries.GetRecipeRevisionByParentID(ctx, int64(obj.ID))
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch parent for revision %d: %w", obj.ParentID, err)
+		return nil, fmt.Errorf("failed to fetch parent for revision %d: %w", obj.ID, err)
 	}
-	return parent, nil
+	return model.RevisionFromDBType(result), nil
 }
 
 // Ingredients is the resolver for the ingredients field.
 func (r *recipeRevisionResolver) Ingredients(ctx context.Context, obj *model.RecipeRevision) ([]*model.RecipeIngredient, error) {
-	ingredients, err := r.Queries.ListIngredientsFromDBType(ctx, obj.RevisionID)
+	if obj == nil {
+		return nil, fmt.Errorf("missing object on type ReciipeRevison")
+	}
+
+	result, err := r.Queries.ListIngredientsByRecipeRevisionID(ctx, int64(obj.ID))
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch ingredients for revision %d: %w", obj.RevisionID, err)
+		return nil, fmt.Errorf("failed to fetch ingredients for revision %d: %w", obj.ID, err)
 	}
-	return ingredients, nil
+	return model.ListIngredientsFromDBType(result), nil
 }
 
 // Steps is the resolver for the steps field.
 func (r *recipeRevisionResolver) Steps(ctx context.Context, obj *model.RecipeRevision) ([]*model.RecipeStep, error) {
-	steps, err := r.Queries.ListStepsFromDBType(ctx, obj.RevisionID)
+	if obj == nil {
+		return nil, fmt.Errorf("missing object on type RecipeRevision")
+	}
+
+	result, err := r.Queries.ListStepsByRecipeRevisionID(ctx, int64(obj.ID))
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch steps for revision %d: %w", obj.RevisionID, err)
+		return nil, fmt.Errorf("failed to fetch steps for revision %d: %w", obj.ID, err)
 	}
-	return steps, nil
+	return model.ListStepsFromDBType(result), nil
 }
 
 // Rating is the resolver for the rating field.

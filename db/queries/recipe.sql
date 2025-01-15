@@ -75,3 +75,64 @@ INSERT INTO recipes (
   initial_publish_date,
   forked_from,
   featured_revision;
+-- name: GetRecipeByRecipeID :one
+SELECT
+  recipes.id,
+  recipes.author_id,
+  recipes.slug,
+  recipes.private,
+  recipes.initial_publish_date,
+  recipes.forked_from,
+  recipes.featured_revision
+FROM
+  recipe_revisions
+JOIN
+  recipes ON recipe_revisions.recipe_id = recipes.id
+WHERE
+  recipes.id = $1
+LIMIT 1;
+-- name: GetRecipeRevisionByParentID :one
+SELECT
+  parent.id,
+  parent.recipe_id,
+  parent.parent_id,
+  parent.recipe_description,
+  parent.change_comment,
+  parent.title,
+  parent.publish_date
+FROM
+  recipe_revisions child
+JOIN
+  recipe_revisions parent ON child.parent_id = parent.id
+WHERE
+  recipe_revisions.id = $1
+LIMIT 1;
+-- name: ListIngredientsByRecipeRevisionID :many
+SELECT
+  recipe_ingredients.id,
+  recipe_ingredients.revision_id,
+  recipe_ingredients.ingredient,
+  recipe_ingredients.quantity,
+  recipe_ingredients.unit,
+  recipe_ingredients.comment
+FROM
+  recipe_revisions
+JOIN
+  recipe_ingredients ON recipe_revisions.id = recipe_ingredients.revision_id 
+WHERE
+  recipe_revisions.id = $1
+ORDER BY recipe_ingredients.id;
+-- name: ListStepsByRecipeRevisionID :many
+SELECT
+  recipe_steps.id,
+  recipe_steps.revision_id,
+  recipe_steps.content,
+  recipe_steps.index
+FROM
+  recipe_revisions
+JOIN
+  recipe_steps ON recipe_revisions.id = recipe_steps.revision_id
+WHERE
+  recipe_revisions.id = $1
+ORDER BY
+  recipe_steps.id;
