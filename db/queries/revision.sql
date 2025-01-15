@@ -62,3 +62,34 @@ WHERE
 ORDER BY id
 LIMIT $3; -- Limit for pagination
 
+-- name: GetForkedFromRevisionByRecipeId :one
+SELECT
+  recipe_revisions.id,
+  recipe_revisions.recipe_id,
+  recipe_revisions.parent_id,
+  recipe_revisions.recipe_description,
+  recipe_revisions.change_comment,
+  recipe_revisions.title,
+  recipe_revisions.publish_date
+FROM
+  recipes
+LEFT JOIN recipe_revisions ON recipes.forked_from = recipe_revisions.id
+WHERE
+  recipes.id = $1
+LIMIT 1;
+
+-- name: GetFeaturedRevisionByRecipeId :one
+SELECT
+  recipe_revisions.id,
+  recipe_revisions.recipe_id,
+  recipe_revisions.parent_id,
+  recipe_revisions.recipe_description,
+  recipe_revisions.change_comment,
+  recipe_revisions.title,
+  recipe_revisions.publish_date
+FROM
+  recipes
+LEFT JOIN recipe_revisions ON recipes.featured_revision = recipe_revisions.id
+WHERE
+  recipes.id = $1
+LIMIT 1;

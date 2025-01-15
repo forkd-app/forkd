@@ -13,3 +13,17 @@ INSERT INTO users (
 	$2
 )
 RETURNING users.id, users.display_name, users.email, users.join_date, users.updated_at;
+
+-- name: GetAuthorByRecipeId :one
+SELECT
+  users.id,
+  users.display_name,
+  users.email,
+  users.join_date,
+  users.updated_at
+FROM
+  users
+JOIN recipes ON users.id = recipes.author_id
+WHERE
+  recipes.id = $1
+LIMIT 1;

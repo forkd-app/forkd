@@ -38,6 +38,34 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const getAuthorByRecipeId = `-- name: GetAuthorByRecipeId :one
+SELECT
+  users.id,
+  users.display_name,
+  users.email,
+  users.join_date,
+  users.updated_at
+FROM
+  users
+JOIN recipes ON users.id = recipes.author_id
+WHERE
+  recipes.id = $1
+LIMIT 1
+`
+
+func (q *Queries) GetAuthorByRecipeId(ctx context.Context, id int64) (User, error) {
+	row := q.db.QueryRow(ctx, getAuthorByRecipeId, id)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.DisplayName,
+		&i.Email,
+		&i.JoinDate,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT users.id, users.display_name, users.email, users.join_date, users.updated_at FROM users WHERE users.email = $1 LIMIT 1
 `

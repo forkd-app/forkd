@@ -18,53 +18,28 @@ func RecipeFromDBType(result db.Recipe) *Recipe {
 	return &recipe
 }
 
-func UserFromDBType[T any](result T) *User {
-	switch v := any(result).(type) {
-	case db.User:
-		return &User{
-			ID:          int(v.ID),
-			Email:       v.Email,
-			JoinDate:    v.JoinDate.Time,
-			DisplayName: v.DisplayName,
-			UpdatedAt:   v.UpdatedAt.Time,
-		}
-	case db.GetRecipeWithAuthorByIdRow:
-		return &User{
-			ID:          int(v.UserID),
-			Email:       v.UserEmail,
-			JoinDate:    v.UserJoinDate.Time,
-			DisplayName: v.UserDisplayName,
-			UpdatedAt:   v.UserUpdatedAt.Time,
-		}
-	default:
-		return nil
+func UserFromDBType(result db.User) *User {
+	// Map to model.User type
+	user := User{
+		ID:          int(result.ID),
+		Email:       result.Email,
+		JoinDate:    result.JoinDate.Time,
+		DisplayName: result.DisplayName,
+		UpdatedAt:   result.UpdatedAt.Time,
 	}
+
+	return &user
 }
 
-func RevisionFromDBType[T any](result T) *RecipeRevision {
-	switch v := any(result).(type) {
-	case db.RecipeRevision:
-		return &RecipeRevision{
-			ID:                int(v.ID),
-			RecipeDescription: ifValidString(v.RecipeDescription),
-			ChangeComment:     ifValidString(v.ChangeComment),
-			Title:             v.Title,
-			PublishDate:       v.PublishDate.Time,
-		}
-	case db.GetRecipeWithForkedFromByIdRow:
-		if !v.ForkedRevisionID.Valid {
-			return nil
-		}
-		return &RecipeRevision{
-			ID:                int(v.ForkedRevisionID.Int64),
-			RecipeDescription: ifValidString(v.ForkedRecipeDescription),
-			ChangeComment:     ifValidString(v.ForkedChangeComment),
-			Title:             v.ForkedTitle.String,
-			PublishDate:       v.ForkedPublishDate.Time,
-		}
-	default:
-		return nil
+func RevisionFromDBType(result db.RecipeRevision) *RecipeRevision {
+	revision := RecipeRevision{
+		ID:                int(result.ID),
+		RecipeDescription: IfValidString(result.RecipeDescription),
+		ChangeComment:     IfValidString(result.ChangeComment),
+		Title:             result.Title,
+		PublishDate:       result.PublishDate.Time,
 	}
+	return &revision
 }
 
 func MeasurementUnitFromDBType(result db.MeasurementUnit) *MeasurementUnit {
@@ -85,7 +60,7 @@ func IngredientFromDBType(result db.Ingredient) *Ingredient {
 	return &ingredient
 }
 
-func ifValidString(text pgtype.Text) *string {
+func IfValidString(text pgtype.Text) *string {
 	if text.Valid {
 		return &text.String
 	}

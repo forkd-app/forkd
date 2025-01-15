@@ -7,7 +7,95 @@ package db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
+
+const getFeaturedRevisionByRecipeId = `-- name: GetFeaturedRevisionByRecipeId :one
+SELECT
+  recipe_revisions.id,
+  recipe_revisions.recipe_id,
+  recipe_revisions.parent_id,
+  recipe_revisions.recipe_description,
+  recipe_revisions.change_comment,
+  recipe_revisions.title,
+  recipe_revisions.publish_date
+FROM
+  recipes
+LEFT JOIN recipe_revisions ON recipes.featured_revision = recipe_revisions.id
+WHERE
+  recipes.id = $1
+LIMIT 1
+`
+
+type GetFeaturedRevisionByRecipeIdRow struct {
+	ID                pgtype.Int8
+	RecipeID          pgtype.Int8
+	ParentID          pgtype.Int8
+	RecipeDescription pgtype.Text
+	ChangeComment     pgtype.Text
+	Title             pgtype.Text
+	PublishDate       pgtype.Timestamp
+}
+
+func (q *Queries) GetFeaturedRevisionByRecipeId(ctx context.Context, id int64) (GetFeaturedRevisionByRecipeIdRow, error) {
+	row := q.db.QueryRow(ctx, getFeaturedRevisionByRecipeId, id)
+	var i GetFeaturedRevisionByRecipeIdRow
+	err := row.Scan(
+		&i.ID,
+		&i.RecipeID,
+		&i.ParentID,
+		&i.RecipeDescription,
+		&i.ChangeComment,
+		&i.Title,
+		&i.PublishDate,
+	)
+	return i, err
+}
+
+const getForkedFromRevisionByRecipeId = `-- name: GetForkedFromRevisionByRecipeId :one
+
+SELECT
+  recipe_revisions.id,
+  recipe_revisions.recipe_id,
+  recipe_revisions.parent_id,
+  recipe_revisions.recipe_description,
+  recipe_revisions.change_comment,
+  recipe_revisions.title,
+  recipe_revisions.publish_date
+FROM
+  recipes
+LEFT JOIN recipe_revisions ON recipes.forked_from = recipe_revisions.id
+WHERE
+  recipes.id = $1
+LIMIT 1
+`
+
+type GetForkedFromRevisionByRecipeIdRow struct {
+	ID                pgtype.Int8
+	RecipeID          pgtype.Int8
+	ParentID          pgtype.Int8
+	RecipeDescription pgtype.Text
+	ChangeComment     pgtype.Text
+	Title             pgtype.Text
+	PublishDate       pgtype.Timestamp
+}
+
+// Limit for pagination
+func (q *Queries) GetForkedFromRevisionByRecipeId(ctx context.Context, id int64) (GetForkedFromRevisionByRecipeIdRow, error) {
+	row := q.db.QueryRow(ctx, getForkedFromRevisionByRecipeId, id)
+	var i GetForkedFromRevisionByRecipeIdRow
+	err := row.Scan(
+		&i.ID,
+		&i.RecipeID,
+		&i.ParentID,
+		&i.RecipeDescription,
+		&i.ChangeComment,
+		&i.Title,
+		&i.PublishDate,
+	)
+	return i, err
+}
 
 const getRecipeRevisionById = `-- name: GetRecipeRevisionById :one
 SELECT

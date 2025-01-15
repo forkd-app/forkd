@@ -13,10 +13,9 @@ import (
 
 // Author is the resolver for the author field.
 func (r *recipeResolver) Author(ctx context.Context, obj *model.Recipe) (*model.User, error) {
-
-	data, err := r.Queries.GetRecipeWithAuthorById(ctx, int64(obj.ID))
+	data, err := r.Queries.GetAuthorByRecipeId(ctx, int64(obj.ID))
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch recipe with author: %w", err)
+		return nil, fmt.Errorf("failed to fetch author: %w", err)
 	}
 
 	return model.UserFromDBType(data), nil
@@ -24,16 +23,19 @@ func (r *recipeResolver) Author(ctx context.Context, obj *model.Recipe) (*model.
 
 // ForkedFrom is the resolver for the forkedFrom field.
 func (r *recipeResolver) ForkedFrom(ctx context.Context, obj *model.Recipe) (*model.RecipeRevision, error) {
-	data, err := r.Queries.GetRecipeWithForkedFromById(ctx, int64(obj.ID))
+	data, err := r.Queries.GetForkedFromRevisionByRecipeId(ctx, int64(obj.ID))
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch recipe with forkedFrom revision: %w", err)
 	}
 
-	if !data.ForkedRevisionID.Valid {
-		return nil, nil
-	}
-
-	return model.RevisionFromDBType(data), nil
+	// TODO: need help with types here, as the generated type by sqlc is not acceptable for model.RevisionFromDBType() ;(
+	return &model.RecipeRevision{
+		ID:                int(data.ID.Int64),
+		RecipeDescription: model.IfValidString(data.RecipeDescription),
+		ChangeComment:     model.IfValidString(data.ChangeComment),
+		Title:             data.Title.String,
+		PublishDate:       data.PublishDate.Time,
+	}, nil
 }
 
 // Revisions is the resolver for the revisions field.
@@ -99,17 +101,19 @@ func (r *recipeResolver) Revisions(ctx context.Context, obj *model.Recipe, limit
 
 // FeaturedRevision is the resolver for the featuredRevision field.
 func (r *recipeResolver) FeaturedRevision(ctx context.Context, obj *model.Recipe) (*model.RecipeRevision, error) {
-	data, err := r.Queries.GetRecipeWithFeaturedRevisionById(ctx, int64(obj.ID))
+	data, err := r.Queries.GetFeaturedRevisionByRecipeId(ctx, int64(obj.ID))
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch recipe with featured revision: %w", err)
 	}
 
-	// If there is no valid featured revision, return nil
-	if !data.FeaturedRevisionID.Valid {
-		return nil, nil
-	}
-
-	return model.RevisionFromDBType(data), nil
+	// TODO: need help with types here, as the generated type by sqlc is not acceptable for model.RevisionFromDBType() ;(
+	return &model.RecipeRevision{
+		ID:                int(data.ID.Int64),
+		RecipeDescription: model.IfValidString(data.RecipeDescription),
+		ChangeComment:     model.IfValidString(data.ChangeComment),
+		Title:             data.Title.String,
+		PublishDate:       data.PublishDate.Time,
+	}, nil
 }
 
 // Recipe is the resolver for the recipe field.
