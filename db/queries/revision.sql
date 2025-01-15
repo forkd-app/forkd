@@ -73,7 +73,7 @@ SELECT
   recipe_revisions.publish_date
 FROM
   recipes
-LEFT JOIN recipe_revisions ON recipes.forked_from = recipe_revisions.id
+JOIN recipe_revisions ON recipes.forked_from = recipe_revisions.id
 WHERE
   recipes.id = $1
 LIMIT 1;
@@ -89,7 +89,7 @@ SELECT
   recipe_revisions.publish_date
 FROM
   recipes
-LEFT JOIN recipe_revisions ON recipes.featured_revision = recipe_revisions.id
+JOIN recipe_revisions ON recipes.featured_revision = recipe_revisions.id
 WHERE
   recipes.id = $1
 LIMIT 1;

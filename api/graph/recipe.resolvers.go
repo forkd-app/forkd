@@ -28,14 +28,7 @@ func (r *recipeResolver) ForkedFrom(ctx context.Context, obj *model.Recipe) (*mo
 		return nil, fmt.Errorf("failed to fetch recipe with forkedFrom revision: %w", err)
 	}
 
-	// TODO: need help with types here, as the generated type by sqlc is not acceptable for model.RevisionFromDBType() ;(
-	return &model.RecipeRevision{
-		ID:                int(data.ID.Int64),
-		RecipeDescription: model.IfValidString(data.RecipeDescription),
-		ChangeComment:     model.IfValidString(data.ChangeComment),
-		Title:             data.Title.String,
-		PublishDate:       data.PublishDate.Time,
-	}, nil
+	return model.RevisionFromDBType(data), nil
 }
 
 // Revisions is the resolver for the revisions field.
@@ -106,14 +99,7 @@ func (r *recipeResolver) FeaturedRevision(ctx context.Context, obj *model.Recipe
 		return nil, fmt.Errorf("failed to fetch recipe with featured revision: %w", err)
 	}
 
-	// TODO: need help with types here, as the generated type by sqlc is not acceptable for model.RevisionFromDBType() ;(
-	return &model.RecipeRevision{
-		ID:                int(data.ID.Int64),
-		RecipeDescription: model.IfValidString(data.RecipeDescription),
-		ChangeComment:     model.IfValidString(data.ChangeComment),
-		Title:             data.Title.String,
-		PublishDate:       data.PublishDate.Time,
-	}, nil
+	return model.RevisionFromDBType(data), nil
 }
 
 // Recipe is the resolver for the recipe field.
