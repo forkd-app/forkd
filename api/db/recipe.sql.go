@@ -90,7 +90,7 @@ func (q *Queries) GetRecipeById(ctx context.Context, id int64) (Recipe, error) {
 	return i, err
 }
 
-const getRecipeByRecipeID = `-- name: GetRecipeByRecipeID :one
+const getRecipeByRevisionID = `-- name: GetRecipeByRevisionID :one
 SELECT
   recipes.id,
   recipes.author_id,
@@ -108,8 +108,8 @@ WHERE
 LIMIT 1
 `
 
-func (q *Queries) GetRecipeByRecipeID(ctx context.Context, id int64) (Recipe, error) {
-	row := q.db.QueryRow(ctx, getRecipeByRecipeID, id)
+func (q *Queries) GetRecipeByRevisionID(ctx context.Context, id int64) (Recipe, error) {
+	row := q.db.QueryRow(ctx, getRecipeByRevisionID, id)
 	var i Recipe
 	err := row.Scan(
 		&i.ID,

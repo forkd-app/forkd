@@ -36,7 +36,7 @@ func (r *recipeRevisionResolver) Recipe(ctx context.Context, obj *model.RecipeRe
 		return nil, fmt.Errorf(("missing object on type RecipeRevision"))
 	}
 
-	result, err := r.Queries.GetRecipeByRecipeID(ctx, int64(obj.ID))
+	result, err := r.Queries.GetRecipeByRevisionID(ctx, int64(obj.ID))
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch recipe for revision %d: %w", obj.ID, err)
@@ -87,7 +87,7 @@ func (r *recipeRevisionResolver) Steps(ctx context.Context, obj *model.RecipeRev
 
 // Rating is the resolver for the rating field.
 func (r *recipeRevisionResolver) Rating(ctx context.Context, obj *model.RecipeRevision) (*float64, error) {
-        // TODO: Implement logic for computing the rating. This might be best done as a computed field inside the db, but might also be good to have a dedicated resolver for
+	// TODO: Implement logic for computing the rating. This might be best done as a computed field inside the db, but might also be good to have a dedicated resolver for
 	rating := float64(0)
 
 	return &rating, nil
