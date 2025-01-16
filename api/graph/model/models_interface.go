@@ -29,8 +29,8 @@ func UserFromDBType(result db.User) *User {
 	return &user
 }
 
-func ParentFromDBType(result db.RecipeRevision) *RecipeRevision {
-	parent := RecipeRevision{
+func RevisionFromDBType(result db.RecipeRevision) *RecipeRevision {
+	revision := RecipeRevision{
 		ID:                int(result.ID),
 		RecipeDescription: &result.RecipeDescription.String,
 		ChangeComment:     &result.ChangeComment.String,
@@ -38,7 +38,7 @@ func ParentFromDBType(result db.RecipeRevision) *RecipeRevision {
 		PublishDate:       result.PublishDate.Time,
 	}
 
-	return &parent
+	return &revision
 }
 
 func ListIngredientsFromDBType(results []db.RecipeIngredient) []*RecipeIngredient {
@@ -67,4 +67,23 @@ func ListStepsFromDBType(results []db.RecipeStep) []*RecipeStep {
 	}
 
 	return steps
+
+}
+
+func MeasurementUnitFromDBType(result db.MeasurementUnit) *MeasurementUnit {
+	unit := MeasurementUnit{
+		ID:          int(result.ID),
+		Name:        result.Name,
+		Description: &result.Description.String,
+	}
+	return &unit
+}
+
+func IngredientFromDBType(result db.Ingredient) *Ingredient {
+	ingredient := Ingredient{
+		ID:          int(result.ID),
+		Name:        result.Name,
+		Description: &result.Description.String,
+	}
+	return &ingredient
 }

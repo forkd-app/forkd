@@ -94,7 +94,17 @@ func (r *recipeRevisionResolver) Rating(ctx context.Context, obj *model.RecipeRe
 
 // Revision is the resolver for the revision field.
 func (r *recipeStepResolver) Revision(ctx context.Context, obj *model.RecipeStep) (*model.RecipeRevision, error) {
-	panic(fmt.Errorf("not implemented: Revision - revision"))
+	if obj == nil {
+		return nil, fmt.Errorf("missing parent object on type RecipeStep")
+	}
+
+	id := obj.ID
+	result, err := r.Queries.GetRecipeRevisionByStepId(ctx, int64(id))
+	if err != nil {
+		return nil, err
+	}
+
+	return model.RevisionFromDBType(result), nil
 }
 
 // Recipe returns RecipeResolver implementation.

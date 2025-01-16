@@ -64,9 +64,9 @@ type Recipe struct {
 type RecipeIngredient struct {
 	ID         int64
 	RevisionID int64
-	Ingredient string
+	Ingredient int64
 	Quantity   float32
-	Unit       string
+	Unit       int64
 	Comment    pgtype.Text
 }
 
