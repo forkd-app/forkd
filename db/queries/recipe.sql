@@ -75,7 +75,7 @@ INSERT INTO recipes (
   initial_publish_date,
   forked_from,
   featured_revision;
--- name: GetRecipeByRecipeID :one
+-- name: GetRecipeByRevisionID :one
 SELECT
   recipes.id,
   recipes.author_id,
