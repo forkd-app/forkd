@@ -2,6 +2,8 @@ package model
 
 import (
 	"forkd/db"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 func RecipeFromDBType(result db.Recipe) *Recipe {
@@ -32,8 +34,8 @@ func UserFromDBType(result db.User) *User {
 func RevisionFromDBType(result db.RecipeRevision) *RecipeRevision {
 	revision := RecipeRevision{
 		ID:                int(result.ID),
-		RecipeDescription: &result.RecipeDescription.String,
-		ChangeComment:     &result.ChangeComment.String,
+		RecipeDescription: IfValidString(result.RecipeDescription),
+		ChangeComment:     IfValidString(result.ChangeComment),
 		Title:             result.Title,
 		PublishDate:       result.PublishDate.Time,
 	}
@@ -86,4 +88,11 @@ func IngredientFromDBType(result db.Ingredient) *Ingredient {
 		Description: &result.Description.String,
 	}
 	return &ingredient
+}
+
+func IfValidString(text pgtype.Text) *string {
+	if text.Valid {
+		return &text.String
+	}
+	return nil
 }
