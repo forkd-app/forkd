@@ -104,27 +104,65 @@ func (r *recipeResolver) FeaturedRevision(ctx context.Context, obj *model.Recipe
 
 // Recipe is the resolver for the recipe field.
 func (r *recipeRevisionResolver) Recipe(ctx context.Context, obj *model.RecipeRevision) (*model.Recipe, error) {
-	panic(fmt.Errorf("not implemented: Recipe - recipe"))
+	if obj == nil {
+		return nil, fmt.Errorf(("missing object on type RecipeRevision"))
+	}
+
+	result, err := r.Queries.GetRecipeByRevisionID(ctx, int64(obj.ID))
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch recipe for revision %d: %w", obj.ID, err)
+	}
+	return model.RecipeFromDBType(result), nil
 }
 
 // Parent is the resolver for the parent field.
 func (r *recipeRevisionResolver) Parent(ctx context.Context, obj *model.RecipeRevision) (*model.RecipeRevision, error) {
-	panic(fmt.Errorf("not implemented: Parent - parent"))
+	if obj == nil {
+		return nil, fmt.Errorf("missing object on type RecipeRevision")
+	}
+	result, err := r.Queries.GetRecipeRevisionByParentID(ctx, int64(obj.ID))
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch parent for revision %d: %w", obj.ID, err)
+	}
+	return model.RevisionFromDBType(result), nil
 }
 
 // Ingredients is the resolver for the ingredients field.
 func (r *recipeRevisionResolver) Ingredients(ctx context.Context, obj *model.RecipeRevision) ([]*model.RecipeIngredient, error) {
-	panic(fmt.Errorf("not implemented: Ingredients - ingredients"))
+	if obj == nil {
+		return nil, fmt.Errorf("missing object on type ReciipeRevison")
+	}
+
+	result, err := r.Queries.ListIngredientsByRecipeRevisionID(ctx, int64(obj.ID))
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch ingredients for revision %d: %w", obj.ID, err)
+	}
+	return model.ListIngredientsFromDBType(result), nil
 }
 
 // Steps is the resolver for the steps field.
 func (r *recipeRevisionResolver) Steps(ctx context.Context, obj *model.RecipeRevision) ([]*model.RecipeStep, error) {
-	panic(fmt.Errorf("not implemented: Steps - steps"))
+	if obj == nil {
+		return nil, fmt.Errorf("missing object on type RecipeRevision")
+	}
+
+	result, err := r.Queries.ListStepsByRecipeRevisionID(ctx, int64(obj.ID))
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch steps for revision %d: %w", obj.ID, err)
+	}
+	return model.ListStepsFromDBType(result), nil
 }
 
 // Rating is the resolver for the rating field.
 func (r *recipeRevisionResolver) Rating(ctx context.Context, obj *model.RecipeRevision) (*float64, error) {
-	panic(fmt.Errorf("not implemented: Rating - rating"))
+	// TODO: Implement logic for computing the rating. This might be best done as a computed field inside the db, but might also be good to have a dedicated resolver for
+	rating := float64(0)
+
+	return &rating, nil
 }
 
 // Revision is the resolver for the revision field.
