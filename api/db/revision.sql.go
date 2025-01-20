@@ -7,6 +7,8 @@ package db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const getRecipeRevisionById = `-- name: GetRecipeRevisionById :one
@@ -25,7 +27,7 @@ WHERE
 LIMIT 1
 `
 
-func (q *Queries) GetRecipeRevisionById(ctx context.Context, id int64) (RecipeRevision, error) {
+func (q *Queries) GetRecipeRevisionById(ctx context.Context, id pgtype.UUID) (RecipeRevision, error) {
 	row := q.db.QueryRow(ctx, getRecipeRevisionById, id)
 	var i RecipeRevision
 	err := row.Scan(

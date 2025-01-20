@@ -2,6 +2,7 @@ package graph
 
 import (
 	"forkd/db"
+	"forkd/services/auth"
 )
 
 // This file will not be regenerated automatically.
@@ -10,4 +11,5 @@ import (
 
 type Resolver struct {
 	Queries db.Queries
+	Auth    auth.AuthService
 }

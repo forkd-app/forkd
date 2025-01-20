@@ -2,12 +2,38 @@ package model
 
 import (
 	"forkd/db"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
+func MapStringToPgUuid(str string) (pgtype.UUID, error) {
+	id, err := uuid.Parse(str)
+	if err != nil {
+		return pgtype.UUID{}, err
+	}
+	return pgtype.UUID{
+		Bytes: id,
+		Valid: true,
+	}, nil
+}
+
+func MapPgUuidToString(id pgtype.UUID) (string, error) {
+	goUuid, err := uuid.FromBytes(id.Bytes[:])
+	if err != nil {
+		return "", err
+	}
+
+	return goUuid.String(), nil
+}
+
 func RecipeFromDBType(result db.Recipe) *Recipe {
-	// Map to model.Recipe type
+	id, err := MapPgUuidToString(result.ID)
+	if err != nil {
+		return nil
+	}
 	recipe := Recipe{
-		ID:                 int(result.ID),
+		ID:                 id,
 		Slug:               result.Slug,
 		InitialPublishDate: result.InitialPublishDate.Time,
 		Private:            result.Private,
@@ -17,9 +43,12 @@ func RecipeFromDBType(result db.Recipe) *Recipe {
 }
 
 func UserFromDBType(result db.User) *User {
-	// Map to model.User type
+	id, err := MapPgUuidToString(result.ID)
+	if err != nil {
+		return nil
+	}
 	user := User{
-		ID:          int(result.ID),
+		ID:          id,
 		Email:       result.Email,
 		JoinDate:    result.JoinDate.Time,
 		DisplayName: result.DisplayName,
@@ -30,8 +59,12 @@ func UserFromDBType(result db.User) *User {
 }
 
 func RevisionFromDBType(result db.RecipeRevision) *RecipeRevision {
+	id, err := MapPgUuidToString(result.ID)
+	if err != nil {
+		return nil
+	}
 	revision := RecipeRevision{
-		ID:                int(result.ID),
+		ID:                id,
 		RecipeDescription: &result.RecipeDescription.String,
 		ChangeComment:     &result.ChangeComment.String,
 		Title:             result.Title,

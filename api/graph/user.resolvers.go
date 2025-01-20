@@ -17,7 +17,11 @@ func (r *userResolver) Recipes(ctx context.Context, obj *model.User, limit *int,
 	if obj == nil {
 		return nil, fmt.Errorf("missing user object")
 	}
-	params.AuthorID = int64(obj.ID)
+	id, err := model.MapStringToPgUuid(obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	params.AuthorID = id
 	if limit != nil {
 		params.Limit = int32(*limit)
 	} else {
@@ -32,10 +36,9 @@ func (r *userResolver) Recipes(ctx context.Context, obj *model.User, limit *int,
 		if !cursor.Validate(*limit) {
 			return nil, fmt.Errorf("limit param does not match cursor. Limit: %d, Cursor: %d", params.Limit, cursor.Limit)
 		}
-		params.ID = int64(cursor.Id)
+		params.ID = cursor.Id
 	}
 	result, err := r.Queries.ListRecipesByAuthor(ctx, params)
-	// If there was an error, early return with the error
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +52,7 @@ func (r *userResolver) Recipes(ctx context.Context, obj *model.User, limit *int,
 
 	if count == int(params.Limit) {
 		cursor := ListRecipesCursor{
-			Id:    recipes[count-1].ID,
+			Id:    result[count-1].ID,
 			Limit: int(params.Limit),
 		}
 		encoded, err := cursor.Encode()

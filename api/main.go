@@ -3,6 +3,7 @@ package main
 import (
 	"forkd/db"
 	"forkd/graph"
+	"forkd/services/auth"
 	"log"
 	"net/http"
 	"os"
@@ -25,10 +26,13 @@ func main() {
 		panic("Unable to connect to db")
 	}
 
-	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{Queries: *queries}}))
+	authService := auth.New(queries)
+
+	srvConf := graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{Queries: *queries, Auth: authService}, Directives: graph.DirectiveRoot{Auth: graph.AuthDirective(authService)}})
+	srv := handler.NewDefaultServer(srvConf)
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", srv)
+	http.Handle("/query", authService.SessionWrapper(srv.ServeHTTP))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))

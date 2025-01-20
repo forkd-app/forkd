@@ -15,20 +15,14 @@ type Ingredient struct {
 }
 
 type IngredientTag struct {
-	ID         int64
-	Ingredient int64
-	Tag        int64
-}
-
-type LinkedRecipe struct {
-	FromRecipeID int64
-	ToRecipeID   int64
+	IngredientID int64
+	TagID        int64
 }
 
 type MagicLink struct {
-	ID     int64
-	UserID int64
-	Token  string
+	ID     pgtype.UUID
+	UserID pgtype.UUID
+	Token  pgtype.UUID
 	Expiry pgtype.Timestamp
 }
 
@@ -39,41 +33,39 @@ type MeasurementUnit struct {
 }
 
 type MeasurementUnitsTag struct {
-	ID          int64
-	Measurement int64
-	Tag         int64
+	MeasurementUnitID int64
+	TagID             int64
 }
 
 type Rating struct {
-	ID         int64
-	RevisionID int64
-	UserID     int64
+	RevisionID pgtype.UUID
+	UserID     pgtype.UUID
 	StarValue  pgtype.Int2
 }
 
 type Recipe struct {
-	ID                 int64
-	AuthorID           int64
+	ID                 pgtype.UUID
+	AuthorID           pgtype.UUID
 	Slug               string
 	Private            bool
 	InitialPublishDate pgtype.Timestamp
-	ForkedFrom         pgtype.Int8
-	FeaturedRevision   pgtype.Int8
+	ForkedFrom         pgtype.UUID
+	FeaturedRevision   pgtype.UUID
 }
 
 type RecipeIngredient struct {
-	ID         int64
-	RevisionID int64
-	Ingredient int64
-	Quantity   float32
-	Unit       int64
-	Comment    pgtype.Text
+	ID                int64
+	RevisionID        pgtype.UUID
+	IngredientID      int64
+	Quantity          float32
+	MeasurementUnitID int64
+	Comment           pgtype.Text
 }
 
 type RecipeRevision struct {
-	ID                int64
-	RecipeID          int64
-	ParentID          pgtype.Int8
+	ID                pgtype.UUID
+	RecipeID          pgtype.UUID
+	ParentID          pgtype.UUID
 	RecipeDescription pgtype.Text
 	ChangeComment     pgtype.Text
 	Title             string
@@ -82,14 +74,14 @@ type RecipeRevision struct {
 
 type RecipeStep struct {
 	ID         int64
-	RevisionID int64
+	RevisionID pgtype.UUID
 	Content    string
 	Index      int32
 }
 
 type Session struct {
-	ID     int64
-	UserID int64
+	ID     pgtype.UUID
+	UserID pgtype.UUID
 	Expiry pgtype.Timestamp
 }
 
@@ -101,7 +93,7 @@ type Tag struct {
 }
 
 type User struct {
-	ID          int64
+	ID          pgtype.UUID
 	DisplayName string
 	Email       string
 	JoinDate    pgtype.Timestamp

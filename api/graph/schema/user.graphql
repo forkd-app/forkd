@@ -1,7 +1,7 @@
 type User {
+  id: UUID!
   joinDate: Time!
   updatedAt: Time!
-  id: ID!
   email: String!
   displayName: String!
   recipes(limit: Int, nextCursor: String): PaginatedRecipes!

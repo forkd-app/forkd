@@ -33,8 +33,8 @@ INSERT INTO recipes (
 `
 
 type CreateRecipeParams struct {
-	AuthorID   int64
-	ForkedFrom pgtype.Int8
+	AuthorID   pgtype.UUID
+	ForkedFrom pgtype.UUID
 	Slug       string
 	Private    bool
 }
@@ -75,7 +75,7 @@ WHERE
 LIMIT 1
 `
 
-func (q *Queries) GetRecipeById(ctx context.Context, id int64) (Recipe, error) {
+func (q *Queries) GetRecipeById(ctx context.Context, id pgtype.UUID) (Recipe, error) {
 	row := q.db.QueryRow(ctx, getRecipeById, id)
 	var i Recipe
 	err := row.Scan(
@@ -139,7 +139,7 @@ LIMIT $2
 `
 
 type ListRecipesParams struct {
-	ID    int64
+	ID    pgtype.UUID
 	Limit int32
 }
 
@@ -189,8 +189,8 @@ LIMIT $3
 `
 
 type ListRecipesByAuthorParams struct {
-	AuthorID int64
-	ID       int64
+	AuthorID pgtype.UUID
+	ID       pgtype.UUID
 	Limit    int32
 }
 

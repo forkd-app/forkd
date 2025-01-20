@@ -48,22 +48,7 @@ module.exports = {
       rules: {
         // Override graphql-eslint rules for schema files
         "@graphql-eslint/require-description": "off",
-        "@graphql-eslint/strict-id-in-types": [
-          "error",
-          {
-            exceptions: {
-              // This is for wrapper types that don't have a need for an id.
-              types: [
-                "PaginationInfo",
-                "PaginatedRecipes",
-                "PaginatedRecipeComments",
-                "PaginatedRecipeRevisions",
-                "UserQuery",
-                "RecipeQuery",
-              ],
-            },
-          },
-        ],
+        "@graphql-eslint/strict-id-in-types": "off",
       },
     },
   ],

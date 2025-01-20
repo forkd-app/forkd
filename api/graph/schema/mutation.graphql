@@ -1,0 +1,15 @@
+type Mutation {
+  user: UserMutation
+}
+
+type UserMutation {
+  requestMagicLink(email: String!): String! @goField(forceResolver: true)
+  login(code: String!, token: String!): LoginResponse!
+    @goField(forceResolver: true)
+  logout: Boolean! @auth(required: true) @goField(forceResolver: true)
+}
+
+type LoginResponse {
+  token: String!
+  user: User!
+}

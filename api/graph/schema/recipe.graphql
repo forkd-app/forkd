@@ -1,9 +1,9 @@
 type Recipe {
+  id: UUID!
   initialPublishDate: Time!
   author: User! @goField(forceResolver: true)
   slug: String!
   forkedFrom: RecipeRevision @goField(forceResolver: true)
-  id: ID!
   private: Boolean!
   revisions(limit: Int, nextCursor: String): PaginatedRecipeRevisions!
     @goField(forceResolver: true)
@@ -11,7 +11,7 @@ type Recipe {
 }
 
 type RecipeRevision {
-  id: ID!
+  id: UUID!
   recipe: Recipe! @goField(forceResolver: true)
   recipeDescription: String
   changeComment: String
