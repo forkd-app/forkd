@@ -103,5 +103,18 @@ SELECT
 FROM
   magic_links
 WHERE
-  magic_links.id = $1 AND magic_links.token = $2
+  magic_links.id = $1 AND magic_links.token = $2;
+
+-- name: GetAuthorByRecipeId :one
+SELECT
+  users.id,
+  users.display_name,
+  users.email,
+  users.join_date,
+  users.updated_at
+FROM
+  users
+JOIN recipes ON users.id = recipes.author_id
+WHERE
+  recipes.id = $1
 LIMIT 1;

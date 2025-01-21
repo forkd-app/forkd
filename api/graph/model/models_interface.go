@@ -65,12 +65,42 @@ func RevisionFromDBType(result db.RecipeRevision) *RecipeRevision {
 	}
 	revision := RecipeRevision{
 		ID:                id,
-		RecipeDescription: &result.RecipeDescription.String,
-		ChangeComment:     &result.ChangeComment.String,
+		RecipeDescription: IfValidString(result.RecipeDescription),
+		ChangeComment:     IfValidString(result.ChangeComment),
 		Title:             result.Title,
 		PublishDate:       result.PublishDate.Time,
 	}
+
 	return &revision
+}
+
+func ListIngredientsFromDBType(results []db.RecipeIngredient) []*RecipeIngredient {
+	ingredients := make([]*RecipeIngredient, len(results))
+
+	for i, result := range results {
+		ingredients[i] = &RecipeIngredient{
+			ID:       int(result.ID),
+			Quantity: float64(result.Quantity),
+			Comment:  &result.Comment.String,
+		}
+	}
+
+	return ingredients
+}
+
+func ListStepsFromDBType(results []db.RecipeStep) []*RecipeStep {
+	steps := make([]*RecipeStep, len(results))
+
+	for i, result := range results {
+		steps[i] = &RecipeStep{
+			ID:      int(result.ID),
+			Content: result.Content,
+			Index:   int(result.Index),
+		}
+	}
+
+	return steps
+
 }
 
 func MeasurementUnitFromDBType(result db.MeasurementUnit) *MeasurementUnit {
@@ -89,4 +119,11 @@ func IngredientFromDBType(result db.Ingredient) *Ingredient {
 		Description: &result.Description.String,
 	}
 	return &ingredient
+}
+
+func IfValidString(text pgtype.Text) *string {
+	if text.Valid {
+		return &text.String
+	}
+	return nil
 }
