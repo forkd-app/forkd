@@ -6,6 +6,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 	"forkd/graph/model"
 )
 
@@ -20,7 +21,17 @@ func (r *userMutationResolver) RequestMagicLink(ctx context.Context, obj *model.
 	if err != nil {
 		return "", err
 	}
-	return r.Auth.CreateMagicLink(ctx, user.ID)
+	lookup, err := r.Auth.CreateMagicLink(ctx, user.ID)
+	if err != nil {
+		return "", err
+	}
+	emailData, err := r.Email.SendMagicLink(ctx, lookup.Code, user.Email)
+	if err != nil {
+		return "", err
+	} else if emailData.Data.Failed > 0 || emailData.Data.Succeeded < 1 {
+		return "", fmt.Errorf("error sending auth email: %+v", emailData.Data.Failures)
+	}
+	return lookup.Token, nil
 }
 
 // Login is the resolver for the login field.

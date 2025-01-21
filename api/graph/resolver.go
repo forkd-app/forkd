@@ -3,6 +3,7 @@ package graph
 import (
 	"forkd/db"
 	"forkd/services/auth"
+	"forkd/services/email"
 )
 
 // This file will not be regenerated automatically.
@@ -12,4 +13,5 @@ import (
 type Resolver struct {
 	Queries db.Queries
 	Auth    auth.AuthService
+	Email   email.EmailService
 }

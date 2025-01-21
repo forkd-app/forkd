@@ -38,8 +38,13 @@ type UserWithSessionToken struct {
 	Token string
 }
 
+type MagicLinkLookup struct {
+	Token string
+	Code  string
+}
+
 type AuthService interface {
-	CreateMagicLink(context.Context, pgtype.UUID) (string, error)
+	CreateMagicLink(context.Context, pgtype.UUID) (*MagicLinkLookup, error)
 	CreateSession(context.Context, pgtype.UUID) (UserWithSessionToken, error)
 	DeleteSession(context.Context, pgtype.UUID) error
 	GetUserSessionAndSetOnContext(context.Context) context.Context
@@ -84,7 +89,7 @@ func (a authService) ValidateMagicLink(ctx context.Context, code string, token s
 	if err != nil {
 		return id, err
 	}
-	err = util.DecodeBase64StringToStruct(code, &magicLinkToken)
+	err = util.DecodeBase64StringToStruct(token, &magicLinkToken)
 	if err != nil {
 		return id, err
 	}
@@ -96,12 +101,12 @@ func (a authService) ValidateMagicLink(ctx context.Context, code string, token s
 		return id, err
 	}
 	if magicLink.Expiry.Time.Before(time.Now()) {
-		return id, fmt.Errorf("otp/magic link expired")
+		return id, fmt.Errorf("magic link expired")
 	}
 	return magicLink.UserID, nil
 }
 
-func (a authService) CreateMagicLink(ctx context.Context, userId pgtype.UUID) (string, error) {
+func (a authService) CreateMagicLink(ctx context.Context, userId pgtype.UUID) (*MagicLinkLookup, error) {
 	// Set the expiry for 10 minutes
 	expiry := time.Now().Add(10 * time.Minute)
 	token := pgtype.UUID{
@@ -117,24 +122,27 @@ func (a authService) CreateMagicLink(ctx context.Context, userId pgtype.UUID) (s
 		},
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	magicLinkCodeStruct := MagicLinkCode{
 		ID: magicLink.ID,
 	}
 	magicLinkCode, err := util.EncodeStructToBase64String(magicLinkCodeStruct)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	fmt.Printf("MAGIC LINK CODE: %s\n", magicLinkCode)
 	magicLinkTokenStruct := MagicLinkToken{
 		Token: magicLink.Token,
 	}
 	magicLinkToken, err := util.EncodeStructToBase64String(magicLinkTokenStruct)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return magicLinkToken, nil
+	lookup := MagicLinkLookup{
+		Token: magicLinkToken,
+		Code:  magicLinkCode,
+	}
+	return &lookup, nil
 }
 
 func (a authService) CreateSession(ctx context.Context, userId pgtype.UUID) (UserWithSessionToken, error) {
