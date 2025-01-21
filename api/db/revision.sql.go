@@ -28,7 +28,7 @@ WHERE
 LIMIT 1
 `
 
-func (q *Queries) GetFeaturedRevisionByRecipeId(ctx context.Context, id int64) (RecipeRevision, error) {
+func (q *Queries) GetFeaturedRevisionByRecipeId(ctx context.Context, id pgtype.UUID) (RecipeRevision, error) {
 	row := q.db.QueryRow(ctx, getFeaturedRevisionByRecipeId, id)
 	var i RecipeRevision
 	err := row.Scan(
@@ -62,7 +62,7 @@ LIMIT 1
 `
 
 // Limit for pagination
-func (q *Queries) GetForkedFromRevisionByRecipeId(ctx context.Context, id int64) (RecipeRevision, error) {
+func (q *Queries) GetForkedFromRevisionByRecipeId(ctx context.Context, id pgtype.UUID) (RecipeRevision, error) {
 	row := q.db.QueryRow(ctx, getForkedFromRevisionByRecipeId, id)
 	var i RecipeRevision
 	err := row.Scan(
@@ -193,8 +193,8 @@ LIMIT $3
 `
 
 type ListRecipeRevisionsParams struct {
-	RecipeID int64
-	ID       int64
+	RecipeID pgtype.UUID
+	ID       pgtype.UUID
 	Limit    int32
 }
 

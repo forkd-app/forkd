@@ -108,7 +108,7 @@ WHERE
 LIMIT 1
 `
 
-func (q *Queries) GetRecipeByRevisionID(ctx context.Context, id int64) (Recipe, error) {
+func (q *Queries) GetRecipeByRevisionID(ctx context.Context, id pgtype.UUID) (Recipe, error) {
 	row := q.db.QueryRow(ctx, getRecipeByRevisionID, id)
 	var i Recipe
 	err := row.Scan(
@@ -172,7 +172,7 @@ WHERE
 LIMIT 1
 `
 
-func (q *Queries) GetRecipeRevisionByParentID(ctx context.Context, id int64) (RecipeRevision, error) {
+func (q *Queries) GetRecipeRevisionByParentID(ctx context.Context, id pgtype.UUID) (RecipeRevision, error) {
 	row := q.db.QueryRow(ctx, getRecipeRevisionByParentID, id)
 	var i RecipeRevision
 	err := row.Scan(
@@ -191,20 +191,20 @@ const listIngredientsByRecipeRevisionID = `-- name: ListIngredientsByRecipeRevis
 SELECT
   recipe_ingredients.id,
   recipe_ingredients.revision_id,
-  recipe_ingredients.ingredient,
+  recipe_ingredients.ingredient_id,
   recipe_ingredients.quantity,
-  recipe_ingredients.unit,
+  recipe_ingredients.measurement_unit_id,
   recipe_ingredients.comment
 FROM
   recipe_revisions
 JOIN
-  recipe_ingredients ON recipe_revisions.id = recipe_ingredients.revision_id 
+  recipe_ingredients ON recipe_revisions.id = recipe_ingredients.revision_id
 WHERE
   recipe_revisions.id = $1
 ORDER BY recipe_ingredients.id
 `
 
-func (q *Queries) ListIngredientsByRecipeRevisionID(ctx context.Context, id int64) ([]RecipeIngredient, error) {
+func (q *Queries) ListIngredientsByRecipeRevisionID(ctx context.Context, id pgtype.UUID) ([]RecipeIngredient, error) {
 	rows, err := q.db.Query(ctx, listIngredientsByRecipeRevisionID, id)
 	if err != nil {
 		return nil, err
@@ -216,9 +216,9 @@ func (q *Queries) ListIngredientsByRecipeRevisionID(ctx context.Context, id int6
 		if err := rows.Scan(
 			&i.ID,
 			&i.RevisionID,
-			&i.Ingredient,
+			&i.IngredientID,
 			&i.Quantity,
-			&i.Unit,
+			&i.MeasurementUnitID,
 			&i.Comment,
 		); err != nil {
 			return nil, err
@@ -348,7 +348,7 @@ ORDER BY
   recipe_steps.id
 `
 
-func (q *Queries) ListStepsByRecipeRevisionID(ctx context.Context, id int64) ([]RecipeStep, error) {
+func (q *Queries) ListStepsByRecipeRevisionID(ctx context.Context, id pgtype.UUID) ([]RecipeStep, error) {
 	rows, err := q.db.Query(ctx, listStepsByRecipeRevisionID, id)
 	if err != nil {
 		return nil, err

@@ -99,6 +99,34 @@ func (q *Queries) DeleteSession(ctx context.Context, id pgtype.UUID) error {
 	return err
 }
 
+const getAuthorByRecipeId = `-- name: GetAuthorByRecipeId :one
+SELECT
+  users.id,
+  users.display_name,
+  users.email,
+  users.join_date,
+  users.updated_at
+FROM
+  users
+JOIN recipes ON users.id = recipes.author_id
+WHERE
+  recipes.id = $1
+LIMIT 1
+`
+
+func (q *Queries) GetAuthorByRecipeId(ctx context.Context, id pgtype.UUID) (User, error) {
+	row := q.db.QueryRow(ctx, getAuthorByRecipeId, id)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.DisplayName,
+		&i.Email,
+		&i.JoinDate,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getMagicLink = `-- name: GetMagicLink :one
 SELECT
   magic_links.id,
@@ -109,7 +137,6 @@ FROM
   magic_links
 WHERE
   magic_links.id = $1 AND magic_links.token = $2
-LIMIT 1
 `
 
 type GetMagicLinkParams struct {
@@ -132,34 +159,6 @@ func (q *Queries) GetMagicLink(ctx context.Context, arg GetMagicLinkParams) (Get
 		&i.Token,
 		&i.UserID,
 		&i.Expiry,
-	)
-	return i, err
-}
-
-const getAuthorByRecipeId = `-- name: GetAuthorByRecipeId :one
-SELECT
-  users.id,
-  users.display_name,
-  users.email,
-  users.join_date,
-  users.updated_at
-FROM
-  users
-JOIN recipes ON users.id = recipes.author_id
-WHERE
-  recipes.id = $1
-LIMIT 1
-`
-
-func (q *Queries) GetAuthorByRecipeId(ctx context.Context, id int64) (User, error) {
-	row := q.db.QueryRow(ctx, getAuthorByRecipeId, id)
-	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.DisplayName,
-		&i.Email,
-		&i.JoinDate,
-		&i.UpdatedAt,
 	)
 	return i, err
 }
