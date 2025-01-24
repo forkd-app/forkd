@@ -83,13 +83,10 @@ func (e emailService) SendMagicLink(ctx context.Context, token string, email str
 	}
 	requestBodyBytes, err := json.Marshal(requestBody)
 	if err != nil {
-		fmt.Println("Error marshaling requestBody: %w", err)
 		return nil, err
 	}
-	fmt.Printf("%s/email/send\n", e.baseUrl)
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/email/send", e.baseUrl), bytes.NewBuffer(requestBodyBytes))
 	if err != nil {
-		fmt.Println("Error building request: %w", err)
 		return nil, err
 	}
 	req.Header.Add("accept", "application/json")
@@ -97,20 +94,16 @@ func (e emailService) SendMagicLink(ctx context.Context, token string, email str
 	req.Header.Set("X-Smtp2go-Api-Key", e.apiKey)
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		fmt.Println("Error sending request: %w", err)
 		return nil, err
 	}
 	defer res.Body.Close()
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		fmt.Println("Error reading response body: %w", err)
 		return nil, err
 	}
-	fmt.Printf("Response Body: %s\n", string(body))
 	var responseBody SendEmailResponseBody
 	err = json.Unmarshal(body, &responseBody)
 	if err != nil {
-		fmt.Println("Error unmarshaling responseBody: %w", err)
 		return nil, err
 	}
 	return &responseBody, nil

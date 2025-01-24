@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"forkd/graph/model"
+	"forkd/util"
 )
 
 // User is the resolver for the user field.
@@ -25,11 +26,17 @@ func (r *userMutationResolver) RequestMagicLink(ctx context.Context, obj *model.
 	if err != nil {
 		return "", err
 	}
-	emailData, err := r.Email.SendMagicLink(ctx, lookup.Code, user.Email)
-	if err != nil {
-		return "", err
-	} else if emailData.Data.Failed > 0 || emailData.Data.Succeeded < 1 {
-		return "", fmt.Errorf("error sending auth email: %+v", emailData.Data.Failures)
+	// FIXME: Remove this before we push this to the public internet.
+	// THIS SHOULD ONLY BE USED FOR LOCAL TESTING
+	if util.GetEnv().GetSendMagicLinkEmail() {
+		emailData, err := r.Email.SendMagicLink(ctx, lookup.Code, user.Email)
+		if err != nil {
+			return "", err
+		} else if emailData.Data.Failed > 0 || emailData.Data.Succeeded < 1 {
+			return "", fmt.Errorf("error sending auth email: %+v", emailData.Data.Failures)
+		}
+	} else {
+		fmt.Printf("MAGIC LINK CODE: %s", lookup.Code)
 	}
 	return lookup.Token, nil
 }

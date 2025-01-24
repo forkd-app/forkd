@@ -20,27 +20,42 @@ func InitEnv() {
 	emailBaseUrl := os.Getenv("EMAIL_SERVICE_BASE_URL")
 
 	// Optional, defaults are constants in this file. DO NOT PUT ANY SECRETS HERE
-	baseUrl := envGetOrDefault("BASE_URL", DEFAULT_BASE_URL)
-	dbConnStr := envGetOrDefault("DB_CONN_STR", DEFAULT_DB_CONN)
-	port := envGetOrDefault("PORT", DEFAULT_PORT)
+	baseUrl := envGetOrDefault("BASE_URL", func(s string) string {
+		if s == "" {
+			return DEFAULT_BASE_URL
+		}
+		return s
+	})
+	dbConnStr := envGetOrDefault("DB_CONN_STR", func(s string) string {
+		if s == "" {
+			return DEFAULT_DB_CONN
+		}
+		return s
+	})
+	port := envGetOrDefault("PORT", func(s string) string {
+		if s == "" {
+			return DEFAULT_PORT
+		}
+		return s
+	})
+	sendMagicEmail := envGetOrDefault("SEND_MAGIC_TOKEN_EMAIL", func(s string) bool {
+		return strings.ToLower(s) != "false"
+	})
 	e = env{
-		dbConnStr,
-		emailApiKey,
-		emailBaseUrl,
-		baseUrl,
-		port,
+		dbConnStr:          dbConnStr,
+		emailApiKey:        emailApiKey,
+		emailBaseUrl:       emailBaseUrl,
+		baseUrl:            baseUrl,
+		port:               port,
+		sendMagicLinkEmail: sendMagicEmail,
 	}
 	if err := validateEnv(); err != nil {
 		panic(err)
 	}
 }
 
-func envGetOrDefault(key string, defaultVal string) string {
-	val := os.Getenv(key)
-	if val == "" {
-		val = defaultVal
-	}
-	return val
+func envGetOrDefault[T any](key string, coerceVal func(string) T) T {
+	return coerceVal(os.Getenv(key))
 }
 
 func validateEnv() error {
@@ -67,14 +82,20 @@ type Env interface {
 	GetEmailBaseUrl() string
 	GetBaseUrl() string
 	GetPort() string
+	GetSendMagicLinkEmail() bool
 }
 
 type env struct {
-	dbConnStr    string
-	emailApiKey  string
-	emailBaseUrl string
-	baseUrl      string
-	port         string
+	dbConnStr          string
+	emailApiKey        string
+	emailBaseUrl       string
+	baseUrl            string
+	port               string
+	sendMagicLinkEmail bool
+}
+
+func (e env) GetSendMagicLinkEmail() bool {
+	return e.sendMagicLinkEmail
 }
 
 func (e env) GetPort() string {

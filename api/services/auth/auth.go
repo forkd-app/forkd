@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type key int
@@ -61,6 +62,7 @@ type AuthService interface {
 }
 
 type authService struct {
+	conn    *pgxpool.Pool
 	queries *db.Queries
 }
 
@@ -146,9 +148,16 @@ func (a authService) CreateMagicLink(ctx context.Context, userId pgtype.UUID) (*
 }
 
 func (a authService) CreateSession(ctx context.Context, userId pgtype.UUID) (UserWithSessionToken, error) {
+	tx, err := a.conn.Begin(ctx)
+	if err != nil {
+		return UserWithSessionToken{}, err
+	}
+	// I'm ignoring the linter here because I feel we can safely ignore the error here
+	defer tx.Rollback(ctx) //nolint:all
+	qtx := a.queries.WithTx(tx)
 	// Set expiry to 2 weeks, this will refresh everyime we access the session
 	expiry := time.Now().AddDate(0, 0, 14)
-	result, err := a.queries.CreateSession(ctx, db.CreateSessionParams{
+	result, err := qtx.CreateSession(ctx, db.CreateSessionParams{
 		UserID: userId,
 		Expiry: pgtype.Timestamp{
 			Time:  expiry,
@@ -156,14 +165,22 @@ func (a authService) CreateSession(ctx context.Context, userId pgtype.UUID) (Use
 		},
 	})
 	if err != nil {
-		return UserWithSessionToken{}, nil
+		return UserWithSessionToken{}, err
 	}
 	session := SessionToken{
 		ID: result.ID,
 	}
 	sessionToken, err := util.EncodeStructToBase64String(session)
 	if err != nil {
-		return UserWithSessionToken{}, nil
+		return UserWithSessionToken{}, err
+	}
+	err = qtx.DeleteMagicLinkByUserId(ctx, userId)
+	if err != nil {
+		return UserWithSessionToken{}, err
+	}
+	err = tx.Commit(ctx)
+	if err != nil {
+		return UserWithSessionToken{}, err
 	}
 	return newUserWithToken(result.User, sessionToken), nil
 }
@@ -263,8 +280,9 @@ func newUserWithToken(user db.User, token string) UserWithSessionToken {
 	}
 }
 
-func New(queries *db.Queries) AuthService {
+func New(queries *db.Queries, conn *pgxpool.Pool) AuthService {
 	return authService{
-		queries,
+		queries: queries,
+		conn:    conn,
 	}
 }

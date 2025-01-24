@@ -20,13 +20,13 @@ func main() {
 	dbConnStr := env.GetDbConnStr()
 	port := env.GetPort()
 
-	queries, _, err := db.GetQueriesWithConnection(dbConnStr)
+	queries, conn, err := db.GetQueriesWithConnection(dbConnStr)
 	if err != nil || queries == nil {
 		panic(fmt.Errorf("Unable to connect to db: %w", err))
 	}
 
 	emailService := email.New()
-	authService := auth.New(queries)
+	authService := auth.New(queries, conn)
 
 	// TODO: We should do a refactor here, it's getting pretty cluttered (Mostly my fault lol)
 	srvConf := graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{Queries: *queries, Auth: authService, Email: emailService}, Directives: graph.DirectiveRoot{Auth: graph.AuthDirective(authService)}})

@@ -78,6 +78,11 @@ DELETE FROM
   sessions
 WHERE sessions.id = $1;
 
+-- name: DeleteMagicLinkByUserId :exec
+DELETE FROM
+  magic_links
+WHERE magic_links.user_id = $1;
+
 -- name: CreateMagicLink :one
 INSERT INTO
   magic_links (

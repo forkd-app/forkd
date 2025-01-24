@@ -88,6 +88,17 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (C
 	return i, err
 }
 
+const deleteMagicLinkByUserId = `-- name: DeleteMagicLinkByUserId :exec
+DELETE FROM
+  magic_links
+WHERE magic_links.user_id = $1
+`
+
+func (q *Queries) DeleteMagicLinkByUserId(ctx context.Context, userID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteMagicLinkByUserId, userID)
+	return err
+}
+
 const deleteSession = `-- name: DeleteSession :exec
 DELETE FROM
   sessions
