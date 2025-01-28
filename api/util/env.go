@@ -38,7 +38,7 @@ func InitEnv() {
 		}
 		return s
 	})
-	sendMagicEmail := envGetOrDefault("SEND_MAGIC_TOKEN_EMAIL", func(s string) bool {
+	sendMagicEmail := envGetOrDefault("SEND_MAGIC_LINK_EMAIL", func(s string) bool {
 		return strings.ToLower(s) != "false"
 	})
 	e = env{

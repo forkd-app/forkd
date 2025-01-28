@@ -28,12 +28,8 @@ func MapPgUuidToString(id pgtype.UUID) (string, error) {
 }
 
 func RecipeFromDBType(result db.Recipe) *Recipe {
-	id, err := MapPgUuidToString(result.ID)
-	if err != nil {
-		return nil
-	}
 	recipe := Recipe{
-		ID:                 id,
+		ID:                 result.ID.Bytes,
 		Slug:               result.Slug,
 		InitialPublishDate: result.InitialPublishDate.Time,
 		Private:            result.Private,
@@ -43,12 +39,8 @@ func RecipeFromDBType(result db.Recipe) *Recipe {
 }
 
 func UserFromDBType(result db.User) *User {
-	id, err := MapPgUuidToString(result.ID)
-	if err != nil {
-		return nil
-	}
 	user := User{
-		ID:          id,
+		ID:          result.ID.Bytes,
 		Email:       result.Email,
 		JoinDate:    result.JoinDate.Time,
 		DisplayName: result.DisplayName,
@@ -59,12 +51,8 @@ func UserFromDBType(result db.User) *User {
 }
 
 func RevisionFromDBType(result db.RecipeRevision) *RecipeRevision {
-	id, err := MapPgUuidToString(result.ID)
-	if err != nil {
-		return nil
-	}
 	revision := RecipeRevision{
-		ID:                id,
+		ID:                result.ID.Bytes,
 		RecipeDescription: IfValidString(result.RecipeDescription),
 		ChangeComment:     IfValidString(result.ChangeComment),
 		Title:             result.Title,

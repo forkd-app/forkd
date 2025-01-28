@@ -9,6 +9,9 @@ import (
 	"fmt"
 	"forkd/db"
 	"forkd/graph/model"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // User is the resolver for the user field.
@@ -22,12 +25,12 @@ func (r *queryResolver) Recipe(ctx context.Context) (*model.RecipeQuery, error) 
 }
 
 // ByID is the resolver for the byId field.
-func (r *recipeQueryResolver) ByID(ctx context.Context, obj *model.RecipeQuery, id string) (*model.Recipe, error) {
-	uuid, err := model.MapStringToPgUuid(id)
-	if err != nil {
-		return nil, err
+func (r *recipeQueryResolver) ByID(ctx context.Context, obj *model.RecipeQuery, id uuid.UUID) (*model.Recipe, error) {
+	pgId := pgtype.UUID{
+		Bytes: id,
+		Valid: true,
 	}
-	result, err := r.Queries.GetRecipeById(ctx, uuid)
+	result, err := r.Queries.GetRecipeById(ctx, pgId)
 	return handleNoRowsOnNullableType(result, err, model.RecipeFromDBType)
 }
 
@@ -98,12 +101,12 @@ func (r *recipeQueryResolver) List(ctx context.Context, obj *model.RecipeQuery, 
 }
 
 // ByID is the resolver for the byId field.
-func (r *userQueryResolver) ByID(ctx context.Context, obj *model.UserQuery, id string) (*model.User, error) {
-	uuid, err := model.MapStringToPgUuid(id)
-	if err != nil {
-		return nil, err
+func (r *userQueryResolver) ByID(ctx context.Context, obj *model.UserQuery, id uuid.UUID) (*model.User, error) {
+	pgId := pgtype.UUID{
+		Bytes: id,
+		Valid: true,
 	}
-	result, err := r.Queries.GetUserById(ctx, uuid)
+	result, err := r.Queries.GetUserById(ctx, pgId)
 	return handleNoRowsOnNullableType(result, err, model.UserFromDBType)
 }
 

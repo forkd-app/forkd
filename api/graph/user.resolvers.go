@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"forkd/db"
 	"forkd/graph/model"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // Recipes is the resolver for the recipes field.
@@ -17,9 +19,9 @@ func (r *userResolver) Recipes(ctx context.Context, obj *model.User, limit *int,
 	if obj == nil {
 		return nil, fmt.Errorf("missing user object")
 	}
-	id, err := model.MapStringToPgUuid(obj.ID)
-	if err != nil {
-		return nil, err
+	id := pgtype.UUID{
+		Bytes: obj.ID,
+		Valid: true,
 	}
 	params.AuthorID = id
 	if limit != nil {

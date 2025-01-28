@@ -46,7 +46,7 @@ type MagicLinkLookup struct {
 
 type AuthService interface {
 	CreateMagicLink(context.Context, pgtype.UUID) (*MagicLinkLookup, error)
-	CreateSession(context.Context, pgtype.UUID) (UserWithSessionToken, error)
+	CreateSession(context.Context, pgtype.UUID, *string) (UserWithSessionToken, error)
 	DeleteSession(context.Context, pgtype.UUID) error
 	GetUserSessionAndSetOnContext(context.Context) context.Context
 	GetUserSessionFromCtx(context.Context) (*db.User, *db.Session)
@@ -70,7 +70,6 @@ func (a authService) DeleteSession(ctx context.Context, sessionId pgtype.UUID) e
 	return a.queries.DeleteSession(ctx, sessionId)
 }
 
-// GetUserSessionAndSetOnContext implements AuthService.
 func (a authService) GetUserSessionAndSetOnContext(ctx context.Context) context.Context {
 	sessionId := a.GetSessionIdFromCtxToken(ctx)
 	if !sessionId.Valid {
@@ -147,7 +146,7 @@ func (a authService) CreateMagicLink(ctx context.Context, userId pgtype.UUID) (*
 	return &lookup, nil
 }
 
-func (a authService) CreateSession(ctx context.Context, userId pgtype.UUID) (UserWithSessionToken, error) {
+func (a authService) CreateSession(ctx context.Context, userId pgtype.UUID, code *string) (UserWithSessionToken, error) {
 	tx, err := a.conn.Begin(ctx)
 	if err != nil {
 		return UserWithSessionToken{}, err
@@ -174,9 +173,17 @@ func (a authService) CreateSession(ctx context.Context, userId pgtype.UUID) (Use
 	if err != nil {
 		return UserWithSessionToken{}, err
 	}
-	err = qtx.DeleteMagicLinkByUserId(ctx, userId)
-	if err != nil {
-		return UserWithSessionToken{}, err
+	if code != nil {
+		var magicLinkCode MagicLinkCode
+		err = util.DecodeBase64StringToStruct(*code, &magicLinkCode)
+		if err != nil {
+			return UserWithSessionToken{}, err
+		}
+
+		err = qtx.DeleteMagicLinkById(ctx, magicLinkCode.ID)
+		if err != nil {
+			return UserWithSessionToken{}, err
+		}
 	}
 	err = tx.Commit(ctx)
 	if err != nil {

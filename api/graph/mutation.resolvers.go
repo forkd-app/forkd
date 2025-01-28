@@ -36,7 +36,7 @@ func (r *userMutationResolver) RequestMagicLink(ctx context.Context, obj *model.
 			return "", fmt.Errorf("error sending auth email: %+v", emailData.Data.Failures)
 		}
 	} else {
-		fmt.Printf("MAGIC LINK CODE: %s", lookup.Code)
+		fmt.Printf("MAGIC LINK CODE: %s\n", lookup.Code)
 	}
 	return lookup.Token, nil
 }
@@ -47,7 +47,7 @@ func (r *userMutationResolver) Login(ctx context.Context, obj *model.UserMutatio
 	if err != nil {
 		return nil, err
 	}
-	result, err := r.Auth.CreateSession(ctx, userId)
+	result, err := r.Auth.CreateSession(ctx, userId, &code)
 	if err != nil {
 		return nil, err
 	}

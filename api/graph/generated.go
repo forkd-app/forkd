@@ -16,6 +16,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/google/uuid"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -119,7 +120,7 @@ type ComplexityRoot struct {
 	}
 
 	RecipeQuery struct {
-		ByID   func(childComplexity int, id string) int
+		ByID   func(childComplexity int, id uuid.UUID) int
 		BySlug func(childComplexity int, slug string) int
 		List   func(childComplexity int, limit *int, nextCursor *string) int
 	}
@@ -168,7 +169,7 @@ type ComplexityRoot struct {
 
 	UserQuery struct {
 		ByEmail func(childComplexity int, email string) int
-		ByID    func(childComplexity int, id string) int
+		ByID    func(childComplexity int, id uuid.UUID) int
 		Current func(childComplexity int) int
 	}
 }
@@ -194,7 +195,7 @@ type RecipeIngredientResolver interface {
 	Ingredient(ctx context.Context, obj *model.RecipeIngredient) (*model.Ingredient, error)
 }
 type RecipeQueryResolver interface {
-	ByID(ctx context.Context, obj *model.RecipeQuery, id string) (*model.Recipe, error)
+	ByID(ctx context.Context, obj *model.RecipeQuery, id uuid.UUID) (*model.Recipe, error)
 	BySlug(ctx context.Context, obj *model.RecipeQuery, slug string) (*model.Recipe, error)
 	List(ctx context.Context, obj *model.RecipeQuery, limit *int, nextCursor *string) (*model.PaginatedRecipes, error)
 }
@@ -219,7 +220,7 @@ type UserMutationResolver interface {
 	Logout(ctx context.Context, obj *model.UserMutation) (bool, error)
 }
 type UserQueryResolver interface {
-	ByID(ctx context.Context, obj *model.UserQuery, id string) (*model.User, error)
+	ByID(ctx context.Context, obj *model.UserQuery, id uuid.UUID) (*model.User, error)
 	ByEmail(ctx context.Context, obj *model.UserQuery, email string) (*model.User, error)
 	Current(ctx context.Context, obj *model.UserQuery) (*model.User, error)
 }
@@ -475,7 +476,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.RecipeQuery.ByID(childComplexity, args["id"].(string)), true
+		return e.complexity.RecipeQuery.ByID(childComplexity, args["id"].(uuid.UUID)), true
 
 	case "RecipeQuery.bySlug":
 		if e.complexity.RecipeQuery.BySlug == nil {
@@ -727,7 +728,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.UserQuery.ByID(childComplexity, args["id"].(string)), true
+		return e.complexity.UserQuery.ByID(childComplexity, args["id"].(uuid.UUID)), true
 
 	case "UserQuery.current":
 		if e.complexity.UserQuery.Current == nil {
@@ -900,10 +901,10 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 func (ec *executionContext) field_RecipeQuery_byId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 uuid.UUID
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNUUID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1032,10 +1033,10 @@ func (ec *executionContext) field_UserQuery_byEmail_args(ctx context.Context, ra
 func (ec *executionContext) field_UserQuery_byId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 uuid.UUID
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNUUID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2081,9 +2082,9 @@ func (ec *executionContext) _Recipe_id(ctx context.Context, field graphql.Collec
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Recipe_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2789,7 +2790,7 @@ func (ec *executionContext) _RecipeQuery_byId(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.RecipeQuery().ByID(rctx, obj, fc.Args["id"].(string))
+		return ec.resolvers.RecipeQuery().ByID(rctx, obj, fc.Args["id"].(uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3002,9 +3003,9 @@ func (ec *executionContext) _RecipeRevision_id(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_RecipeRevision_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3865,9 +3866,9 @@ func (ec *executionContext) _User_id(ctx context.Context, field graphql.Collecte
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4318,7 +4319,7 @@ func (ec *executionContext) _UserQuery_byId(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.UserQuery().ByID(rctx, obj, fc.Args["id"].(string))
+		return ec.resolvers.UserQuery().ByID(rctx, obj, fc.Args["id"].(uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8653,13 +8654,13 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) unmarshalNUUID2string(ctx context.Context, v interface{}) (string, error) {
-	res, err := graphql.UnmarshalString(v)
+func (ec *executionContext) unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, v interface{}) (uuid.UUID, error) {
+	res, err := graphql.UnmarshalUUID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNUUID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	res := graphql.MarshalString(v)
+func (ec *executionContext) marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v uuid.UUID) graphql.Marshaler {
+	res := graphql.MarshalUUID(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

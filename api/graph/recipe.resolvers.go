@@ -18,9 +18,9 @@ func (r *recipeResolver) Author(ctx context.Context, obj *model.Recipe) (*model.
 	if obj == nil {
 		return nil, fmt.Errorf("missing recipe object")
 	}
-	uuid, err := model.MapStringToPgUuid(obj.ID)
-	if err != nil {
-		return nil, err
+	uuid := pgtype.UUID{
+		Bytes: obj.ID,
+		Valid: true,
 	}
 	data, err := r.Queries.GetAuthorByRecipeId(ctx, uuid)
 	if err != nil {
@@ -35,9 +35,9 @@ func (r *recipeResolver) ForkedFrom(ctx context.Context, obj *model.Recipe) (*mo
 	if obj == nil {
 		return nil, fmt.Errorf("missing recipe object")
 	}
-	uuid, err := model.MapStringToPgUuid(obj.ID)
-	if err != nil {
-		return nil, err
+	uuid := pgtype.UUID{
+		Bytes: obj.ID,
+		Valid: true,
 	}
 	data, err := r.Queries.GetForkedFromRevisionByRecipeId(ctx, uuid)
 	if err != nil {
@@ -52,9 +52,9 @@ func (r *recipeResolver) Revisions(ctx context.Context, obj *model.Recipe, limit
 	if obj == nil {
 		return nil, fmt.Errorf("missing recipe object")
 	}
-	uuid, err := model.MapStringToPgUuid(obj.ID)
-	if err != nil {
-		return nil, err
+	uuid := pgtype.UUID{
+		Bytes: obj.ID,
+		Valid: true,
 	}
 	params := db.ListRecipeRevisionsParams{
 		RecipeID: uuid,
@@ -116,9 +116,9 @@ func (r *recipeResolver) FeaturedRevision(ctx context.Context, obj *model.Recipe
 	if obj == nil {
 		return nil, fmt.Errorf("missing recipe object")
 	}
-	uuid, err := model.MapStringToPgUuid(obj.ID)
-	if err != nil {
-		return nil, err
+	uuid := pgtype.UUID{
+		Bytes: obj.ID,
+		Valid: true,
 	}
 	data, err := r.Queries.GetFeaturedRevisionByRecipeId(ctx, uuid)
 	if err != nil {
@@ -133,9 +133,9 @@ func (r *recipeRevisionResolver) Recipe(ctx context.Context, obj *model.RecipeRe
 	if obj == nil {
 		return nil, fmt.Errorf(("missing object on type RecipeRevision"))
 	}
-	uuid, err := model.MapStringToPgUuid(obj.ID)
-	if err != nil {
-		return nil, err
+	uuid := pgtype.UUID{
+		Bytes: obj.ID,
+		Valid: true,
 	}
 	result, err := r.Queries.GetRecipeByRevisionID(ctx, uuid)
 
@@ -150,9 +150,9 @@ func (r *recipeRevisionResolver) Parent(ctx context.Context, obj *model.RecipeRe
 	if obj == nil {
 		return nil, fmt.Errorf("missing object on type RecipeRevision")
 	}
-	uuid, err := model.MapStringToPgUuid(obj.ID)
-	if err != nil {
-		return nil, err
+	uuid := pgtype.UUID{
+		Bytes: obj.ID,
+		Valid: true,
 	}
 	result, err := r.Queries.GetRecipeRevisionByParentID(ctx, uuid)
 
@@ -167,9 +167,9 @@ func (r *recipeRevisionResolver) Ingredients(ctx context.Context, obj *model.Rec
 	if obj == nil {
 		return nil, fmt.Errorf("missing object on type ReciipeRevison")
 	}
-	uuid, err := model.MapStringToPgUuid(obj.ID)
-	if err != nil {
-		return nil, err
+	uuid := pgtype.UUID{
+		Bytes: obj.ID,
+		Valid: true,
 	}
 	result, err := r.Queries.ListIngredientsByRecipeRevisionID(ctx, uuid)
 
@@ -184,9 +184,9 @@ func (r *recipeRevisionResolver) Steps(ctx context.Context, obj *model.RecipeRev
 	if obj == nil {
 		return nil, fmt.Errorf("missing object on type RecipeRevision")
 	}
-	uuid, err := model.MapStringToPgUuid(obj.ID)
-	if err != nil {
-		return nil, err
+	uuid := pgtype.UUID{
+		Bytes: obj.ID,
+		Valid: true,
 	}
 	result, err := r.Queries.ListStepsByRecipeRevisionID(ctx, uuid)
 

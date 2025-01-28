@@ -4,6 +4,8 @@ package model
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type PaginatedResult interface {
@@ -56,7 +58,7 @@ type Query struct {
 }
 
 type Recipe struct {
-	ID                 string                    `json:"id"`
+	ID                 uuid.UUID                 `json:"id"`
 	InitialPublishDate time.Time                 `json:"initialPublishDate"`
 	Author             *User                     `json:"author"`
 	Slug               string                    `json:"slug"`
@@ -82,7 +84,7 @@ type RecipeQuery struct {
 }
 
 type RecipeRevision struct {
-	ID                string              `json:"id"`
+	ID                uuid.UUID           `json:"id"`
 	Recipe            *Recipe             `json:"recipe"`
 	RecipeDescription *string             `json:"recipeDescription,omitempty"`
 	ChangeComment     *string             `json:"changeComment,omitempty"`
@@ -109,7 +111,7 @@ type Tag struct {
 }
 
 type User struct {
-	ID          string            `json:"id"`
+	ID          uuid.UUID         `json:"id"`
 	JoinDate    time.Time         `json:"joinDate"`
 	UpdatedAt   time.Time         `json:"updatedAt"`
 	Email       string            `json:"email"`
