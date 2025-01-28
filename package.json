@@ -15,11 +15,11 @@
   "devDependencies": {
     "@graphql-eslint/eslint-plugin": "^3.20.1",
     "@types/eslint": "^9.6.1",
-    "eslint": "^8.38.0",
+    "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.2.1",
+    "eslint-plugin-prettier": "^5.2.3",
     "husky": "^9.1.7",
-    "prettier": "^3.3.3"
+    "prettier": "^3.4.2"
   },
   "engines": {
     "node": ">=20.0.0"

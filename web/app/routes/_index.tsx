@@ -1,48 +1,56 @@
 import type { MetaFunction } from "@remix-run/node"
+import { Grid } from "@mantine/core"
+import { RecipeCard } from "../components/recipeCard/recipeCard"
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "New Remix App" },
-    { name: "description", content: "Welcome to Remix!" },
+    { title: "Forkd App" },
+    {
+      name: "Create new recipes and add your spin on existing recipes",
+      content: "Welcome to Forkd!",
+    },
   ]
 }
 
+const recipes = [
+  { title: "pancakes" },
+  { title: "chickpea salad" },
+  { title: "chocolate mousse" },
+  { title: "rice and beans" },
+  { title: "chai latte" },
+  { title: "grape leaves" },
+]
+
 export default function Index() {
   return (
-    <div className="font-sans p-4">
-      <h1 className="text-3xl">Welcome to Remix</h1>
-      <ul className="list-disc mt-4 pl-6 space-y-2">
-        <li>
-          <a
-            className="text-blue-700 underline visited:text-purple-900"
-            target="_blank"
-            href="https://remix.run/start/quickstart"
-            rel="noreferrer"
+    <>
+      {/* recipe component */}
+      <Grid style={styles.gridContainer} justify="center">
+        {recipes.map((recipe) => (
+          <Grid.Col
+            key={recipe.title}
+            style={styles.grid}
+            span={{ base: 12, md: 5.5, lg: 3.5 }}
           >
-            5m Quick Start
-          </a>
-        </li>
-        <li>
-          <a
-            className="text-blue-700 underline visited:text-purple-900"
-            target="_blank"
-            href="https://remix.run/start/tutorial"
-            rel="noreferrer"
-          >
-            30m Tutorial
-          </a>
-        </li>
-        <li>
-          <a
-            className="text-blue-700 underline visited:text-purple-900"
-            target="_blank"
-            href="https://remix.run/docs"
-            rel="noreferrer"
-          >
-            Remix Docs
-          </a>
-        </li>
-      </ul>
-    </div>
+            <RecipeCard {...recipe} />
+          </Grid.Col>
+        ))}
+      </Grid>
+    </>
   )
+}
+
+const styles = {
+  gridContainer: {
+    padding: 50,
+  },
+  grid: {
+    padding: 10,
+    margin: 10,
+    borderWidth: 0,
+    borderColor: "black",
+    borderStyle: "solid",
+    justifyContent: "space-evenly",
+    boxShadow: "0px  5px 15px #bfbfbf",
+  },
 }
