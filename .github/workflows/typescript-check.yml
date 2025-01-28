@@ -1,18 +1,17 @@
-name: Code Quality Check
+name: Typescript Code Checks
 
 on:
   push:
     branches:
       - main
-      - master
   pull_request:
 
 permissions:
   contents: read
 
 jobs:
-  code-quality:
-    name: Lint and Format Check
+  ts-check:
+    name: Typescript Check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -30,11 +29,11 @@ jobs:
           node-version: 20
           cache: "pnpm"
 
-      - name: Install Task
-        uses: arduino/setup-task@v2
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run lint and format checks
-        run: pnpm run ci:check
+      - name: Run format check
+        run: pnpm run format --check
+
+      - name: Run lint check
+        run: pnpm run lint
