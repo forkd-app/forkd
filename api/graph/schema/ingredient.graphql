@@ -1,9 +1,9 @@
 type RecipeIngredient {
+  id: ID!
   revision: RecipeRevision! @goField(forceResolver: true)
   unit: MeasurementUnit! @goField(forceResolver: true)
   ingredient: Ingredient! @goField(forceResolver: true)
   quantity: Float!
-  id: ID!
   comment: String
 }
 

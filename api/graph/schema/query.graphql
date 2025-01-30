@@ -4,12 +4,13 @@ type Query {
 }
 
 type UserQuery {
-  byId(id: ID!): User @goField(forceResolver: true)
+  byId(id: UUID!): User @goField(forceResolver: true)
   byEmail(email: String!): User @goField(forceResolver: true)
+  current: User @auth(required: true) @goField(forceResolver: true)
 }
 
 type RecipeQuery {
-  byId(id: ID!): Recipe @goField(forceResolver: true)
+  byId(id: UUID!): Recipe @goField(forceResolver: true)
   bySlug(slug: String!): Recipe @goField(forceResolver: true)
   list(limit: Int, nextCursor: String): PaginatedRecipes!
     @goField(forceResolver: true)

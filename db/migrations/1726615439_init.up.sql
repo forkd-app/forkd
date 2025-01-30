@@ -1,6 +1,6 @@
 -- Write your up sql migration here
 CREATE TABLE IF NOT EXISTS users (
-  id bigserial PRIMARY KEY,
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   display_name varchar(50) NOT NULL UNIQUE,
   email varchar(255) NOT NULL UNIQUE,
   join_date timestamp NOT NULL DEFAULT now(),
@@ -8,17 +8,17 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS recipes (
-  id bigserial PRIMARY KEY,
-  author_id bigint NOT NULL CONSTRAINT fk_recipe_author REFERENCES users(id),
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  author_id uuid NOT NULL REFERENCES users(id),
   slug varchar(75) NOT NULL UNIQUE,
   private boolean NOT NULL,
   initial_publish_date timestamp NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS recipe_revisions (
-  id bigserial PRIMARY KEY,
-  recipe_id bigint NOT NULL CONSTRAINT fk_recipe_revisions REFERENCES recipes(id),
-  parent_id bigint NULL CONSTRAINT fk_recipe_revision_parent REFERENCES recipe_revisions(id),
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  recipe_id uuid NOT NULL REFERENCES recipes(id),
+  parent_id uuid REFERENCES recipe_revisions(id),
   -- About section for the recipe.
   recipe_description text,
   --change description should be a note describing how description changed
@@ -28,14 +28,8 @@ CREATE TABLE IF NOT EXISTS recipe_revisions (
 );
 
 ALTER TABLE IF EXISTS recipes
-ADD forked_from bigint CONSTRAINT fk_recipe_fork REFERENCES recipe_revisions(id),
-ADD featured_revision bigint NULL CONSTRAINT fk_recipe_revision_id REFERENCES recipe_revisions(id);
-
-CREATE TABLE IF NOT EXISTS linked_recipes (
-  from_recipe_id bigint NOT NULL CONSTRAINT fk_linked_recipes_from REFERENCES recipes(id),
-  to_recipe_id bigint NOT NULL CONSTRAINT fk_linked_recipes_to REFERENCES recipes(id),
-  CONSTRAINT linked_recipe_pk PRIMARY KEY(from_recipe_id, to_recipe_id)
-);
+ADD forked_from uuid REFERENCES recipe_revisions(id),
+ADD featured_revision uuid REFERENCES recipe_revisions(id);
 
 CREATE TABLE IF NOT EXISTS tags (
   id bigserial PRIMARY KEY,
@@ -52,56 +46,56 @@ CREATE TABLE IF NOT EXISTS measurement_units (
 );
 
 CREATE TABLE IF NOT EXISTS measurement_units_tags (
-  id bigserial PRIMARY KEY,
-  measurement bigint NOT NULL CONSTRAINT fk_measurement_tags_measurement REFERENCES measurement_units(id),
-  tag bigint NOT NULL CONSTRAINT fk_measurement_tags_tag REFERENCES tags(id)
+  measurement_unit_id bigint NOT NULL REFERENCES measurement_units(id),
+  tag_id bigint NOT NULL REFERENCES tags(id),
+  PRIMARY KEY(measurement_unit_id, tag_id)
 );
 
 CREATE TABLE IF NOT EXISTS ingredients (
   id bigserial PRIMARY KEY,
-  name varchar(255) UNIQUE NOT NULL ,
+  name varchar(255) NOT NULL UNIQUE ,
   description text
 );
 
 CREATE TABLE IF NOT EXISTS ingredient_tags (
-  id bigserial PRIMARY KEY,
-  ingredient bigint NOT NULL CONSTRAINT fk_ingredient_tags_ingredient REFERENCES ingredients(id),
-  tag bigint NOT NULL CONSTRAINT fk_ingredient_tags_tag REFERENCES tags(id)
+  ingredient_id bigint NOT NULL REFERENCES ingredients(id),
+  tag_id bigint NOT NULL REFERENCES tags(id),
+  PRIMARY KEY(ingredient_id, tag_id)
 );
 
 CREATE TABLE IF NOT EXISTS recipe_ingredients (
   id bigserial PRIMARY KEY,
-  revision_id bigint NOT NULL CONSTRAINT fk_recipe_revision_ingredients REFERENCES recipe_revisions(id),
-  ingredient bigint NOT NULL CONSTRAINT fk_recipe_ingredient REFERENCES ingredients(id),
+  revision_id uuid NOT NULL REFERENCES recipe_revisions(id),
+  ingredient_id bigint NOT NULL REFERENCES ingredients(id),
   quantity real NOT NULL,
-  unit bigint NOT NULL CONSTRAINT fk_recipe_ingredient_quantity REFERENCES measurement_units(id),
+  measurement_unit_id bigint NOT NULL REFERENCES measurement_units(id),
   comment text
 );
 
 CREATE TABLE IF NOT EXISTS recipe_steps (
   id bigserial PRIMARY KEY,
-  revision_id bigint NOT NULL CONSTRAINT fk_recipe_revision_steps REFERENCES recipe_revisions(id),
+  revision_id uuid NOT NULL REFERENCES recipe_revisions(id),
   content text NOT NULL,
   index int NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS ratings(
-  id bigserial PRIMARY KEY,
-  revision_id bigint NOT NULL CONSTRAINT fk_revision_ratings REFERENCES recipe_revisions(id),
-  user_id bigint NOT NULL CONSTRAINT fk_user_ratings REFERENCES users(id),
+  revision_id uuid NOT NULL REFERENCES recipe_revisions(id),
+  user_id uuid NOT NULL REFERENCES users(id),
   --should be 1-5
-  star_value smallint CONSTRAINT check_star_Number CHECK(star_value >= 1 AND star_value  <= 5)
+  star_value smallint CONSTRAINT check_star_Number CHECK(star_value >= 1 AND star_value  <= 5),
+  PRIMARY KEY(revision_id, user_id)
 );
 
 CREATE TABLE IF NOT EXISTS magic_links(
-  id bigserial PRIMARY KEY,
-  user_id bigint NOT NULL CONSTRAINT fk_user_magic_link REFERENCES users(id),
-  token varchar (255) NOT NULL,
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES users(id),
+  token uuid NOT NULL DEFAULT gen_random_uuid(),
   expiry timestamp NOT NULL CHECK (expiry > now())
 );
 
 CREATE TABLE IF NOT EXISTS sessions(
-  id bigserial PRIMARY KEY,
-  user_id bigint NOT NULL CONSTRAINT fk_session_user REFERENCES users(id),
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES users(id),
   expiry  timestamp NOT NULL CHECK (expiry > now())
 );

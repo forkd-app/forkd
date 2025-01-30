@@ -4,97 +4,143 @@ version: "3"
 vars:
   DB_URL: "postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable"
 
+output: prefixed
+
 tasks:
   # Docker-related tasks
   up:
     desc: "Start Docker containers in detached mode"
-    cmds:
-      - docker-compose up -d {{.CLI_ARGS}}
+    cmd: docker-compose up -d {{.CLI_ARGS}}
   watch:
     desc: "Start Docker containers with watch mode"
-    cmds:
-      - docker-compose up --watch {{.CLI_ARGS}}
+    cmd: docker-compose up --watch {{.CLI_ARGS}}
   down:
     desc: "Stop Docker containers and remove orphans"
-    cmds:
-      - docker-compose down --remove-orphans {{.CLI_ARGS}}
+    cmd: docker-compose down --remove-orphans {{.CLI_ARGS}}
   build:
+    desc: "Build local docker images"
     cmd: docker-compose --profile "scripts" build {{.CLI_ARGS}}
+  pull:
+    desc: "Pull docker images"
+    cmd: docker-compose --profile "scripts" pull {{.CLI_ARGS}}
   # Database migration tasks
   migrate-new:
     desc: "Create a new migration"
-    cmds:
-      - docker-compose --profile "scripts" run --rm migrate -verbose -path="/migrations/" -database="{{.DB_URL}}" create {{.CLI_ARGS}}
+    cmd: docker-compose --profile "scripts" run --rm migrate -verbose -path="/migrations/" -database="{{.DB_URL}}" create {{.CLI_ARGS}}
 
   migrate-up:
     desc: "Apply all up migrations"
-    cmds:
-      - docker-compose --profile "scripts" run --rm migrate -verbose -path="/migrations/" -database="{{.DB_URL}}" up {{.CLI_ARGS}}
+    cmd: docker-compose --profile "scripts" run --rm migrate -verbose -path="/migrations/" -database="{{.DB_URL}}" up {{.CLI_ARGS}}
 
   migrate-down:
     desc: "Revert migrations"
-    cmds:
-      - docker-compose --profile "scripts" run --rm migrate -verbose -path="/migrations/" -database="{{.DB_URL}}" down {{.CLI_ARGS}}
+    cmd: docker-compose --profile "scripts" run --rm migrate -verbose -path="/migrations/" -database="{{.DB_URL}}" down {{.CLI_ARGS}}
 
   migrate-drop:
     desc: "Drop all data in db"
-    cmds:
-      - docker-compose --profile "scripts" run --rm migrate -verbose -path="/migrations/" -database="{{.DB_URL}}" drop {{.CLI_ARGS}}
+    cmd: docker-compose --profile "scripts" run --rm migrate -verbose -path="/migrations/" -database="{{.DB_URL}}" drop {{.CLI_ARGS}}
 
   # Code generation tasks
   sqlc-gen:
     desc: "Generate SQLC code"
-    cmds:
-      - docker-compose --profile "scripts" run --rm sqlc generate {{.CLI_ARGS}}
+    cmd: docker-compose --profile "scripts" run --rm sqlc generate {{.CLI_ARGS}}
 
   gqlgen:
     desc: "Generate GraphQL code"
-    cmds:
-      - docker-compose --profile "scripts" run --rm gqlgen generate {{.CLI_ARGS}}
+    cmd: docker-compose --profile "scripts" run --rm gqlgen generate {{.CLI_ARGS}}
 
   # Linting and Formatting Tasks
   lint:
     desc: "Run linting for the entire repository (ESLint for non-Go code and golangci-lint for Go)"
-    cmds:
-      - task lint:eslint
-      - task lint:go
+    deps:
+      - lint:ts
+      - lint:go
 
   lint:fix:
-    desc: "Run ESLint with auto-fix for applicable files"
-    cmds:
-      - pnpm eslint . --fix
+    desc: "Run linting for the entire repository (ESLint for non-Go code and golangci-lint for Go) with auto-fixes"
+    deps:
+      - lint:ts:fix
+      - lint:go:fix
 
-  lint:eslint:
-    desc: "Run ESLint across the repository (TypeScript, GraphQL, etc.)"
-    cmds:
-      - pnpm eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .
+  lint:ts:
+    desc: "Run ESLint"
+    cmd: docker-compose --profile "scripts" run --rm eslint {{.CLI_ARGS}}
+
+  lint:ts:fix:
+    desc: "Run ESLint"
+    cmd: docker-compose --profile "scripts" run --rm eslint pnpm eslint . --fix {{.CLI_ARGS}}
 
   lint:go:
     desc: "Run Go linting with golangci-lint"
-    dir: "{{.ROOT_TASKFILE}}/api"
-    cmds:
-      - |
-        {{if eq (env `CI`) "true"}}
-          echo "Detected CI environment. Skipping Go linting as it is handled by a separate GitHub Action."
-        {{else}}
-          echo "Running Go linting..."
-          golangci-lint run
-          echo "Go linting completed."
-        {{end}}
+    cmd: docker-compose --profile "scripts" run --rm golangci-lint golangci-lint run -v {{.CLI_ARGS}}
 
-  # Formatting tasks
-  format:
-    desc: "Apply Prettier formatting"
-    cmds:
-      - pnpm prettier --write .
+  lint:go:fix:
+    desc: "Run Go linting with golangci-lint"
+    cmd: docker-compose --profile "scripts" run --rm golangci-lint golangci-lint run -v --fix {{.CLI_ARGS}}
 
   format:check:
-    desc: "Check Prettier formatting"
-    cmds:
-      - pnpm prettier --check .
+    desc: "Check formatting for whole project"
+    deps:
+      - gofmt:check
+      - prettier:check
 
-  # CI-specific tasks
-  ci:check:
+  format:
+    desc: "Fix formatting for whole project"
+    deps:
+      - gofmt
+      - prettier
+
+  gofmt:
+    desc: "Apply Go formatting"
+    cmd: docker-compose --profile "scripts" run --rm gofmt gofmt -w -l . {{.CLI_ARGS}}
+
+  gofmt:check:
+    desc: "Check Go formatting"
+    cmd: docker-compose --profile "scripts" run --rm gofmt gofmt -e -l . | tee /dev/tty | wc -l | xargs -I % test % -lt 1 {{.CLI_ARGS}}
+
+  prettier:
+    desc: "Apply Prettier formatting"
+    cmd: docker-compose --profile "scripts" run --rm prettier pnpm run format --write {{.CLI_ARGS}}
+
+  prettier:check:
+    desc: "Check Prettier formatting"
+    cmd: docker-compose --profile "scripts" run --rm prettier {{.CLI_ARGS}}
+
+  go:ci:
+    desc: "Go CI checks"
+    deps:
+      - gofmt:check
+      - golangci-lint
+
+  ts:ci:
+    desc: "Typescript CI checks"
+    deps:
+      - prettier:check
+      - eslint
+
+  check:
     desc: "Run lint and format checks for CI"
+    deps:
+      - lint
+      - format:check
+
+  bootstrap:
+    desc: "Setup the project"
+    deps:
+      - setup-env
+      - setup-hooks
     cmds:
-      - task --parallel lint format:check
+      - task: pull
+      - task: build
+
+  setup-hooks:
+    desc: "Setup githooks"
+    cmds:
+      - chmod 777 .hooks/*
+      - "git config core.hooksPath .hooks"
+
+  setup-env:
+    desc: "Setup .env files"
+    cmds:
+      - cp ./api/.env.sample ./api/.env
+      - cp ./web/.env.sample ./web/.env

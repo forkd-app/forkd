@@ -4,6 +4,8 @@ package model
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type PaginatedResult interface {
@@ -17,10 +19,18 @@ type Ingredient struct {
 	Description *string `json:"description,omitempty"`
 }
 
+type LoginResponse struct {
+	Token string `json:"token"`
+	User  *User  `json:"user"`
+}
+
 type MeasurementUnit struct {
 	ID          int     `json:"id"`
 	Description *string `json:"description,omitempty"`
 	Name        string  `json:"name"`
+}
+
+type Mutation struct {
 }
 
 type PaginatedRecipeRevisions struct {
@@ -48,22 +58,22 @@ type Query struct {
 }
 
 type Recipe struct {
+	ID                 uuid.UUID                 `json:"id"`
 	InitialPublishDate time.Time                 `json:"initialPublishDate"`
 	Author             *User                     `json:"author"`
 	Slug               string                    `json:"slug"`
 	ForkedFrom         *RecipeRevision           `json:"forkedFrom,omitempty"`
-	ID                 int                       `json:"id"`
 	Private            bool                      `json:"private"`
 	Revisions          *PaginatedRecipeRevisions `json:"revisions"`
 	FeaturedRevision   *RecipeRevision           `json:"featuredRevision,omitempty"`
 }
 
 type RecipeIngredient struct {
+	ID         int              `json:"id"`
 	Revision   *RecipeRevision  `json:"revision"`
 	Unit       *MeasurementUnit `json:"unit"`
 	Ingredient *Ingredient      `json:"ingredient"`
 	Quantity   float64          `json:"quantity"`
-	ID         int              `json:"id"`
 	Comment    *string          `json:"comment,omitempty"`
 }
 
@@ -74,7 +84,7 @@ type RecipeQuery struct {
 }
 
 type RecipeRevision struct {
-	ID                int                 `json:"id"`
+	ID                uuid.UUID           `json:"id"`
 	Recipe            *Recipe             `json:"recipe"`
 	RecipeDescription *string             `json:"recipeDescription,omitempty"`
 	ChangeComment     *string             `json:"changeComment,omitempty"`
@@ -101,15 +111,22 @@ type Tag struct {
 }
 
 type User struct {
+	ID          uuid.UUID         `json:"id"`
 	JoinDate    time.Time         `json:"joinDate"`
 	UpdatedAt   time.Time         `json:"updatedAt"`
-	ID          int               `json:"id"`
 	Email       string            `json:"email"`
 	DisplayName string            `json:"displayName"`
 	Recipes     *PaginatedRecipes `json:"recipes"`
 }
 
+type UserMutation struct {
+	RequestMagicLink string         `json:"requestMagicLink"`
+	Login            *LoginResponse `json:"login"`
+	Logout           bool           `json:"logout"`
+}
+
 type UserQuery struct {
 	ByID    *User `json:"byId,omitempty"`
 	ByEmail *User `json:"byEmail,omitempty"`
+	Current *User `json:"current,omitempty"`
 }

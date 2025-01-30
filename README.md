@@ -17,15 +17,10 @@ I've tried to make this pretty easy to develop with. We use Docker and Docker Co
 
 ### Dependencies
 
-#### Required
-
 - [Docker](https://docs.docker.com/engine/install/)
   - For running all the services together and reducing the required deps to install
 - [Task](https://taskfile.dev/installation/)
   - For running commands in a simpler fashion
-
-#### Optional
-
 - [Node](https://nodejs.org/en/download/package-manager/current) >= v20
   - Frontend
   - Prettier
@@ -34,6 +29,16 @@ I've tried to make this pretty easy to develop with. We use Docker and Docker Co
   - Package manager if you want to run the app without docker
 - [Go](https://go.dev/doc/install) >= v1.22
   - Backend
+
+### Setup
+
+To start things off, we should run `task bootstrap`. This does a couple things:
+
+- Sets up the `.env` files in for the apps
+- Pulls all required Docker images
+- Builds the local docker images
+- Verifies dependencies
+- Sets up git hooks
 
 ### Starting the application services
 
