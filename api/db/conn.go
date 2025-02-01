@@ -13,6 +13,10 @@ func GetQueriesWithConnection(connectionString string) (*Queries, *pgxpool.Pool,
 		return nil, nil, err
 	}
 
+	if err := pool.Ping(ctx); err != nil {
+		return nil, nil, err
+	}
+
 	queries := New(pool)
 	return queries, pool, nil
 }

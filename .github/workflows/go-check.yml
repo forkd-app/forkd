@@ -1,4 +1,4 @@
-name: Go Code Linting
+name: Go Code Checks
 
 on:
   push:
@@ -13,8 +13,8 @@ permissions:
   # pull-requests: read
 
 jobs:
-  go-lint:
-    name: Go Lint
+  go-check:
+    name: Go Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,8 +22,10 @@ jobs:
         with:
           go-version-file: "api/go.mod"
           cache-dependency-path: "api/go.sum"
+      - name: Check gofmt
+        run: gofmt -e -l . | tee /dev/tty | wc -l | xargs -I % test % -lt 1
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.60
+          version: v1.63.4
           working-directory: api

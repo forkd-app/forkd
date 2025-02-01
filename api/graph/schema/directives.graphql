@@ -10,3 +10,5 @@ directive @goField(
   name: String
   omittable: Boolean
 ) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
+
+directive @auth(required: Boolean) on FIELD_DEFINITION | OBJECT

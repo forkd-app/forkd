@@ -1,34 +1,39 @@
 package main
 
 import (
+	"fmt"
 	"forkd/db"
 	"forkd/graph"
+	"forkd/services/auth"
+	"forkd/services/email"
+	"forkd/util"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 )
 
-const defaultPort = "8000"
-
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
-	}
+	util.InitEnv()
+	env := util.GetEnv()
+	dbConnStr := env.GetDbConnStr()
+	port := env.GetPort()
 
-	// TODO: Make this an env var
-	queries, _, err := db.GetQueriesWithConnection("postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable")
+	queries, conn, err := db.GetQueriesWithConnection(dbConnStr)
 	if err != nil || queries == nil {
-		panic("Unable to connect to db")
+		panic(fmt.Errorf("Unable to connect to db: %w", err))
 	}
 
-	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{Queries: *queries}}))
+	emailService := email.New()
+	authService := auth.New(queries, conn)
+
+	// TODO: We should do a refactor here, it's getting pretty cluttered (Mostly my fault lol)
+	srvConf := graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{Queries: *queries, Auth: authService, Email: emailService}, Directives: graph.DirectiveRoot{Auth: graph.AuthDirective(authService)}})
+	srv := handler.NewDefaultServer(srvConf)
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", srv)
+	http.Handle("/query", authService.SessionWrapper(srv.ServeHTTP))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))

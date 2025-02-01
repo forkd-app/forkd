@@ -22,12 +22,18 @@ services:
     # Attach this container to our dedicated network for the services in this compose file
     networks:
       - app_network
+    volumes:
+      - ./web:/app/web
+      - /app/node_modules
+      - /app/web/node_modules
     # Expose the port that the web app uses so you can access it at localhost:3000
     ports:
       - 3000:3000
     # Use the .env file from the web dir
     env_file:
       - ./web/.env
+    environment:
+      CHOKIDAR_USEPOLLING: true
     # This container will wait for the api container to start before starting
     depends_on:
       - api
@@ -36,11 +42,6 @@ services:
       watch:
         - path: ./web/package.json
           action: rebuild
-        - path: ./web
-          target: /app
-          action: sync+restart
-          ignore:
-            - ./web/node_modules
   # This service is the api. For the source code, checkout the api directory
   api:
     # This specifies the docker file/context to build for the api container
@@ -169,5 +170,38 @@ services:
     networks:
       - app_network
     # This is important, we assign a profile so this container doesn't auto start when you run `docker-compose start`
+    profiles:
+      - "scripts"
+  # Container to run golangci-lint
+  golangci-lint:
+    image: golangci/golangci-lint
+    restart: never
+    volumes:
+      - ./api:/app
+    working_dir: /app
+    profiles:
+      - "scripts"
+  gofmt:
+    image: golang:1.23-alpine
+    restart: never
+    volumes:
+      - ./api:/app
+    working_dir: /app
+    profiles:
+      - "scripts"
+  eslint:
+    build:
+      context: .
+      dockerfile: ./eslint.Dockerfile
+    restart: never
+    profiles:
+      - "scripts"
+  prettier:
+    build:
+      context: .
+      dockerfile: ./prettier.Dockerfile
+    restart: never
+    volumes:
+      - ./web:/app/web
     profiles:
       - "scripts"

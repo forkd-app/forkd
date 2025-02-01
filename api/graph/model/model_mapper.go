@@ -7,9 +7,8 @@ import (
 )
 
 func RecipeFromDBType(result db.Recipe) *Recipe {
-	// Map to model.Recipe type
 	recipe := Recipe{
-		ID:                 int(result.ID),
+		ID:                 result.ID.Bytes,
 		Slug:               result.Slug,
 		InitialPublishDate: result.InitialPublishDate.Time,
 		Private:            result.Private,
@@ -19,9 +18,8 @@ func RecipeFromDBType(result db.Recipe) *Recipe {
 }
 
 func UserFromDBType(result db.User) *User {
-	// Map to model.User type
 	user := User{
-		ID:          int(result.ID),
+		ID:          result.ID.Bytes,
 		Email:       result.Email,
 		JoinDate:    result.JoinDate.Time,
 		DisplayName: result.DisplayName,
@@ -33,7 +31,7 @@ func UserFromDBType(result db.User) *User {
 
 func RevisionFromDBType(result db.RecipeRevision) *RecipeRevision {
 	revision := RecipeRevision{
-		ID:                int(result.ID),
+		ID:                result.ID.Bytes,
 		RecipeDescription: IfValidString(result.RecipeDescription),
 		ChangeComment:     IfValidString(result.ChangeComment),
 		Title:             result.Title,

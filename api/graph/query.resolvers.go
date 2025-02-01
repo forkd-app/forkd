@@ -9,6 +9,9 @@ import (
 	"fmt"
 	"forkd/db"
 	"forkd/graph/model"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // User is the resolver for the user field.
@@ -22,9 +25,12 @@ func (r *queryResolver) Recipe(ctx context.Context) (*model.RecipeQuery, error) 
 }
 
 // ByID is the resolver for the byId field.
-func (r *recipeQueryResolver) ByID(ctx context.Context, obj *model.RecipeQuery, id int) (*model.Recipe, error) {
-	// Fetch the recipe by the id
-	result, err := r.Queries.GetRecipeById(ctx, int64(id))
+func (r *recipeQueryResolver) ByID(ctx context.Context, obj *model.RecipeQuery, id uuid.UUID) (*model.Recipe, error) {
+	pgId := pgtype.UUID{
+		Bytes: id,
+		Valid: true,
+	}
+	result, err := r.Queries.GetRecipeById(ctx, pgId)
 	return handleNoRowsOnNullableType(result, err, model.RecipeFromDBType)
 }
 
@@ -52,7 +58,7 @@ func (r *recipeQueryResolver) List(ctx context.Context, obj *model.RecipeQuery, 
 		if !cursor.Validate(*limit) {
 			return nil, fmt.Errorf("limit param does not match cursor. Limit: %d, Cursor: %d", params.Limit, cursor.Limit)
 		}
-		params.ID = int64(cursor.Id)
+		params.ID = cursor.Id
 	}
 	result, err := r.Queries.ListRecipes(ctx, params)
 	// If there was an error, early return with the error
@@ -69,7 +75,7 @@ func (r *recipeQueryResolver) List(ctx context.Context, obj *model.RecipeQuery, 
 
 	if count == int(params.Limit) {
 		cursor := ListRecipesCursor{
-			Id:    recipes[count-1].ID,
+			Id:    result[count-1].ID,
 			Limit: int(params.Limit),
 		}
 		encoded, err := cursor.Encode()
@@ -95,8 +101,12 @@ func (r *recipeQueryResolver) List(ctx context.Context, obj *model.RecipeQuery, 
 }
 
 // ByID is the resolver for the byId field.
-func (r *userQueryResolver) ByID(ctx context.Context, obj *model.UserQuery, id int) (*model.User, error) {
-	result, err := r.Queries.GetUserById(ctx, int64(id))
+func (r *userQueryResolver) ByID(ctx context.Context, obj *model.UserQuery, id uuid.UUID) (*model.User, error) {
+	pgId := pgtype.UUID{
+		Bytes: id,
+		Valid: true,
+	}
+	result, err := r.Queries.GetUserById(ctx, pgId)
 	return handleNoRowsOnNullableType(result, err, model.UserFromDBType)
 }
 
@@ -104,6 +114,12 @@ func (r *userQueryResolver) ByID(ctx context.Context, obj *model.UserQuery, id i
 func (r *userQueryResolver) ByEmail(ctx context.Context, obj *model.UserQuery, email string) (*model.User, error) {
 	result, err := r.Queries.GetUserByEmail(ctx, email)
 	return handleNoRowsOnNullableType(result, err, model.UserFromDBType)
+}
+
+// Current is the resolver for the current field.
+func (r *userQueryResolver) Current(ctx context.Context, obj *model.UserQuery) (*model.User, error) {
+	user, _ := r.Auth.GetUserSessionFromCtx(ctx)
+	return model.UserFromDBType(*user), nil
 }
 
 // Query returns QueryResolver implementation.
