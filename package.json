@@ -9,8 +9,7 @@
     "lint:go": "task lint:go",
     "format": "task format",
     "format:check": "task format:check",
-    "ci:check": "task ci:check",
-    "prepare": "husky"
+    "ci:check": "task ci:check"
   },
   "devDependencies": {
     "@graphql-eslint/eslint-plugin": "^3.20.1",
@@ -18,7 +17,6 @@
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.3",
-    "husky": "^9.1.7",
     "prettier": "^3.4.2"
   },
   "engines": {
