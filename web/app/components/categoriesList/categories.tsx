@@ -2,7 +2,6 @@ import { Flex, Anchor } from "@mantine/core"
 
 export function Categories() {
   return (
-    <>
       <Flex
         style={styles.gridContainer}
         justify="center"
@@ -31,7 +30,6 @@ export function Categories() {
           Text 7
         </Anchor>
       </Flex>
-    </>
   )
 }
 

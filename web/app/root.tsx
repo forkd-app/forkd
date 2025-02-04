@@ -5,7 +5,7 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react"
-import { MantineProvider } from "@mantine/core"
+import { MantineProvider, Image } from "@mantine/core"
 import "@mantine/core/styles.css"
 import { Header } from "./components/header/header"
 import { MobileHeader } from "./components/header/mobileHeader"

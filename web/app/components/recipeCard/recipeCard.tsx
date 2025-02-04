@@ -1,5 +1,4 @@
-import { Flex, Text, Button } from "@mantine/core"
-import ImgFiller from "../../../public/Image Item.jpg"
+import { Flex, Text, Button, Image } from "@mantine/core"
 
 interface Recipe {
   title: string
@@ -12,7 +11,7 @@ export function RecipeCard({ title }: Recipe) {
       justify={"space-evenly"}
       style={styles.flexContainer}
     >
-      <img src={ImgFiller} alt="recipe" height={"60%"} width={"100%"} />
+      <Image src="images/image.jpg" alt="recipe" />
       <div>
         <Text>{title}</Text>
         <Text>stars</Text>

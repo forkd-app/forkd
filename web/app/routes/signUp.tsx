@@ -1,5 +1,5 @@
 import type { MetaFunction } from "@remix-run/node"
-import { Text, Flex } from "@mantine/core"
+import { Text, Flex, Container } from "@mantine/core"
 
 export const meta: MetaFunction = () => {
   return [
@@ -13,6 +13,7 @@ export const meta: MetaFunction = () => {
 
 export default function SignUp() {
   return (
+    <Container>
     <Flex
       style={styles.contain}
       justify="center"
@@ -21,12 +22,12 @@ export default function SignUp() {
     >
       <Text> Sign Up Page </Text>
     </Flex>
+    </Container>
   )
 }
 
 const styles = {
   contain: {
     height: "100vh",
-    width: "100%",
   },
 }

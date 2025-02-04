@@ -1,28 +1,9 @@
 import { IconSearch, IconGrillFork } from "@tabler/icons-react"
-// import { useDisclosure } from "@mantine/hooks"
 import { Grid, Button, Autocomplete, Text } from "@mantine/core"
 import { Categories } from "../categoriesList/categories"
 
-// const links = [
-//   { link: '/about', label: 'Features' },
-//   { link: '/pricing', label: 'Pricing' },
-//   { link: '/learn', label: 'Learn' },
-//   { link: '/community', label: 'Community' },
-// ];
 
 export function Header() {
-  // const [opened, { toggle }] = useDisclosure(false);
-
-  // const items = links.map((link) => (
-  //   <a
-  //     key={link.label}
-  //     href={link.link}
-  //     className={classes.link}
-  //     onClick={(event) => event.preventDefault()}
-  //   >
-  //     {link.label}
-  //   </a>
-  // ));
 
   return (
     <div style={{ position: "static" }}>
@@ -36,12 +17,10 @@ export function Header() {
         </Grid.Col>
         <Grid.Col style={styles.grid} span={{ base: 12, md: 6, lg: 2 }}>
           <Button variant="transparent" color="gray">
-            {" "}
-            My Recipes{" "}
+            My Recipes
           </Button>
           <Button variant="transparent" color="gray">
-            {" "}
-            Add Recipe{" "}
+            Add Recipe
           </Button>
         </Grid.Col>
         <Grid.Col
@@ -63,12 +42,10 @@ export function Header() {
         </Grid.Col>
         <Grid.Col style={styles.grid} span={{ base: 12, md: 6, lg: 2 }}>
           <Button variant="transparent" color="gray">
-            {" "}
-            Log In{" "}
+            Log In
           </Button>
           <Button variant="" color="gray">
-            {" "}
-            Create Account{" "}
+            Create Account
           </Button>
         </Grid.Col>
       </Grid>
