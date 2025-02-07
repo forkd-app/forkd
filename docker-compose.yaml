@@ -194,6 +194,8 @@ services:
       context: .
       dockerfile: ./eslint.Dockerfile
     restart: never
+    volumes:
+      - ./:/app
     profiles:
       - "scripts"
   prettier:
@@ -202,6 +204,6 @@ services:
       dockerfile: ./prettier.Dockerfile
     restart: never
     volumes:
-      - ./web:/app/web
+      - ./:/app
     profiles:
       - "scripts"
