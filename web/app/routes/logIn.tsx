@@ -13,16 +13,15 @@ export const meta: MetaFunction = () => {
 
 export default function LogIn() {
   return (
-    <Container
-    >
-    <Flex
-      justify="center"
-      align="center"
-      style={styles.contain}
-      direction={"column"}
-    >
-      <Text> Log In Page </Text>
-    </Flex>
+    <Container>
+      <Flex
+        justify="center"
+        align="center"
+        style={styles.contain}
+        direction={"column"}
+      >
+        <Text> Log In Page </Text>
+      </Flex>
     </Container>
   )
 }

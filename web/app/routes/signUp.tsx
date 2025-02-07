@@ -14,14 +14,14 @@ export const meta: MetaFunction = () => {
 export default function SignUp() {
   return (
     <Container>
-    <Flex
-      style={styles.contain}
-      justify="center"
-      align="center"
-      direction={"column"}
-    >
-      <Text> Sign Up Page </Text>
-    </Flex>
+      <Flex
+        style={styles.contain}
+        justify="center"
+        align="center"
+        direction={"column"}
+      >
+        <Text> Sign Up Page </Text>
+      </Flex>
     </Container>
   )
 }

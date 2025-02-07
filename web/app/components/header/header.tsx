@@ -2,9 +2,7 @@ import { IconSearch, IconGrillFork } from "@tabler/icons-react"
 import { Grid, Button, Autocomplete, Text } from "@mantine/core"
 import { Categories } from "../categoriesList/categories"
 
-
 export function Header() {
-
   return (
     <div style={{ position: "static" }}>
       <Grid style={styles.grid} justify="space-around">
