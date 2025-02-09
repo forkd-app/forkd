@@ -17,7 +17,7 @@ SELECT
 FROM
   recipe_ingredients
 JOIN
-  measurement_units ON recipe_ingredients.unit = measurement_units.id
+  measurement_units ON recipe_ingredients.measurement_unit_id = measurement_units.id
 WHERE
   recipe_ingredients.id = $1
 LIMIT 1
@@ -27,5 +27,47 @@ func (q *Queries) GetMeasurementUnitFromIngredientId(ctx context.Context, id int
 	row := q.db.QueryRow(ctx, getMeasurementUnitFromIngredientId, id)
 	var i MeasurementUnit
 	err := row.Scan(&i.ID, &i.Name, &i.Description)
+	return i, err
+}
+
+const upsertMeasurement = `-- name: UpsertMeasurement :one
+WITH upsert AS (
+  INSERT INTO
+    measurement_units (
+      name
+    )
+  VALUES (
+    $1
+  )
+  ON CONFLICT (name)
+  DO NOTHING
+  RETURNING
+    measurement_units.id,
+    measurement_units.name
+)
+SELECT
+  upsert.id,
+	upsert.name
+FROM
+  upsert
+UNION
+SELECT
+    measurement_units.id,
+    measurement_units.name
+FROM
+  measurement_units
+WHERE
+  measurement_units.name = $1
+`
+
+type UpsertMeasurementRow struct {
+	ID   int64
+	Name string
+}
+
+func (q *Queries) UpsertMeasurement(ctx context.Context, name string) (UpsertMeasurementRow, error) {
+	row := q.db.QueryRow(ctx, upsertMeasurement, name)
+	var i UpsertMeasurementRow
+	err := row.Scan(&i.ID, &i.Name)
 	return i, err
 }

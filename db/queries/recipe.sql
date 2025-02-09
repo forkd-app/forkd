@@ -38,9 +38,13 @@ SELECT
 FROM
   recipes
 WHERE
-  author_id = $1 AND id > $2
+  author_id = sqlc.arg('author_id')
+  AND CASE
+    WHEN sqlc.narg('id')::uuid IS NOT NULL THEN id > sqlc.narg('id')::uuid
+    ELSE true
+  END
 ORDER BY id
-LIMIT $3;
+LIMIT sqlc.arg('limit'); -- Limit for pagination
 -- name: ListRecipes :many
 SELECT
   id,
@@ -53,9 +57,12 @@ SELECT
 FROM
   recipes
 WHERE
-  id > $1
+  CASE
+    WHEN sqlc.narg('id')::uuid IS NOT NULL THEN id > sqlc.narg('id')::uuid
+    ELSE true
+  END
 ORDER BY id
-LIMIT $2;
+LIMIT sqlc.arg('limit'); -- Limit for pagination
 -- name: CreateRecipe :one
 INSERT INTO recipes (
   author_id,
@@ -136,3 +143,18 @@ WHERE
   recipe_revisions.id = $1
 ORDER BY
   recipe_steps.id;
+-- name: UpdateRecipe :one
+UPDATE recipes
+SET
+  slug = coalesce($1, slug),
+  private = coalesce($2, private),
+  featured_revision = coalesce($3, featured_revision)
+WHERE id = $4
+RETURNING
+  id,
+  author_id,
+  slug,
+  private,
+  initial_publish_date,
+  forked_from,
+  featured_revision;

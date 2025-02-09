@@ -17,7 +17,7 @@ SELECT
 FROM
   recipe_ingredients
 JOIN
-  ingredients ON recipe_ingredients.ingredient = ingredients.id
+  ingredients ON recipe_ingredients.ingredient_id = ingredients.id
 WHERE
   recipe_ingredients.id = $1
 LIMIT 1
@@ -27,5 +27,47 @@ func (q *Queries) GetIngredientFromRecipeIngredientId(ctx context.Context, id in
 	row := q.db.QueryRow(ctx, getIngredientFromRecipeIngredientId, id)
 	var i Ingredient
 	err := row.Scan(&i.ID, &i.Name, &i.Description)
+	return i, err
+}
+
+const upsertIngredient = `-- name: UpsertIngredient :one
+WITH upsert AS (
+  INSERT INTO
+    ingredients (
+      name
+    )
+  VALUES (
+    $1
+  )
+  ON CONFLICT (name)
+  DO NOTHING
+  RETURNING
+    ingredients.id,
+    ingredients.name
+)
+SELECT
+  upsert.id,
+	upsert.name
+FROM
+  upsert
+UNION
+SELECT
+    ingredients.id,
+    ingredients.name
+FROM
+  ingredients
+WHERE
+  ingredients.name = $1
+`
+
+type UpsertIngredientRow struct {
+	ID   int64
+	Name string
+}
+
+func (q *Queries) UpsertIngredient(ctx context.Context, name string) (UpsertIngredientRow, error) {
+	row := q.db.QueryRow(ctx, upsertIngredient, name)
+	var i UpsertIngredientRow
+	err := row.Scan(&i.ID, &i.Name)
 	return i, err
 }

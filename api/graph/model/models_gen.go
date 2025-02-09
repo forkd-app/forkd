@@ -13,6 +13,41 @@ type PaginatedResult interface {
 	GetPagination() *PaginationInfo
 }
 
+type AddRevisionInput struct {
+	ID       uuid.UUID                  `json:"id"`
+	Parent   uuid.UUID                  `json:"parent"`
+	Slug     string                     `json:"slug"`
+	Revision *CreateRecipeRevisionInput `json:"revision"`
+}
+
+type CreateRecipeInput struct {
+	Slug      string                     `json:"slug"`
+	ForkdFrom *uuid.UUID                 `json:"forkdFrom,omitempty"`
+	Revision  *CreateRecipeRevisionInput `json:"revision"`
+	Private   bool                       `json:"private"`
+}
+
+type CreateRecipeRevisionIngredient struct {
+	Ingredient string  `json:"ingredient"`
+	Unit       string  `json:"unit"`
+	Quantity   float64 `json:"quantity"`
+	Comment    *string `json:"comment,omitempty"`
+}
+
+type CreateRecipeRevisionInput struct {
+	Title         string                            `json:"title"`
+	Description   *string                           `json:"description,omitempty"`
+	Tags          []string                          `json:"tags"`
+	Ingredients   []*CreateRecipeRevisionIngredient `json:"ingredients"`
+	Steps         []*CreateRecipeRevisionStep       `json:"steps"`
+	ChangeComment *string                           `json:"changeComment,omitempty"`
+}
+
+type CreateRecipeRevisionStep struct {
+	Instruction string `json:"instruction"`
+	Step        int    `json:"step"`
+}
+
 type Ingredient struct {
 	ID          int     `json:"id"`
 	Name        string  `json:"name"`
@@ -75,6 +110,11 @@ type RecipeIngredient struct {
 	Ingredient *Ingredient      `json:"ingredient"`
 	Quantity   float64          `json:"quantity"`
 	Comment    *string          `json:"comment,omitempty"`
+}
+
+type RecipeMutation struct {
+	Create      *Recipe         `json:"create"`
+	AddRevision *RecipeRevision `json:"addRevision"`
 }
 
 type RecipeQuery struct {

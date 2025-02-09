@@ -39,6 +39,7 @@ type CreateRecipeParams struct {
 	Private    bool
 }
 
+// Limit for pagination
 func (q *Queries) CreateRecipe(ctx context.Context, arg CreateRecipeParams) (Recipe, error) {
 	row := q.db.QueryRow(ctx, createRecipe,
 		arg.AuthorID,
@@ -243,7 +244,10 @@ SELECT
 FROM
   recipes
 WHERE
-  id > $1
+  CASE
+    WHEN $1::uuid IS NOT NULL THEN id > $1::uuid
+    ELSE true
+  END
 ORDER BY id
 LIMIT $2
 `
@@ -253,6 +257,7 @@ type ListRecipesParams struct {
 	Limit int32
 }
 
+// Limit for pagination
 func (q *Queries) ListRecipes(ctx context.Context, arg ListRecipesParams) ([]Recipe, error) {
 	rows, err := q.db.Query(ctx, listRecipes, arg.ID, arg.Limit)
 	if err != nil {
@@ -293,7 +298,11 @@ SELECT
 FROM
   recipes
 WHERE
-  author_id = $1 AND id > $2
+  author_id = $1
+  AND CASE
+    WHEN $2::uuid IS NOT NULL THEN id > $2::uuid
+    ELSE true
+  END
 ORDER BY id
 LIMIT $3
 `
@@ -371,4 +380,48 @@ func (q *Queries) ListStepsByRecipeRevisionID(ctx context.Context, id pgtype.UUI
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateRecipe = `-- name: UpdateRecipe :one
+UPDATE recipes
+SET
+  slug = coalesce($1, slug),
+  private = coalesce($2, private),
+  featured_revision = coalesce($3, featured_revision)
+WHERE id = $4
+RETURNING
+  id,
+  author_id,
+  slug,
+  private,
+  initial_publish_date,
+  forked_from,
+  featured_revision
+`
+
+type UpdateRecipeParams struct {
+	Slug             string
+	Private          bool
+	FeaturedRevision pgtype.UUID
+	ID               pgtype.UUID
+}
+
+func (q *Queries) UpdateRecipe(ctx context.Context, arg UpdateRecipeParams) (Recipe, error) {
+	row := q.db.QueryRow(ctx, updateRecipe,
+		arg.Slug,
+		arg.Private,
+		arg.FeaturedRevision,
+		arg.ID,
+	)
+	var i Recipe
+	err := row.Scan(
+		&i.ID,
+		&i.AuthorID,
+		&i.Slug,
+		&i.Private,
+		&i.InitialPublishDate,
+		&i.ForkedFrom,
+		&i.FeaturedRevision,
+	)
+	return i, err
 }

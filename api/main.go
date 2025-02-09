@@ -29,7 +29,17 @@ func main() {
 	authService := auth.New(queries, conn)
 
 	// TODO: We should do a refactor here, it's getting pretty cluttered (Mostly my fault lol)
-	srvConf := graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{Queries: *queries, Auth: authService, Email: emailService}, Directives: graph.DirectiveRoot{Auth: graph.AuthDirective(authService)}})
+	srvConf := graph.NewExecutableSchema(graph.Config{
+		Resolvers: &graph.Resolver{
+			Queries: queries,
+			Conn:    conn,
+			Auth:    authService,
+			Email:   emailService,
+		},
+		Directives: graph.DirectiveRoot{
+			Auth: graph.AuthDirective(authService),
+		},
+	})
 	srv := handler.NewDefaultServer(srvConf)
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
