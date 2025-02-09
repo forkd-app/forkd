@@ -123,10 +123,15 @@ type UserMutation struct {
 	RequestMagicLink string         `json:"requestMagicLink"`
 	Login            *LoginResponse `json:"login"`
 	Logout           bool           `json:"logout"`
+	Update           *User          `json:"update"`
 }
 
 type UserQuery struct {
 	ByID    *User `json:"byId,omitempty"`
 	ByEmail *User `json:"byEmail,omitempty"`
 	Current *User `json:"current,omitempty"`
+}
+
+type UserUpdateInput struct {
+	DisplayName *string `json:"displayName,omitempty"`
 }

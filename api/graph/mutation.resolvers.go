@@ -7,6 +7,7 @@ package graph
 import (
 	"context"
 	"fmt"
+	"forkd/db"
 	"forkd/graph/model"
 	"forkd/util"
 )
@@ -63,6 +64,24 @@ func (r *userMutationResolver) Logout(ctx context.Context, obj *model.UserMutati
 	_, session := r.Auth.GetUserSessionFromCtx(ctx)
 	err := r.Auth.DeleteSession(ctx, session.ID)
 	return err == nil, nil
+}
+
+// Update is the resolver for the update field.
+func (r *userMutationResolver) Update(ctx context.Context, obj *model.UserMutation, input model.UserUpdateInput) (*model.User, error) {
+	user, _ := r.Auth.GetUserSessionFromCtx(ctx)
+	params := db.UpdateUserParams{
+		ID: user.ID,
+	}
+	if input.DisplayName != nil && *input.DisplayName != "" {
+		params.DisplayName = *input.DisplayName
+	} else {
+		params.DisplayName = user.DisplayName
+	}
+	updatedUser, err := r.Queries.UpdateUser(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return model.UserFromDBType(updatedUser), nil
 }
 
 // Mutation returns MutationResolver implementation.

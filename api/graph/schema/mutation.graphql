@@ -7,9 +7,16 @@ type UserMutation {
   login(code: String!, token: String!): LoginResponse!
     @goField(forceResolver: true)
   logout: Boolean! @auth(required: true) @goField(forceResolver: true)
+  update(input: UserUpdateInput!): User!
+    @auth(required: true)
+    @goField(forceResolver: true)
 }
 
 type LoginResponse {
   token: String!
   user: User!
+}
+
+input UserUpdateInput {
+  displayName: String
 }
