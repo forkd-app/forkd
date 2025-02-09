@@ -11,6 +11,150 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createRevision = `-- name: CreateRevision :one
+INSERT INTO recipe_revisions (
+  recipe_id,
+  parent_id,
+  recipe_description,
+  change_comment,
+  title
+)
+VALUES (
+  $1,
+  $2,
+  $3,
+  $4,
+  $5
+)
+RETURNING
+  recipe_revisions.id,
+  recipe_revisions.recipe_id,
+  recipe_revisions.parent_id,
+  recipe_revisions.recipe_description,
+  recipe_revisions.change_comment,
+  recipe_revisions.title,
+  recipe_revisions.publish_date
+`
+
+type CreateRevisionParams struct {
+	RecipeID          pgtype.UUID
+	ParentID          pgtype.UUID
+	RecipeDescription pgtype.Text
+	ChangeComment     pgtype.Text
+	Title             string
+}
+
+func (q *Queries) CreateRevision(ctx context.Context, arg CreateRevisionParams) (RecipeRevision, error) {
+	row := q.db.QueryRow(ctx, createRevision,
+		arg.RecipeID,
+		arg.ParentID,
+		arg.RecipeDescription,
+		arg.ChangeComment,
+		arg.Title,
+	)
+	var i RecipeRevision
+	err := row.Scan(
+		&i.ID,
+		&i.RecipeID,
+		&i.ParentID,
+		&i.RecipeDescription,
+		&i.ChangeComment,
+		&i.Title,
+		&i.PublishDate,
+	)
+	return i, err
+}
+
+const createRevisionIngredient = `-- name: CreateRevisionIngredient :one
+INSERT INTO
+  recipe_ingredients (
+    revision_id,
+    ingredient_id,
+    measurement_unit_id,
+    quantity,
+    comment
+)
+VALUES (
+  $1,
+  $2,
+  $3,
+  $4,
+  $5
+)
+RETURNING
+  recipe_ingredients.id,
+  recipe_ingredients.revision_id,
+  recipe_ingredients.ingredient_id,
+  recipe_ingredients.quantity,
+  recipe_ingredients.measurement_unit_id,
+  recipe_ingredients.comment
+`
+
+type CreateRevisionIngredientParams struct {
+	RevisionID        pgtype.UUID
+	IngredientID      int64
+	MeasurementUnitID int64
+	Quantity          float32
+	Comment           pgtype.Text
+}
+
+func (q *Queries) CreateRevisionIngredient(ctx context.Context, arg CreateRevisionIngredientParams) (RecipeIngredient, error) {
+	row := q.db.QueryRow(ctx, createRevisionIngredient,
+		arg.RevisionID,
+		arg.IngredientID,
+		arg.MeasurementUnitID,
+		arg.Quantity,
+		arg.Comment,
+	)
+	var i RecipeIngredient
+	err := row.Scan(
+		&i.ID,
+		&i.RevisionID,
+		&i.IngredientID,
+		&i.Quantity,
+		&i.MeasurementUnitID,
+		&i.Comment,
+	)
+	return i, err
+}
+
+const createRevisionStep = `-- name: CreateRevisionStep :one
+INSERT INTO
+  recipe_steps (
+    revision_id,
+    content,
+    index
+  )
+VALUES (
+  $1,
+  $2,
+  $3
+)
+RETURNING
+  recipe_steps.id,
+  recipe_steps.revision_id,
+  recipe_steps.content,
+  recipe_steps.index
+`
+
+type CreateRevisionStepParams struct {
+	RevisionID pgtype.UUID
+	Content    string
+	Index      int32
+}
+
+func (q *Queries) CreateRevisionStep(ctx context.Context, arg CreateRevisionStepParams) (RecipeStep, error) {
+	row := q.db.QueryRow(ctx, createRevisionStep, arg.RevisionID, arg.Content, arg.Index)
+	var i RecipeStep
+	err := row.Scan(
+		&i.ID,
+		&i.RevisionID,
+		&i.Content,
+		&i.Index,
+	)
+	return i, err
+}
+
 const getFeaturedRevisionByRecipeId = `-- name: GetFeaturedRevisionByRecipeId :one
 SELECT
   recipe_revisions.id,
@@ -187,7 +331,10 @@ FROM
   recipe_revisions
 WHERE
   recipe_id = $1
-  AND id > $2 -- Cursor for pagination
+  AND CASE
+    WHEN $2::uuid IS NOT NULL THEN id > $2::uuid
+    ELSE true
+  END
 ORDER BY id
 LIMIT $3
 `
