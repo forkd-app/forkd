@@ -123,3 +123,14 @@ JOIN recipes ON users.id = recipes.author_id
 WHERE
   recipes.id = $1
 LIMIT 1;
+
+-- name: UpdateUser :one
+UPDATE users
+SET display_name = $2, email = $3
+WHERE id = $1
+RETURNING
+  id,
+  display_name,
+  email,
+  join_date,
+  updated_at;
