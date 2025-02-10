@@ -4,6 +4,7 @@ import (
 	"forkd/db"
 	"forkd/services/auth"
 	"forkd/services/email"
+	"forkd/services/recipe"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -13,8 +14,9 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	Queries *db.Queries
-	Conn    *pgxpool.Pool
-	Auth    auth.AuthService
-	Email   email.EmailService
+	Queries       *db.Queries
+	Conn          *pgxpool.Pool
+	AuthService   auth.AuthService
+	EmailService  email.EmailService
+	RecipeService recipe.RecipeService
 }

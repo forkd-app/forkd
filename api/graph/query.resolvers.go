@@ -6,9 +6,8 @@ package graph
 
 import (
 	"context"
-	"fmt"
-	"forkd/db"
 	"forkd/graph/model"
+	"forkd/util"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -26,126 +25,17 @@ func (r *queryResolver) Recipe(ctx context.Context) (*model.RecipeQuery, error) 
 
 // ByID is the resolver for the byId field.
 func (r *recipeQueryResolver) ByID(ctx context.Context, obj *model.RecipeQuery, id uuid.UUID) (*model.Recipe, error) {
-	pgId := pgtype.UUID{
-		Bytes: id,
-		Valid: true,
-	}
-	result, err := r.Queries.GetRecipeById(ctx, pgId)
-	return handleNoRowsOnNullableType(result, err, model.RecipeFromDBType)
+	return r.RecipeService.GetRecipeByID(ctx, id)
 }
 
 // BySlug is the resolver for the bySlug field.
 func (r *recipeQueryResolver) BySlug(ctx context.Context, obj *model.RecipeQuery, slug string) (*model.Recipe, error) {
-	// Fetch the recipe by the slug
-	result, err := r.Queries.GetRecipeBySlug(ctx, slug)
-	return handleNoRowsOnNullableType(result, err, model.RecipeFromDBType)
+	return r.RecipeService.GetRecipeBySlug(ctx, slug)
 }
 
 // List is the resolver for the list field.
 func (r *recipeQueryResolver) List(ctx context.Context, obj *model.RecipeQuery, input *model.ListRecipeInput) (*model.PaginatedRecipes, error) {
-	var params db.ListRecipesParams
-	if input == nil {
-		params.Limit = 20
-		params.SortDir = true
-		params.SortCol = "publish_date"
-	} else {
-		params.Limit = int32(*input.Limit)
-		switch *input.SortCol {
-		case model.ListRecipeSortColPublishDate:
-			params.SortCol = "publish_date"
-		case model.ListRecipeSortColSlug:
-			params.SortCol = "slug"
-		}
-		switch *input.SortDir {
-		case model.SortDirDesc:
-			params.SortDir = true
-		case model.SortDirAsc:
-			params.SortDir = false
-		}
-		if input.AuthorID != nil {
-			params.AuthorID = pgtype.UUID{
-				Bytes: *input.AuthorID,
-				Valid: true,
-			}
-		}
-		if input.PublishStart != nil {
-			params.PublishStart = pgtype.Timestamp{
-				Time:  *input.PublishStart,
-				Valid: true,
-			}
-		}
-		if input.PublishEnd != nil {
-			params.PublishEnd = pgtype.Timestamp{
-				Time:  *input.PublishEnd,
-				Valid: true,
-			}
-		}
-		if input.NextCursor != nil {
-			cursor := new(ListRecipesCursor)
-			err := cursor.Decode(*input.NextCursor)
-			if err != nil {
-				return nil, err
-			}
-			if !cursor.Validate(ListRecipesCursor{
-				ListRecipeInput: *input,
-			}) {
-				return nil, fmt.Errorf("invalid cursor")
-			}
-			params.PublishCursor = cursor.PublishCursor
-			params.SlugCursor = cursor.SlugCursor
-		}
-	}
-	result, err := r.Queries.ListRecipes(ctx, params)
-	if err != nil {
-		return nil, err
-	}
-	count := len(result)
-	recipes := make([]*model.Recipe, count)
-	for i, recipe := range result {
-		recipes[i] = model.RecipeFromDBType(recipe)
-	}
-
-	var NextCursor *string = nil
-	if count == int(params.Limit) {
-		cursor := ListRecipesCursor{
-			ListRecipeInput: *input,
-		}
-
-		switch params.SortCol {
-		case "slug":
-			cursor.SlugCursor = pgtype.Text{
-				String: recipes[len(recipes)-1].Slug,
-				Valid:  true,
-			}
-		case "publish_date":
-			fallthrough
-		default:
-			cursor.PublishCursor = pgtype.Timestamp{
-				Time:  recipes[len(recipes)-1].InitialPublishDate,
-				Valid: true,
-			}
-		}
-
-		encoded, err := cursor.Encode()
-
-		if err != nil {
-			return nil, err
-		}
-
-		NextCursor = &encoded
-	}
-
-	paginationInfo := model.PaginationInfo{
-		Count:      count,
-		NextCursor: NextCursor,
-	}
-
-	paginated := model.PaginatedRecipes{
-		Items:      recipes,
-		Pagination: &paginationInfo,
-	}
-
-	return &paginated, nil
+	return r.RecipeService.ListRecipes(ctx, input)
 }
 
 // ByID is the resolver for the byId field.
@@ -155,18 +45,18 @@ func (r *userQueryResolver) ByID(ctx context.Context, obj *model.UserQuery, id u
 		Valid: true,
 	}
 	result, err := r.Queries.GetUserById(ctx, pgId)
-	return handleNoRowsOnNullableType(result, err, model.UserFromDBType)
+	return util.HandleNoRowsOnNullableType(result, err, model.UserFromDBType)
 }
 
 // ByEmail is the resolver for the byEmail field.
 func (r *userQueryResolver) ByEmail(ctx context.Context, obj *model.UserQuery, email string) (*model.User, error) {
 	result, err := r.Queries.GetUserByEmail(ctx, email)
-	return handleNoRowsOnNullableType(result, err, model.UserFromDBType)
+	return util.HandleNoRowsOnNullableType(result, err, model.UserFromDBType)
 }
 
 // Current is the resolver for the current field.
 func (r *userQueryResolver) Current(ctx context.Context, obj *model.UserQuery) (*model.User, error) {
-	user, _ := r.Auth.GetUserSessionFromCtx(ctx)
+	user, _ := r.AuthService.GetUserSessionFromCtx(ctx)
 	return model.UserFromDBType(*user), nil
 }
 

@@ -318,7 +318,7 @@ func (q *Queries) GetRecipeRevisionByStepId(ctx context.Context, id int64) (Reci
 	return i, err
 }
 
-const listRecipeRevisions = `-- name: ListRecipeRevisions :many
+const listRevisions = `-- name: ListRevisions :many
 SELECT
   id,
   recipe_id,
@@ -330,23 +330,63 @@ SELECT
 FROM
   recipe_revisions
 WHERE
-  recipe_id = $1
-  AND CASE
-    WHEN $2::uuid IS NOT NULL THEN id > $2::uuid
+  CASE
+    WHEN $1::uuid IS NOT NULL THEN $1::uuid = recipe_id
     ELSE true
   END
-ORDER BY id
-LIMIT $3
+  AND
+  CASE
+    WHEN $2::uuid IS NOT NULL THEN $2::uuid = parent_id
+    ELSE true
+  END
+  AND
+  CASE
+    WHEN $3::timestamp IS NOT NULL THEN publish_date >= $3::timestamp
+    ELSE true
+  END
+  AND
+  CASE
+    WHEN $4::timestamp IS NOT NULL THEN publish_date <= $4::timestamp
+    ELSE true
+  END
+  AND
+  CASE
+    WHEN $5::text = 'publish_date' AND $6::bool AND $7::timestamp IS NOT NULL THEN $7::timestamp > publish_date
+    ELSE true
+  END
+  AND
+  CASE
+    WHEN NOT $6::bool AND $5::text = 'publish_date' AND $7::timestamp IS NOT NULL THEN $7::timestamp < publish_date
+    ELSE true
+  END
+ORDER BY
+  CASE WHEN $5::text = 'publish_date' AND $6::bool THEN publish_date END DESC,
+  CASE WHEN $5::text = 'publish_date' AND NOT $6::bool THEN publish_date END ASC
+LIMIT $8
 `
 
-type ListRecipeRevisionsParams struct {
-	RecipeID pgtype.UUID
-	ID       pgtype.UUID
-	Limit    int32
+type ListRevisionsParams struct {
+	RecipeID      pgtype.UUID
+	ParentID      pgtype.UUID
+	PublishStart  pgtype.Timestamp
+	PublishEnd    pgtype.Timestamp
+	SortCol       string
+	SortDir       bool
+	PublishCursor pgtype.Timestamp
+	Limit         int32
 }
 
-func (q *Queries) ListRecipeRevisions(ctx context.Context, arg ListRecipeRevisionsParams) ([]RecipeRevision, error) {
-	rows, err := q.db.Query(ctx, listRecipeRevisions, arg.RecipeID, arg.ID, arg.Limit)
+func (q *Queries) ListRevisions(ctx context.Context, arg ListRevisionsParams) ([]RecipeRevision, error) {
+	rows, err := q.db.Query(ctx, listRevisions,
+		arg.RecipeID,
+		arg.ParentID,
+		arg.PublishStart,
+		arg.PublishEnd,
+		arg.SortCol,
+		arg.SortDir,
+		arg.PublishCursor,
+		arg.Limit,
+	)
 	if err != nil {
 		return nil, err
 	}

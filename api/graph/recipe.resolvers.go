@@ -47,68 +47,21 @@ func (r *recipeResolver) ForkedFrom(ctx context.Context, obj *model.Recipe) (*mo
 }
 
 // Revisions is the resolver for the revisions field.
-func (r *recipeResolver) Revisions(ctx context.Context, obj *model.Recipe, limit *int, nextCursor *string) (*model.PaginatedRecipeRevisions, error) {
-	panic("NOT IMPLEMENTED RECIPE.REVISIONS")
-	// if obj == nil {
-	// 	return nil, fmt.Errorf("missing recipe object")
-	// }
-	// uuid := pgtype.UUID{
-	// 	Bytes: obj.ID,
-	// 	Valid: true,
-	// }
-	// params := db.ListRecipeRevisionsParams{
-	// 	RecipeID: uuid,
-	// 	Limit:    20,
-	// 	ID:       pgtype.UUID{},
-	// }
-	//
-	// if limit != nil {
-	// 	params.Limit = int32(*limit)
-	// }
-	//
-	// if nextCursor != nil {
-	// 	cursor := new(ListRecipesCursor)
-	// 	if err := cursor.Decode(*nextCursor); err != nil {
-	// 		return nil, fmt.Errorf("invalid cursor: %w", err)
-	// 	}
-	// 	if !cursor.Validate(int(params.Limit)) {
-	// 		return nil, fmt.Errorf("cursor limit mismatch: cursor limit %d, param limit %d", cursor.Limit, params.Limit)
-	// 	}
-	// 	params.ID = cursor.Id
-	// }
-	//
-	// result, err := r.Queries.ListRecipeRevisions(ctx, params)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to fetch revisions: %w", err)
-	// }
-	//
-	// revisions := make([]*model.RecipeRevision, len(result))
-	// for i, rev := range result {
-	// 	revisions[i] = model.RevisionFromDBType(rev)
-	// }
-	//
-	// // Generate the next cursor if more data exists
-	// var nextCursorStr *string
-	// if len(result) == int(params.Limit) {
-	// 	lastRevision := result[len(result)-1]
-	// 	nextCursorObj := ListRecipesCursor{
-	// 		Id:    lastRevision.ID,
-	// 		Limit: int(params.Limit),
-	// 	}
-	// 	encodedCursor, err := nextCursorObj.Encode()
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf("failed to encode cursor: %w", err)
-	// 	}
-	// 	nextCursorStr = &encodedCursor
-	// }
-	//
-	// return &model.PaginatedRecipeRevisions{
-	// 	Items: revisions,
-	// 	Pagination: &model.PaginationInfo{
-	// 		Count:      len(revisions),
-	// 		NextCursor: nextCursorStr,
-	// 	},
-	// }, nil
+func (r *recipeResolver) Revisions(ctx context.Context, obj *model.Recipe, input *model.ListRevisionsInput) (*model.PaginatedRecipeRevisions, error) {
+	if input == nil {
+		sortCol := model.ListRecipeSortColPublishDate
+		sortDir := model.SortDirDesc
+		limit := 20
+		input = &model.ListRevisionsInput{
+			RecipeID: &obj.ID,
+			Limit:    &limit,
+			SortDir:  &sortDir,
+			SortCol:  &sortCol,
+		}
+	} else {
+		input.RecipeID = &obj.ID
+	}
+	return r.RecipeService.ListRevisions(ctx, input)
 }
 
 // FeaturedRevision is the resolver for the featuredRevision field.

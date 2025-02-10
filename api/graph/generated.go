@@ -108,7 +108,7 @@ type ComplexityRoot struct {
 		ID                 func(childComplexity int) int
 		InitialPublishDate func(childComplexity int) int
 		Private            func(childComplexity int) int
-		Revisions          func(childComplexity int, limit *int, nextCursor *string) int
+		Revisions          func(childComplexity int, input *model.ListRevisionsInput) int
 		Slug               func(childComplexity int) int
 	}
 
@@ -164,7 +164,7 @@ type ComplexityRoot struct {
 		Email       func(childComplexity int) int
 		ID          func(childComplexity int) int
 		JoinDate    func(childComplexity int) int
-		Recipes     func(childComplexity int, limit *int, nextCursor *string) int
+		Recipes     func(childComplexity int, input *model.ListRecipeInput) int
 		UpdatedAt   func(childComplexity int) int
 	}
 
@@ -195,7 +195,7 @@ type RecipeResolver interface {
 
 	ForkedFrom(ctx context.Context, obj *model.Recipe) (*model.RecipeRevision, error)
 
-	Revisions(ctx context.Context, obj *model.Recipe, limit *int, nextCursor *string) (*model.PaginatedRecipeRevisions, error)
+	Revisions(ctx context.Context, obj *model.Recipe, input *model.ListRevisionsInput) (*model.PaginatedRecipeRevisions, error)
 	FeaturedRevision(ctx context.Context, obj *model.Recipe) (*model.RecipeRevision, error)
 }
 type RecipeIngredientResolver interface {
@@ -225,7 +225,7 @@ type RecipeStepResolver interface {
 	Revision(ctx context.Context, obj *model.RecipeStep) (*model.RecipeRevision, error)
 }
 type UserResolver interface {
-	Recipes(ctx context.Context, obj *model.User, limit *int, nextCursor *string) (*model.PaginatedRecipes, error)
+	Recipes(ctx context.Context, obj *model.User, input *model.ListRecipeInput) (*model.PaginatedRecipes, error)
 }
 type UserMutationResolver interface {
 	RequestMagicLink(ctx context.Context, obj *model.UserMutation, email string) (string, error)
@@ -436,7 +436,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Recipe.Revisions(childComplexity, args["limit"].(*int), args["nextCursor"].(*string)), true
+		return e.complexity.Recipe.Revisions(childComplexity, args["input"].(*model.ListRevisionsInput)), true
 
 	case "Recipe.slug":
 		if e.complexity.Recipe.Slug == nil {
@@ -711,7 +711,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.User.Recipes(childComplexity, args["limit"].(*int), args["nextCursor"].(*string)), true
+		return e.complexity.User.Recipes(childComplexity, args["input"].(*model.ListRecipeInput)), true
 
 	case "User.updatedAt":
 		if e.complexity.User.UpdatedAt == nil {
@@ -808,6 +808,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCreateRecipeRevisionInput,
 		ec.unmarshalInputCreateRecipeRevisionStep,
 		ec.unmarshalInputListRecipeInput,
+		ec.unmarshalInputListRevisionsInput,
 		ec.unmarshalInputUserUpdateInput,
 	)
 	first := true
@@ -1041,24 +1042,15 @@ func (ec *executionContext) field_RecipeQuery_list_args(ctx context.Context, raw
 func (ec *executionContext) field_Recipe_revisions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *int
-	if tmp, ok := rawArgs["limit"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
-		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+	var arg0 *model.ListRevisionsInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOListRevisionsInput2ᚖforkdᚋgraphᚋmodelᚐListRevisionsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["nextCursor"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nextCursor"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["nextCursor"] = arg1
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -1149,24 +1141,15 @@ func (ec *executionContext) field_UserQuery_byId_args(ctx context.Context, rawAr
 func (ec *executionContext) field_User_recipes_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *int
-	if tmp, ok := rawArgs["limit"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
-		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+	var arg0 *model.ListRecipeInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOListRecipeInput2ᚖforkdᚋgraphᚋmodelᚐListRecipeInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["nextCursor"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nextCursor"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["nextCursor"] = arg1
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -2517,7 +2500,7 @@ func (ec *executionContext) _Recipe_revisions(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Recipe().Revisions(rctx, obj, fc.Args["limit"].(*int), fc.Args["nextCursor"].(*string))
+		return ec.resolvers.Recipe().Revisions(rctx, obj, fc.Args["input"].(*model.ListRevisionsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4422,7 +4405,7 @@ func (ec *executionContext) _User_recipes(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.User().Recipes(rctx, obj, fc.Args["limit"].(*int), fc.Args["nextCursor"].(*string))
+		return ec.resolvers.User().Recipes(rctx, obj, fc.Args["input"].(*model.ListRecipeInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7001,6 +6984,92 @@ func (ec *executionContext) unmarshalInputListRecipeInput(ctx context.Context, o
 				return it, err
 			}
 			it.AuthorID = data
+		case "publishStart":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("publishStart"))
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PublishStart = data
+		case "publishEnd":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("publishEnd"))
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PublishEnd = data
+		case "sortCol":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sortCol"))
+			data, err := ec.unmarshalOListRecipeSortCol2ᚖforkdᚋgraphᚋmodelᚐListRecipeSortCol(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SortCol = data
+		case "sortDir":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sortDir"))
+			data, err := ec.unmarshalOSortDir2ᚖforkdᚋgraphᚋmodelᚐSortDir(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SortDir = data
+		case "limit":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Limit = data
+		case "nextCursor":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nextCursor"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NextCursor = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputListRevisionsInput(ctx context.Context, obj interface{}) (model.ListRevisionsInput, error) {
+	var it model.ListRevisionsInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	if _, present := asMap["sortCol"]; !present {
+		asMap["sortCol"] = "PUBLISH_DATE"
+	}
+	if _, present := asMap["sortDir"]; !present {
+		asMap["sortDir"] = "DESC"
+	}
+	if _, present := asMap["limit"]; !present {
+		asMap["limit"] = 20
+	}
+
+	fieldsInOrder := [...]string{"recipeId", "parentId", "publishStart", "publishEnd", "sortCol", "sortDir", "limit", "nextCursor"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "recipeId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("recipeId"))
+			data, err := ec.unmarshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RecipeID = data
+		case "parentId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parentId"))
+			data, err := ec.unmarshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ParentID = data
 		case "publishStart":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("publishStart"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
@@ -10045,6 +10114,14 @@ func (ec *executionContext) marshalOListRecipeSortCol2ᚖforkdᚋgraphᚋmodel�
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) unmarshalOListRevisionsInput2ᚖforkdᚋgraphᚋmodelᚐListRevisionsInput(ctx context.Context, v interface{}) (*model.ListRevisionsInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputListRevisionsInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalORecipe2ᚖforkdᚋgraphᚋmodelᚐRecipe(ctx context.Context, sel ast.SelectionSet, v *model.Recipe) graphql.Marshaler {

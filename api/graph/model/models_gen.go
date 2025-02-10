@@ -67,6 +67,17 @@ type ListRecipeInput struct {
 	NextCursor   *string            `json:"nextCursor,omitempty"`
 }
 
+type ListRevisionsInput struct {
+	RecipeID     *uuid.UUID         `json:"recipeId,omitempty"`
+	ParentID     *uuid.UUID         `json:"parentId,omitempty"`
+	PublishStart *time.Time         `json:"publishStart,omitempty"`
+	PublishEnd   *time.Time         `json:"publishEnd,omitempty"`
+	SortCol      *ListRecipeSortCol `json:"sortCol,omitempty"`
+	SortDir      *SortDir           `json:"sortDir,omitempty"`
+	Limit        *int               `json:"limit,omitempty"`
+	NextCursor   *string            `json:"nextCursor,omitempty"`
+}
+
 type LoginResponse struct {
 	Token string `json:"token"`
 	User  *User  `json:"user"`

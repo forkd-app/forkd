@@ -254,50 +254,51 @@ WHERE
   END
   AND
   CASE
-    WHEN $3::bool IS NOT NULL THEN private = $3::bool
+    WHEN $3::uuid IS NOT NULL AND $4::bool IS NOT NULL AND $4::bool THEN author_id = $3::uuid AND private = true
+    ELSE private = false OR private IS NULL
+  END
+  AND
+  CASE
+    WHEN $5::timestamp IS NOT NULL THEN initial_publish_date >= $5::timestamp
     ELSE true
   END
   AND
   CASE
-    WHEN $4::timestamp IS NOT NULL THEN initial_publish_date > $4::timestamp
+    WHEN $6::timestamp IS NOT NULL THEN initial_publish_date <= $6::timestamp
     ELSE true
   END
   AND
   CASE
-    WHEN $5::timestamp IS NOT NULL THEN initial_publish_date < $5::timestamp
+    WHEN $7::text = 'publish_date' AND $8::bool AND $9::timestamp IS NOT NULL THEN $9::timestamp > initial_publish_date
     ELSE true
   END
   AND
   CASE
-    WHEN $6::text = 'publish_date' AND $7::bool AND $8::timestamp IS NOT NULL THEN $8::timestamp > initial_publish_date
+    WHEN NOT $8::bool AND $7::text = 'publish_date' AND $9::timestamp IS NOT NULL THEN $9::timestamp < initial_publish_date
     ELSE true
   END
   AND
   CASE
-    WHEN NOT $7::bool AND $6::text = 'publish_date' AND $8::timestamp IS NOT NULL THEN $8::timestamp < initial_publish_date
+    WHEN $7::text = 'slug' AND $8::bool AND $10::text IS NOT NULL THEN $10::text > slug
     ELSE true
   END
   AND
   CASE
-    WHEN $6::text = 'slug' AND $7::bool AND $9::text IS NOT NULL THEN $9::text > slug
-    ELSE true
-  END
-  AND
-  CASE
-    WHEN NOT $7::bool AND $6::text = 'slug' AND $9::text IS NOT NULL THEN $9::text < slug
+    WHEN NOT $8::bool AND $7::text = 'slug' AND $10::text IS NOT NULL THEN $10::text < slug
     ELSE true
   END
 ORDER BY
-  CASE WHEN $6::text = 'publish_date' AND $7::bool THEN initial_publish_date END DESC,
-  CASE WHEN $6::text = 'publish_date' AND NOT $7::bool THEN initial_publish_date END ASC,
-  CASE WHEN $6::text = 'slug' AND $7::bool THEN slug END DESC,
-  CASE WHEN $6::text = 'slug' AND NOT $7::bool THEN slug END ASC
-LIMIT $10
+  CASE WHEN $7::text = 'publish_date' AND $8::bool THEN initial_publish_date END DESC,
+  CASE WHEN $7::text = 'publish_date' AND NOT $8::bool THEN initial_publish_date END ASC,
+  CASE WHEN $7::text = 'slug' AND $8::bool THEN slug END DESC,
+  CASE WHEN $7::text = 'slug' AND NOT $8::bool THEN slug END ASC
+LIMIT $11
 `
 
 type ListRecipesParams struct {
 	AuthorID      pgtype.UUID
 	ForkedFrom    pgtype.UUID
+	CurrentUser   pgtype.UUID
 	Private       pgtype.Bool
 	PublishStart  pgtype.Timestamp
 	PublishEnd    pgtype.Timestamp
@@ -312,6 +313,7 @@ func (q *Queries) ListRecipes(ctx context.Context, arg ListRecipesParams) ([]Rec
 	rows, err := q.db.Query(ctx, listRecipes,
 		arg.AuthorID,
 		arg.ForkedFrom,
+		arg.CurrentUser,
 		arg.Private,
 		arg.PublishStart,
 		arg.PublishEnd,

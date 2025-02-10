@@ -30,7 +30,7 @@ func (r *recipeMutationResolver) Create(ctx context.Context, obj *model.RecipeMu
 		// TODO: Write an actual error here
 		return nil, nil
 	}
-	user, _ := r.Auth.GetUserSessionFromCtx(ctx)
+	user, _ := r.AuthService.GetUserSessionFromCtx(ctx)
 	tx, err := r.Conn.Begin(ctx)
 	if err != nil {
 		return nil, err
@@ -195,18 +195,18 @@ func (r *recipeMutationResolver) AddRevision(ctx context.Context, obj *model.Rec
 
 // RequestMagicLink is the resolver for the requestMagicLink field.
 func (r *userMutationResolver) RequestMagicLink(ctx context.Context, obj *model.UserMutation, email string) (string, error) {
-	user, err := r.Auth.UpsertUser(ctx, email)
+	user, err := r.AuthService.UpsertUser(ctx, email)
 	if err != nil {
 		return "", err
 	}
-	lookup, err := r.Auth.CreateMagicLink(ctx, user.ID)
+	lookup, err := r.AuthService.CreateMagicLink(ctx, user.ID)
 	if err != nil {
 		return "", err
 	}
 	// FIXME: Remove this before we push this to the public internet.
 	// THIS SHOULD ONLY BE USED FOR LOCAL TESTING
 	if util.GetEnv().GetSendMagicLinkEmail() {
-		emailData, err := r.Email.SendMagicLink(ctx, lookup.Code, user.Email)
+		emailData, err := r.EmailService.SendMagicLink(ctx, lookup.Code, user.Email)
 		if err != nil {
 			return "", err
 		} else if emailData.Data.Failed > 0 || emailData.Data.Succeeded < 1 {
@@ -220,11 +220,11 @@ func (r *userMutationResolver) RequestMagicLink(ctx context.Context, obj *model.
 
 // Login is the resolver for the login field.
 func (r *userMutationResolver) Login(ctx context.Context, obj *model.UserMutation, code string, token string) (*model.LoginResponse, error) {
-	userId, err := r.Auth.ValidateMagicLink(ctx, code, token)
+	userId, err := r.AuthService.ValidateMagicLink(ctx, code, token)
 	if err != nil {
 		return nil, err
 	}
-	result, err := r.Auth.CreateSession(ctx, userId, &code)
+	result, err := r.AuthService.CreateSession(ctx, userId, &code)
 	if err != nil {
 		return nil, err
 	}
@@ -237,14 +237,14 @@ func (r *userMutationResolver) Login(ctx context.Context, obj *model.UserMutatio
 
 // Logout is the resolver for the logout field.
 func (r *userMutationResolver) Logout(ctx context.Context, obj *model.UserMutation) (bool, error) {
-	_, session := r.Auth.GetUserSessionFromCtx(ctx)
-	err := r.Auth.DeleteSession(ctx, session.ID)
+	_, session := r.AuthService.GetUserSessionFromCtx(ctx)
+	err := r.AuthService.DeleteSession(ctx, session.ID)
 	return err == nil, nil
 }
 
 // Update is the resolver for the update field.
 func (r *userMutationResolver) Update(ctx context.Context, obj *model.UserMutation, input model.UserUpdateInput) (*model.User, error) {
-	user, _ := r.Auth.GetUserSessionFromCtx(ctx)
+	user, _ := r.AuthService.GetUserSessionFromCtx(ctx)
 	params := db.UpdateUserParams{
 		ID: user.ID,
 	}

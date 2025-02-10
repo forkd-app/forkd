@@ -6,6 +6,7 @@ import (
 	"forkd/graph"
 	"forkd/services/auth"
 	"forkd/services/email"
+	"forkd/services/recipe"
 	"forkd/util"
 	"log"
 	"net/http"
@@ -25,16 +26,18 @@ func main() {
 		panic(fmt.Errorf("Unable to connect to db: %w", err))
 	}
 
-	emailService := email.New()
 	authService := auth.New(queries, conn)
+	emailService := email.New()
+	recipeService := recipe.New(queries, conn, authService)
 
 	// TODO: We should do a refactor here, it's getting pretty cluttered (Mostly my fault lol)
 	srvConf := graph.NewExecutableSchema(graph.Config{
 		Resolvers: &graph.Resolver{
-			Queries: queries,
-			Conn:    conn,
-			Auth:    authService,
-			Email:   emailService,
+			Queries:       queries,
+			Conn:          conn,
+			AuthService:   authService,
+			EmailService:  emailService,
+			RecipeService: recipeService,
 		},
 		Directives: graph.DirectiveRoot{
 			Auth: graph.AuthDirective(authService),

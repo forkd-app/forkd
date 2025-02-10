@@ -5,7 +5,7 @@ type Recipe {
   slug: String!
   forkedFrom: RecipeRevision @goField(forceResolver: true)
   private: Boolean!
-  revisions(limit: Int, nextCursor: String): PaginatedRecipeRevisions!
+  revisions(input: ListRevisionsInput): PaginatedRecipeRevisions!
     @goField(forceResolver: true)
   featuredRevision: RecipeRevision @goField(forceResolver: true)
 }
@@ -28,4 +28,15 @@ type RecipeStep {
   revision: RecipeRevision! @goField(forceResolver: true)
   content: String!
   index: Int!
+}
+
+input ListRevisionsInput {
+  recipeId: UUID
+  parentId: UUID
+  publishStart: Time
+  publishEnd: Time
+  sortCol: ListRecipeSortCol = PUBLISH_DATE
+  sortDir: SortDir = DESC
+  limit: Int = 20
+  nextCursor: String
 }

@@ -49,17 +49,17 @@ WHERE
   END
   AND
   CASE
-    WHEN sqlc.narg('private')::bool IS NOT NULL THEN private = sqlc.narg('private')::bool
+    WHEN sqlc.narg('current_user')::uuid IS NOT NULL AND sqlc.narg('private')::bool IS NOT NULL AND sqlc.narg('private')::bool THEN author_id = sqlc.narg('current_user')::uuid AND private = true
+    ELSE private = false OR private IS NULL
+  END
+  AND
+  CASE
+    WHEN sqlc.narg('publish_start')::timestamp IS NOT NULL THEN initial_publish_date >= sqlc.narg('publish_start')::timestamp
     ELSE true
   END
   AND
   CASE
-    WHEN sqlc.narg('publish_start')::timestamp IS NOT NULL THEN initial_publish_date > sqlc.narg('publish_start')::timestamp
-    ELSE true
-  END
-  AND
-  CASE
-    WHEN sqlc.narg('publish_end')::timestamp IS NOT NULL THEN initial_publish_date < sqlc.narg('publish_end')::timestamp
+    WHEN sqlc.narg('publish_end')::timestamp IS NOT NULL THEN initial_publish_date <= sqlc.narg('publish_end')::timestamp
     ELSE true
   END
   AND
