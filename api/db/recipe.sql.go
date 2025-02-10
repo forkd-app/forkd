@@ -39,7 +39,6 @@ type CreateRecipeParams struct {
 	Private    bool
 }
 
-// Limit for pagination
 func (q *Queries) CreateRecipe(ctx context.Context, arg CreateRecipeParams) (Recipe, error) {
 	row := q.db.QueryRow(ctx, createRecipe,
 		arg.AuthorID,
@@ -245,76 +244,83 @@ FROM
   recipes
 WHERE
   CASE
-    WHEN $1::uuid IS NOT NULL THEN id > $1::uuid
+    WHEN $1::uuid IS NOT NULL THEN author_id = $1::uuid
     ELSE true
   END
-ORDER BY id
-LIMIT $2
+  AND
+  CASE
+    WHEN $2::uuid IS NOT NULL THEN forked_from = $2::uuid
+    ELSE true
+  END
+  AND
+  CASE
+    WHEN $3::bool IS NOT NULL THEN private = $3::bool
+    ELSE true
+  END
+  AND
+  CASE
+    WHEN $4::timestamp IS NOT NULL THEN initial_publish_date > $4::timestamp
+    ELSE true
+  END
+  AND
+  CASE
+    WHEN $5::timestamp IS NOT NULL THEN initial_publish_date < $5::timestamp
+    ELSE true
+  END
+  AND
+  CASE
+    WHEN $6::text = 'publish_date' AND $7::bool AND $8::timestamp IS NOT NULL THEN $8::timestamp > initial_publish_date
+    ELSE true
+  END
+  AND
+  CASE
+    WHEN NOT $7::bool AND $6::text = 'publish_date' AND $8::timestamp IS NOT NULL THEN $8::timestamp < initial_publish_date
+    ELSE true
+  END
+  AND
+  CASE
+    WHEN $6::text = 'slug' AND $7::bool AND $9::text IS NOT NULL THEN $9::text > slug
+    ELSE true
+  END
+  AND
+  CASE
+    WHEN NOT $7::bool AND $6::text = 'slug' AND $9::text IS NOT NULL THEN $9::text < slug
+    ELSE true
+  END
+ORDER BY
+  CASE WHEN $6::text = 'publish_date' AND $7::bool THEN initial_publish_date END DESC,
+  CASE WHEN $6::text = 'publish_date' AND NOT $7::bool THEN initial_publish_date END ASC,
+  CASE WHEN $6::text = 'slug' AND $7::bool THEN slug END DESC,
+  CASE WHEN $6::text = 'slug' AND NOT $7::bool THEN slug END ASC
+LIMIT $10
 `
 
 type ListRecipesParams struct {
-	ID    pgtype.UUID
-	Limit int32
+	AuthorID      pgtype.UUID
+	ForkedFrom    pgtype.UUID
+	Private       pgtype.Bool
+	PublishStart  pgtype.Timestamp
+	PublishEnd    pgtype.Timestamp
+	SortCol       string
+	SortDir       bool
+	PublishCursor pgtype.Timestamp
+	SlugCursor    pgtype.Text
+	Limit         int32
 }
 
-// Limit for pagination
 func (q *Queries) ListRecipes(ctx context.Context, arg ListRecipesParams) ([]Recipe, error) {
-	rows, err := q.db.Query(ctx, listRecipes, arg.ID, arg.Limit)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Recipe
-	for rows.Next() {
-		var i Recipe
-		if err := rows.Scan(
-			&i.ID,
-			&i.AuthorID,
-			&i.Slug,
-			&i.Private,
-			&i.InitialPublishDate,
-			&i.ForkedFrom,
-			&i.FeaturedRevision,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listRecipesByAuthor = `-- name: ListRecipesByAuthor :many
-SELECT
-  id,
-  author_id,
-  slug,
-  private,
-  initial_publish_date,
-  forked_from,
-  featured_revision
-FROM
-  recipes
-WHERE
-  author_id = $1
-  AND CASE
-    WHEN $2::uuid IS NOT NULL THEN id > $2::uuid
-    ELSE true
-  END
-ORDER BY id
-LIMIT $3
-`
-
-type ListRecipesByAuthorParams struct {
-	AuthorID pgtype.UUID
-	ID       pgtype.UUID
-	Limit    int32
-}
-
-func (q *Queries) ListRecipesByAuthor(ctx context.Context, arg ListRecipesByAuthorParams) ([]Recipe, error) {
-	rows, err := q.db.Query(ctx, listRecipesByAuthor, arg.AuthorID, arg.ID, arg.Limit)
+	rows, err := q.db.Query(ctx, listRecipes,
+		arg.AuthorID,
+		arg.ForkedFrom,
+		arg.Private,
+		arg.PublishStart,
+		arg.PublishEnd,
+		arg.SortCol,
+		arg.SortDir,
+		arg.PublishCursor,
+		arg.SlugCursor,
+		arg.Limit,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -354,7 +360,7 @@ JOIN
 WHERE
   recipe_revisions.id = $1
 ORDER BY
-  recipe_steps.id
+  recipe_steps.index
 `
 
 func (q *Queries) ListStepsByRecipeRevisionID(ctx context.Context, id pgtype.UUID) ([]RecipeStep, error) {

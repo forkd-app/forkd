@@ -42,26 +42,60 @@ func (r *recipeQueryResolver) BySlug(ctx context.Context, obj *model.RecipeQuery
 }
 
 // List is the resolver for the list field.
-func (r *recipeQueryResolver) List(ctx context.Context, obj *model.RecipeQuery, limit *int, nextCursor *string) (*model.PaginatedRecipes, error) {
+func (r *recipeQueryResolver) List(ctx context.Context, obj *model.RecipeQuery, input *model.ListRecipeInput) (*model.PaginatedRecipes, error) {
 	var params db.ListRecipesParams
-	if limit != nil {
-		params.Limit = int32(*limit)
-	} else {
+	if input == nil {
 		params.Limit = 20
-	}
-	if nextCursor != nil {
-		cursor := new(ListRecipesCursor)
-		err := cursor.Decode(*nextCursor)
-		if err != nil {
-			return nil, err
+		params.SortDir = true
+		params.SortCol = "publish_date"
+	} else {
+		params.Limit = int32(*input.Limit)
+		switch *input.SortCol {
+		case model.ListRecipeSortColPublishDate:
+			params.SortCol = "publish_date"
+		case model.ListRecipeSortColSlug:
+			params.SortCol = "slug"
 		}
-		if !cursor.Validate(*limit) {
-			return nil, fmt.Errorf("limit param does not match cursor. Limit: %d, Cursor: %d", params.Limit, cursor.Limit)
+		switch *input.SortDir {
+		case model.SortDirDesc:
+			params.SortDir = true
+		case model.SortDirAsc:
+			params.SortDir = false
 		}
-		params.ID = cursor.Id
+		if input.AuthorID != nil {
+			params.AuthorID = pgtype.UUID{
+				Bytes: *input.AuthorID,
+				Valid: true,
+			}
+		}
+		if input.PublishStart != nil {
+			params.PublishStart = pgtype.Timestamp{
+				Time:  *input.PublishStart,
+				Valid: true,
+			}
+		}
+		if input.PublishEnd != nil {
+			params.PublishEnd = pgtype.Timestamp{
+				Time:  *input.PublishEnd,
+				Valid: true,
+			}
+		}
+		if input.NextCursor != nil {
+			cursor := new(ListRecipesCursor)
+			err := cursor.Decode(*input.NextCursor)
+			if err != nil {
+				return nil, err
+			}
+			if !cursor.Validate(ListRecipesCursor{
+				ListRecipeInput: *input,
+			}) {
+				return nil, fmt.Errorf("invalid cursor")
+			}
+			params.PublishCursor = cursor.PublishCursor
+			params.SlugCursor = cursor.SlugCursor
+		}
 	}
 	result, err := r.Queries.ListRecipes(ctx, params)
-	// If there was an error, early return with the error
 	if err != nil {
 		return nil, err
 	}
@@ -72,12 +106,26 @@ func (r *recipeQueryResolver) List(ctx context.Context, obj *model.RecipeQuery, 
 	}
 
 	var NextCursor *string = nil
-
 	if count == int(params.Limit) {
 		cursor := ListRecipesCursor{
-			Id:    result[count-1].ID,
-			Limit: int(params.Limit),
+			ListRecipeInput: *input,
 		}
+
+		switch params.SortCol {
+		case "slug":
+			cursor.SlugCursor = pgtype.Text{
+				String: recipes[len(recipes)-1].Slug,
+				Valid:  true,
+			}
+		case "publish_date":
+			fallthrough
+		default:
+			cursor.PublishCursor = pgtype.Timestamp{
+				Time:  recipes[len(recipes)-1].InitialPublishDate,
+				Valid: true,
+			}
+		}
+
 		encoded, err := cursor.Encode()
 
 		if err != nil {

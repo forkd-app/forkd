@@ -129,7 +129,7 @@ type ComplexityRoot struct {
 	RecipeQuery struct {
 		ByID   func(childComplexity int, id uuid.UUID) int
 		BySlug func(childComplexity int, slug string) int
-		List   func(childComplexity int, limit *int, nextCursor *string) int
+		List   func(childComplexity int, input *model.ListRecipeInput) int
 	}
 
 	RecipeRevision struct {
@@ -210,7 +210,7 @@ type RecipeMutationResolver interface {
 type RecipeQueryResolver interface {
 	ByID(ctx context.Context, obj *model.RecipeQuery, id uuid.UUID) (*model.Recipe, error)
 	BySlug(ctx context.Context, obj *model.RecipeQuery, slug string) (*model.Recipe, error)
-	List(ctx context.Context, obj *model.RecipeQuery, limit *int, nextCursor *string) (*model.PaginatedRecipes, error)
+	List(ctx context.Context, obj *model.RecipeQuery, input *model.ListRecipeInput) (*model.PaginatedRecipes, error)
 }
 type RecipeRevisionResolver interface {
 	Recipe(ctx context.Context, obj *model.RecipeRevision) (*model.Recipe, error)
@@ -545,7 +545,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.RecipeQuery.List(childComplexity, args["limit"].(*int), args["nextCursor"].(*string)), true
+		return e.complexity.RecipeQuery.List(childComplexity, args["input"].(*model.ListRecipeInput)), true
 
 	case "RecipeRevision.changeComment":
 		if e.complexity.RecipeRevision.ChangeComment == nil {
@@ -807,6 +807,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCreateRecipeRevisionIngredient,
 		ec.unmarshalInputCreateRecipeRevisionInput,
 		ec.unmarshalInputCreateRecipeRevisionStep,
+		ec.unmarshalInputListRecipeInput,
 		ec.unmarshalInputUserUpdateInput,
 	)
 	first := true
@@ -1025,24 +1026,15 @@ func (ec *executionContext) field_RecipeQuery_bySlug_args(ctx context.Context, r
 func (ec *executionContext) field_RecipeQuery_list_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *int
-	if tmp, ok := rawArgs["limit"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
-		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+	var arg0 *model.ListRecipeInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOListRecipeInput2ᚖforkdᚋgraphᚋmodelᚐListRecipeInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["nextCursor"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nextCursor"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["nextCursor"] = arg1
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -3286,7 +3278,7 @@ func (ec *executionContext) _RecipeQuery_list(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.RecipeQuery().List(rctx, obj, fc.Args["limit"].(*int), fc.Args["nextCursor"].(*string))
+		return ec.resolvers.RecipeQuery().List(rctx, obj, fc.Args["input"].(*model.ListRecipeInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6978,6 +6970,85 @@ func (ec *executionContext) unmarshalInputCreateRecipeRevisionStep(ctx context.C
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputListRecipeInput(ctx context.Context, obj interface{}) (model.ListRecipeInput, error) {
+	var it model.ListRecipeInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	if _, present := asMap["sortCol"]; !present {
+		asMap["sortCol"] = "PUBLISH_DATE"
+	}
+	if _, present := asMap["sortDir"]; !present {
+		asMap["sortDir"] = "DESC"
+	}
+	if _, present := asMap["limit"]; !present {
+		asMap["limit"] = 20
+	}
+
+	fieldsInOrder := [...]string{"authorId", "publishStart", "publishEnd", "sortCol", "sortDir", "limit", "nextCursor"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "authorId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("authorId"))
+			data, err := ec.unmarshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AuthorID = data
+		case "publishStart":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("publishStart"))
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PublishStart = data
+		case "publishEnd":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("publishEnd"))
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PublishEnd = data
+		case "sortCol":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sortCol"))
+			data, err := ec.unmarshalOListRecipeSortCol2ᚖforkdᚋgraphᚋmodelᚐListRecipeSortCol(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SortCol = data
+		case "sortDir":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sortDir"))
+			data, err := ec.unmarshalOSortDir2ᚖforkdᚋgraphᚋmodelᚐSortDir(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SortDir = data
+		case "limit":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Limit = data
+		case "nextCursor":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nextCursor"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NextCursor = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUserUpdateInput(ctx context.Context, obj interface{}) (model.UserUpdateInput, error) {
 	var it model.UserUpdateInput
 	asMap := map[string]interface{}{}
@@ -9952,6 +10023,30 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
+func (ec *executionContext) unmarshalOListRecipeInput2ᚖforkdᚋgraphᚋmodelᚐListRecipeInput(ctx context.Context, v interface{}) (*model.ListRecipeInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputListRecipeInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOListRecipeSortCol2ᚖforkdᚋgraphᚋmodelᚐListRecipeSortCol(ctx context.Context, v interface{}) (*model.ListRecipeSortCol, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ListRecipeSortCol)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOListRecipeSortCol2ᚖforkdᚋgraphᚋmodelᚐListRecipeSortCol(ctx context.Context, sel ast.SelectionSet, v *model.ListRecipeSortCol) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
 func (ec *executionContext) marshalORecipe2ᚖforkdᚋgraphᚋmodelᚐRecipe(ctx context.Context, sel ast.SelectionSet, v *model.Recipe) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -9978,6 +10073,22 @@ func (ec *executionContext) marshalORecipeRevision2ᚖforkdᚋgraphᚋmodelᚐRe
 		return graphql.Null
 	}
 	return ec._RecipeRevision(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOSortDir2ᚖforkdᚋgraphᚋmodelᚐSortDir(ctx context.Context, v interface{}) (*model.SortDir, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.SortDir)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOSortDir2ᚖforkdᚋgraphᚋmodelᚐSortDir(ctx context.Context, sel ast.SelectionSet, v *model.SortDir) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
@@ -10031,6 +10142,22 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	res := graphql.MarshalString(*v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOTime2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalTime(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalTime(*v)
 	return res
 }
 

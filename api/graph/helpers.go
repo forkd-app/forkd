@@ -3,8 +3,8 @@ package graph
 import (
 	"errors"
 	"fmt"
+	"forkd/graph/model"
 	"forkd/util"
-	"time"
 
 	pgx "github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -36,8 +36,9 @@ type Cursor[T any] interface {
 }
 
 type ListRecipesCursor struct {
-	Id    pgtype.UUID
-	Limit int
+	model.ListRecipeInput
+	PublishCursor pgtype.Timestamp
+	SlugCursor    pgtype.Text
 }
 
 func (cursor *ListRecipesCursor) Decode(encoded string) error {
@@ -48,23 +49,17 @@ func (cursor ListRecipesCursor) Encode() (string, error) {
 	return util.EncodeStructToBase64String(cursor)
 }
 
-func (cursor ListRecipesCursor) Validate(input int) bool {
-	return cursor.Limit == input
+func (cursor ListRecipesCursor) Validate(input ListRecipesCursor) bool {
+	return comparePointerValues(cursor.Limit, input.Limit) &&
+		comparePointerValues(cursor.SortCol, input.SortCol) &&
+		comparePointerValues(cursor.SortDir, input.SortDir) &&
+		comparePointerValues(cursor.AuthorID, input.AuthorID) &&
+		comparePointerValues(cursor.PublishStart, input.PublishStart) &&
+		comparePointerValues(cursor.PublishEnd, input.PublishEnd)
 }
 
-type ListCommentsCursor struct {
-	PostDate time.Time
-	Limit    int
-}
-
-func (cursor *ListCommentsCursor) Decode(encoded string) error {
-	return util.DecodeBase64StringToStruct(encoded, cursor)
-}
-
-func (cursor ListCommentsCursor) Encode() (string, error) {
-	return util.EncodeStructToBase64String(cursor)
-}
-
-func (cursor ListCommentsCursor) Validate(input int) bool {
-	return cursor.Limit == input
+func comparePointerValues[T comparable](a *T, b *T) bool {
+	bothNil := a == nil && b == nil
+	bothNotNil := a != nil && b != nil
+	return bothNil || (bothNotNil && *a == *b)
 }

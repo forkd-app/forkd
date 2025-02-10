@@ -12,6 +12,26 @@ type UserQuery {
 type RecipeQuery {
   byId(id: UUID!): Recipe @goField(forceResolver: true)
   bySlug(slug: String!): Recipe @goField(forceResolver: true)
-  list(limit: Int, nextCursor: String): PaginatedRecipes!
+  list(input: ListRecipeInput = {}): PaginatedRecipes!
     @goField(forceResolver: true)
+}
+
+enum SortDir {
+  ASC
+  DESC
+}
+
+enum ListRecipeSortCol {
+  PUBLISH_DATE
+  SLUG
+}
+
+input ListRecipeInput {
+  authorId: UUID
+  publishStart: Time
+  publishEnd: Time
+  sortCol: ListRecipeSortCol = PUBLISH_DATE
+  sortDir: SortDir = DESC
+  limit: Int = 20
+  nextCursor: String
 }
