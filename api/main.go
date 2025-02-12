@@ -7,6 +7,7 @@ import (
 	"forkd/services/auth"
 	"forkd/services/email"
 	"forkd/services/recipe"
+	"forkd/services/user"
 	"forkd/util"
 	"log"
 	"net/http"
@@ -29,6 +30,7 @@ func main() {
 	authService := auth.New(queries, conn)
 	emailService := email.New()
 	recipeService := recipe.New(queries, conn, authService)
+	userService := user.New(queries, authService)
 
 	// TODO: We should do a refactor here, it's getting pretty cluttered (Mostly my fault lol)
 	srvConf := graph.NewExecutableSchema(graph.Config{
@@ -38,6 +40,7 @@ func main() {
 			AuthService:   authService,
 			EmailService:  emailService,
 			RecipeService: recipeService,
+			UserService:   userService,
 		},
 		Directives: graph.DirectiveRoot{
 			Auth: graph.AuthDirective(authService),

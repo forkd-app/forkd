@@ -7,11 +7,8 @@ package graph
 import (
 	"context"
 	"fmt"
-	"forkd/db"
 	"forkd/graph/model"
 	"forkd/util"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // User is the resolver for the user field.
@@ -26,171 +23,12 @@ func (r *mutationResolver) Recipe(ctx context.Context) (*model.RecipeMutation, e
 
 // Create is the resolver for the create field.
 func (r *recipeMutationResolver) Create(ctx context.Context, obj *model.RecipeMutation, input model.CreateRecipeInput) (*model.Recipe, error) {
-	if input.Revision == nil {
-		// TODO: Write an actual error here
-		return nil, nil
-	}
-	user, _ := r.AuthService.GetUserSessionFromCtx(ctx)
-	tx, err := r.Conn.Begin(ctx)
-	if err != nil {
-		return nil, err
-	}
-	qtx := r.Queries.WithTx(tx)
-	defer tx.Rollback(ctx)
-	var forkdFrom pgtype.UUID
-	if input.ForkdFrom != nil {
-		forkdFrom.Bytes = *input.ForkdFrom
-		forkdFrom.Valid = true
-	}
-	recipeParams := db.CreateRecipeParams{
-		AuthorID:   user.ID,
-		ForkedFrom: forkdFrom,
-		Slug:       input.Slug,
-		Private:    input.Private,
-	}
-	recipe, err := qtx.CreateRecipe(ctx, recipeParams)
-	revisionParams := db.CreateRevisionParams{
-		RecipeID: recipe.ID,
-		Title:    input.Revision.Title,
-	}
-
-	if input.Revision.Description != nil {
-		revisionParams.RecipeDescription = pgtype.Text{
-			String: *input.Revision.Description,
-			Valid:  true,
-		}
-	}
-	if input.Revision.ChangeComment != nil {
-		revisionParams.ChangeComment = pgtype.Text{
-			String: *input.Revision.ChangeComment,
-			Valid:  true,
-		}
-	}
-	revision, err := qtx.CreateRevision(ctx, revisionParams)
-	for _, ingredient := range input.Revision.Ingredients {
-		if ingredient == nil {
-			// TODO: Write an actual error here
-			return nil, nil
-		}
-		db_ingredient, err := qtx.UpsertIngredient(ctx, ingredient.Ingredient)
-		if err != nil {
-			return nil, err
-		}
-		db_unit, err := qtx.UpsertMeasurement(ctx, ingredient.Unit)
-		if err != nil {
-			return nil, err
-		}
-		params := db.CreateRevisionIngredientParams{
-			RevisionID:        revision.ID,
-			IngredientID:      db_ingredient.ID,
-			MeasurementUnitID: db_unit.ID,
-			Quantity:          float32(ingredient.Quantity),
-		}
-		_, err = qtx.CreateRevisionIngredient(ctx, params)
-		if err != nil {
-			return nil, err
-		}
-	}
-	for _, step := range input.Revision.Steps {
-		if step == nil {
-			// TODO: Write an actual error here
-			return nil, nil
-		}
-		params := db.CreateRevisionStepParams{
-			RevisionID: revision.ID,
-			Content:    step.Instruction,
-			Index:      int32(step.Step),
-		}
-		_, err = qtx.CreateRevisionStep(ctx, params)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return model.RecipeFromDBType(recipe), tx.Commit(ctx)
+	return r.RecipeService.CreateRecipe(ctx, input)
 }
 
 // AddRevision is the resolver for the addRevision field.
 func (r *recipeMutationResolver) AddRevision(ctx context.Context, obj *model.RecipeMutation, input model.AddRevisionInput) (*model.RecipeRevision, error) {
-	if input.Revision == nil {
-		// TODO: Write an actual error here
-		return nil, nil
-	}
-	tx, err := r.Conn.Begin(ctx)
-	if err != nil {
-		return nil, err
-	}
-	qtx := r.Queries.WithTx(tx)
-	defer tx.Rollback(ctx)
-	recipeParams := db.UpdateRecipeParams{
-		ID: pgtype.UUID{
-			Bytes: input.ID,
-			Valid: true,
-		},
-		Slug: input.Slug,
-	}
-	recipe, err := qtx.UpdateRecipe(ctx, recipeParams)
-	revisionParams := db.CreateRevisionParams{
-		RecipeID: recipe.ID,
-		Title:    input.Revision.Title,
-		ParentID: pgtype.UUID{
-			Bytes: input.Parent,
-			Valid: true,
-		},
-	}
-
-	if input.Revision.Description != nil {
-		revisionParams.RecipeDescription = pgtype.Text{
-			String: *input.Revision.Description,
-			Valid:  true,
-		}
-	}
-	if input.Revision.ChangeComment != nil {
-		revisionParams.ChangeComment = pgtype.Text{
-			String: *input.Revision.ChangeComment,
-			Valid:  true,
-		}
-	}
-	revision, err := qtx.CreateRevision(ctx, revisionParams)
-	for _, ingredient := range input.Revision.Ingredients {
-		if ingredient == nil {
-			// TODO: Write an actual error here
-			return nil, nil
-		}
-		db_ingredient, err := qtx.UpsertIngredient(ctx, ingredient.Ingredient)
-		if err != nil {
-			return nil, err
-		}
-		db_unit, err := qtx.UpsertMeasurement(ctx, ingredient.Unit)
-		if err != nil {
-			return nil, err
-		}
-		params := db.CreateRevisionIngredientParams{
-			RevisionID:        revision.ID,
-			IngredientID:      db_ingredient.ID,
-			MeasurementUnitID: db_unit.ID,
-			Quantity:          float32(ingredient.Quantity),
-		}
-		_, err = qtx.CreateRevisionIngredient(ctx, params)
-		if err != nil {
-			return nil, err
-		}
-	}
-	for _, step := range input.Revision.Steps {
-		if step == nil {
-			// TODO: Write an actual error here
-			return nil, nil
-		}
-		params := db.CreateRevisionStepParams{
-			RevisionID: revision.ID,
-			Content:    step.Instruction,
-			Index:      int32(step.Step),
-		}
-		_, err = qtx.CreateRevisionStep(ctx, params)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return model.RevisionFromDBType(revision), tx.Commit(ctx)
+	return r.RecipeService.AddRevision(ctx, input)
 }
 
 // RequestMagicLink is the resolver for the requestMagicLink field.
@@ -244,20 +82,7 @@ func (r *userMutationResolver) Logout(ctx context.Context, obj *model.UserMutati
 
 // Update is the resolver for the update field.
 func (r *userMutationResolver) Update(ctx context.Context, obj *model.UserMutation, input model.UserUpdateInput) (*model.User, error) {
-	user, _ := r.AuthService.GetUserSessionFromCtx(ctx)
-	params := db.UpdateUserParams{
-		ID: user.ID,
-	}
-	if input.DisplayName != nil && *input.DisplayName != "" {
-		params.DisplayName = *input.DisplayName
-	} else {
-		params.DisplayName = user.DisplayName
-	}
-	updatedUser, err := r.Queries.UpdateUser(ctx, params)
-	if err != nil {
-		return nil, err
-	}
-	return model.UserFromDBType(updatedUser), nil
+	return r.UserService.Update(ctx, input)
 }
 
 // Mutation returns MutationResolver implementation.

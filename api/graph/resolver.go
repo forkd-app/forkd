@@ -5,6 +5,7 @@ import (
 	"forkd/services/auth"
 	"forkd/services/email"
 	"forkd/services/recipe"
+	"forkd/services/user"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -19,4 +20,5 @@ type Resolver struct {
 	AuthService   auth.AuthService
 	EmailService  email.EmailService
 	RecipeService recipe.RecipeService
+	UserService   user.UserService
 }

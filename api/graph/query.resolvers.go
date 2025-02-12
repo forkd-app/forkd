@@ -7,10 +7,8 @@ package graph
 import (
 	"context"
 	"forkd/graph/model"
-	"forkd/util"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // User is the resolver for the user field.
@@ -40,24 +38,17 @@ func (r *recipeQueryResolver) List(ctx context.Context, obj *model.RecipeQuery, 
 
 // ByID is the resolver for the byId field.
 func (r *userQueryResolver) ByID(ctx context.Context, obj *model.UserQuery, id uuid.UUID) (*model.User, error) {
-	pgId := pgtype.UUID{
-		Bytes: id,
-		Valid: true,
-	}
-	result, err := r.Queries.GetUserById(ctx, pgId)
-	return util.HandleNoRowsOnNullableType(result, err, model.UserFromDBType)
+	return r.UserService.GetByID(ctx, id)
 }
 
 // ByEmail is the resolver for the byEmail field.
 func (r *userQueryResolver) ByEmail(ctx context.Context, obj *model.UserQuery, email string) (*model.User, error) {
-	result, err := r.Queries.GetUserByEmail(ctx, email)
-	return util.HandleNoRowsOnNullableType(result, err, model.UserFromDBType)
+	return r.UserService.GetByEmail(ctx, email)
 }
 
 // Current is the resolver for the current field.
 func (r *userQueryResolver) Current(ctx context.Context, obj *model.UserQuery) (*model.User, error) {
-	user, _ := r.AuthService.GetUserSessionFromCtx(ctx)
-	return model.UserFromDBType(*user), nil
+	return r.UserService.GetCurrent(ctx)
 }
 
 // Query returns QueryResolver implementation.

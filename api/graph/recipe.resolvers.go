@@ -31,19 +31,7 @@ func (r *recipeResolver) Author(ctx context.Context, obj *model.Recipe) (*model.
 
 // ForkedFrom is the resolver for the forkedFrom field.
 func (r *recipeResolver) ForkedFrom(ctx context.Context, obj *model.Recipe) (*model.RecipeRevision, error) {
-	if obj == nil {
-		return nil, fmt.Errorf("missing recipe object")
-	}
-	uuid := pgtype.UUID{
-		Bytes: obj.ID,
-		Valid: true,
-	}
-	data, err := r.Queries.GetForkedFromRevisionByRecipeId(ctx, uuid)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch recipe with forkedFrom revision: %w", err)
-	}
-
-	return model.RevisionFromDBType(data), nil
+	return r.RecipeService.GetRecipeForkedFromRevision(ctx, obj.ID)
 }
 
 // Revisions is the resolver for the revisions field.
@@ -66,87 +54,27 @@ func (r *recipeResolver) Revisions(ctx context.Context, obj *model.Recipe, input
 
 // FeaturedRevision is the resolver for the featuredRevision field.
 func (r *recipeResolver) FeaturedRevision(ctx context.Context, obj *model.Recipe) (*model.RecipeRevision, error) {
-	if obj == nil {
-		return nil, fmt.Errorf("missing recipe object")
-	}
-	uuid := pgtype.UUID{
-		Bytes: obj.ID,
-		Valid: true,
-	}
-	data, err := r.Queries.GetFeaturedRevisionByRecipeId(ctx, uuid)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch recipe with featured revision: %w", err)
-	}
-
-	return model.RevisionFromDBType(data), nil
+	return r.RecipeService.GetRecipeFeaturedRevision(ctx, obj.ID)
 }
 
 // Recipe is the resolver for the recipe field.
 func (r *recipeRevisionResolver) Recipe(ctx context.Context, obj *model.RecipeRevision) (*model.Recipe, error) {
-	if obj == nil {
-		return nil, fmt.Errorf(("missing object on type RecipeRevision"))
-	}
-	uuid := pgtype.UUID{
-		Bytes: obj.ID,
-		Valid: true,
-	}
-	result, err := r.Queries.GetRecipeByRevisionID(ctx, uuid)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch recipe for revision %s: %w", obj.ID, err)
-	}
-	return model.RecipeFromDBType(result), nil
+	return r.RecipeService.GetRevisionRecipe(ctx, obj.ID)
 }
 
 // Parent is the resolver for the parent field.
 func (r *recipeRevisionResolver) Parent(ctx context.Context, obj *model.RecipeRevision) (*model.RecipeRevision, error) {
-	if obj == nil {
-		return nil, fmt.Errorf("missing object on type RecipeRevision")
-	}
-	uuid := pgtype.UUID{
-		Bytes: obj.ID,
-		Valid: true,
-	}
-	result, err := r.Queries.GetRecipeRevisionByParentID(ctx, uuid)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch parent for revision %s: %w", obj.ID, err)
-	}
-	return model.RevisionFromDBType(result), nil
+	return r.RecipeService.GetRevisionParent(ctx, obj.ID)
 }
 
 // Ingredients is the resolver for the ingredients field.
 func (r *recipeRevisionResolver) Ingredients(ctx context.Context, obj *model.RecipeRevision) ([]*model.RecipeIngredient, error) {
-	if obj == nil {
-		return nil, fmt.Errorf("missing object on type ReciipeRevison")
-	}
-	uuid := pgtype.UUID{
-		Bytes: obj.ID,
-		Valid: true,
-	}
-	result, err := r.Queries.ListIngredientsByRecipeRevisionID(ctx, uuid)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch ingredients for revision %s: %w", obj.ID, err)
-	}
-	return model.ListIngredientsFromDBType(result), nil
+	return r.RecipeService.ListRecipeIngredients(ctx, obj.ID)
 }
 
 // Steps is the resolver for the steps field.
 func (r *recipeRevisionResolver) Steps(ctx context.Context, obj *model.RecipeRevision) ([]*model.RecipeStep, error) {
-	if obj == nil {
-		return nil, fmt.Errorf("missing object on type RecipeRevision")
-	}
-	uuid := pgtype.UUID{
-		Bytes: obj.ID,
-		Valid: true,
-	}
-	result, err := r.Queries.ListStepsByRecipeRevisionID(ctx, uuid)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch steps for revision %s: %w", obj.ID, err)
-	}
-	return model.ListStepsFromDBType(result), nil
+	return r.RecipeService.ListRecipeSteps(ctx, obj.ID)
 }
 
 // Rating is the resolver for the rating field.
@@ -159,17 +87,7 @@ func (r *recipeRevisionResolver) Rating(ctx context.Context, obj *model.RecipeRe
 
 // Revision is the resolver for the revision field.
 func (r *recipeStepResolver) Revision(ctx context.Context, obj *model.RecipeStep) (*model.RecipeRevision, error) {
-	if obj == nil {
-		return nil, fmt.Errorf("missing parent object on type RecipeStep")
-	}
-
-	id := obj.ID
-	result, err := r.Queries.GetRecipeRevisionByStepId(ctx, int64(id))
-	if err != nil {
-		return nil, err
-	}
-
-	return model.RevisionFromDBType(result), nil
+	return r.RecipeService.GetRevisionForStep(ctx, int64(obj.ID))
 }
 
 // Recipe returns RecipeResolver implementation.

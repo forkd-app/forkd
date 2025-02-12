@@ -12,6 +12,15 @@ func RecipeFromDBType(result db.Recipe) *Recipe {
 		Slug:               result.Slug,
 		InitialPublishDate: result.InitialPublishDate.Time,
 		Private:            result.Private,
+		ForkedFrom: &RecipeRevision{
+			ID: result.ForkedFrom.Bytes,
+		},
+		FeaturedRevision: &RecipeRevision{
+			ID: result.FeaturedRevision.Bytes,
+		},
+		Author: &User{
+			ID: result.AuthorID.Bytes,
+		},
 	}
 
 	return &recipe
@@ -36,6 +45,12 @@ func RevisionFromDBType(result db.RecipeRevision) *RecipeRevision {
 		ChangeComment:     IfValidString(result.ChangeComment),
 		Title:             result.Title,
 		PublishDate:       result.PublishDate.Time,
+		Recipe: &Recipe{
+			ID: result.RecipeID.Bytes,
+		},
+		Parent: &RecipeRevision{
+			ID: result.ParentID.Bytes,
+		},
 	}
 
 	return &revision
@@ -49,6 +64,9 @@ func ListIngredientsFromDBType(results []db.RecipeIngredient) []*RecipeIngredien
 			ID:       int(result.ID),
 			Quantity: float64(result.Quantity),
 			Comment:  &result.Comment.String,
+			Revision: &RecipeRevision{
+				ID: result.RevisionID.Bytes,
+			},
 		}
 	}
 
@@ -63,6 +81,9 @@ func ListStepsFromDBType(results []db.RecipeStep) []*RecipeStep {
 			ID:      int(result.ID),
 			Content: result.Content,
 			Index:   int(result.Index),
+			Revision: &RecipeRevision{
+				ID: result.RevisionID.Bytes,
+			},
 		}
 	}
 
