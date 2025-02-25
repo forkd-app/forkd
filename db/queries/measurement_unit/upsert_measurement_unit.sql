@@ -1,17 +1,4 @@
--- name: GetMeasurementUnitFromIngredientId :one
-SELECT
-  measurement_units.id,
-  measurement_units.name,
-  measurement_units.description
-FROM
-  recipe_ingredients
-JOIN
-  measurement_units ON recipe_ingredients.measurement_unit_id = measurement_units.id
-WHERE
-  recipe_ingredients.id = $1
-LIMIT 1;
-
--- name: UpsertMeasurement :one
+-- name: UpsertMeasurementUnit :one
 WITH upsert AS (
   INSERT INTO
     measurement_units (

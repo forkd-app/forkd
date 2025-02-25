@@ -4,6 +4,7 @@ type User {
   updatedAt: Time!
   email: String!
   displayName: String!
-  recipes(limit: Int, nextCursor: String): PaginatedRecipes!
+  photo: String
+  recipes(input: ListRecipeInput): PaginatedRecipes!
     @goField(forceResolver: true)
 }

@@ -10,6 +10,8 @@ networks:
 # This is a named volume. It is used because of a an issue I was facing with permissions when mounting a volume for the database
 volumes:
   pgdata:
+  minio_data:
+  mc_data:
 
 # Specifies the services that Docker Compose will start if we run this compose file
 services:
@@ -60,8 +62,10 @@ services:
     # This container will wait for the db container to start before starting
     depends_on:
       - db
+      - object-storage
     links:
       - db:postgres
+      - object-storage:minio
     # This is used for dev purposes so we can auto reload containers wehen files change
     develop:
       watch:
@@ -90,6 +94,19 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
       POSTGRES_DB: forkd
+  object-storage:
+    image: docker.io/bitnami/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - app_network
+    volumes:
+      - "minio_data:/data"
+    environment:
+      - MINIO_ROOT_USER=minio
+      - MINIO_ROOT_PASSWORD=minio-password
+      - MINIO_DEFAULT_BUCKETS=forkd
   # A web admin for postgres
   pgweb:
     # Use the docker image for this web admin
@@ -117,7 +134,7 @@ services:
       context: ./api
       dockerfile: gqlgen.Dockerfile
     # Never restart this container
-    restart: never
+    restart: no
     # Mount our migrations directory so the geni cli can access those files
     volumes:
       - ./api/graph:/app/graph
@@ -132,7 +149,7 @@ services:
     # Use the `migrate` docker image for https://github.com/golang-migrate/migrate
     image: migrate/migrate
     # Never restart this container
-    restart: never
+    restart: no
     # This container will wait for the db container to start before starting
     depends_on:
       - db
@@ -143,7 +160,7 @@ services:
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
     # Mount our migrations directory so the geni cli can access those files
     volumes:
-      - ./db/migrations:/migrations
+      - ./db/migrations/:/migrations
     # Attach this container to our dedicated network for the services in this compose file
     networks:
       - app_network
@@ -155,7 +172,7 @@ services:
     # Use the `sqlc` docker image for https://docs.sqlc.dev/en/stable/overview/install.html#docker
     image: sqlc/sqlc
     # Never restart this container
-    restart: never
+    restart: no
     # This container will wait for the db container to start before starting
     depends_on:
       - db
@@ -172,10 +189,23 @@ services:
     # This is important, we assign a profile so this container doesn't auto start when you run `docker-compose start`
     profiles:
       - "scripts"
+  mc:
+    image: minio/mc
+    restart: no
+    depends_on:
+      - object-storage
+    links:
+      - object-storage:minio
+    networks:
+      - app_network
+    volumes:
+      - "minio_data:/root/.mc"
+    profiles:
+      - "scripts"
   # Container to run golangci-lint
   golangci-lint:
     image: golangci/golangci-lint
-    restart: never
+    restart: no
     volumes:
       - ./api:/app
     working_dir: /app
@@ -183,7 +213,7 @@ services:
       - "scripts"
   gofmt:
     image: golang:1.23-alpine
-    restart: never
+    restart: no
     volumes:
       - ./api:/app
     working_dir: /app
@@ -193,7 +223,7 @@ services:
     build:
       context: .
       dockerfile: ./eslint.Dockerfile
-    restart: never
+    restart: no
     volumes:
       - ./:/app
     profiles:
@@ -202,7 +232,7 @@ services:
     build:
       context: .
       dockerfile: ./prettier.Dockerfile
-    restart: never
+    restart: no
     volumes:
       - ./:/app
     profiles:
