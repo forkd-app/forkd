@@ -70,6 +70,7 @@ type RecipeRevision struct {
 	ChangeComment     pgtype.Text
 	Title             string
 	PublishDate       pgtype.Timestamp
+	Photo             pgtype.Text
 }
 
 type RecipeStep struct {
@@ -77,6 +78,7 @@ type RecipeStep struct {
 	RevisionID pgtype.UUID
 	Content    string
 	Index      int32
+	Photo      pgtype.Text
 }
 
 type Session struct {
@@ -98,4 +100,5 @@ type User struct {
 	Email       string
 	JoinDate    pgtype.Timestamp
 	UpdatedAt   pgtype.Timestamp
+	Photo       pgtype.Text
 }

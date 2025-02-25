@@ -11,17 +11,17 @@ import (
 
 // Revision is the resolver for the revision field.
 func (r *recipeIngredientResolver) Revision(ctx context.Context, obj *model.RecipeIngredient) (*model.RecipeRevision, error) {
-	return r.RecipeService.GetRevisionForIngredient(ctx, int64(obj.ID))
+	return r.RecipeService.GetRecipeRevisionById(ctx, obj.Revision.ID)
 }
 
 // Unit is the resolver for the unit field.
 func (r *recipeIngredientResolver) Unit(ctx context.Context, obj *model.RecipeIngredient) (*model.MeasurementUnit, error) {
-	return r.RecipeService.GetUnitForRecipeIngredient(ctx, int64(obj.ID))
+	return r.RecipeService.GetMeasurementUnitById(ctx, int64(obj.Unit.ID))
 }
 
 // Ingredient is the resolver for the ingredient field.
 func (r *recipeIngredientResolver) Ingredient(ctx context.Context, obj *model.RecipeIngredient) (*model.Ingredient, error) {
-	return r.RecipeService.GetIngredientForRecipeIngredient(ctx, int64(obj.ID))
+	return r.RecipeService.GetIngredientById(ctx, int64(obj.Ingredient.ID))
 }
 
 // RecipeIngredient returns RecipeIngredientResolver implementation.

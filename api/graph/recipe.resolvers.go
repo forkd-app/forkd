@@ -9,16 +9,14 @@ import (
 	"fmt"
 	"forkd/graph/model"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // Author is the resolver for the author field.
 func (r *recipeResolver) Author(ctx context.Context, obj *model.Recipe) (*model.User, error) {
-	if obj == nil {
-		return nil, fmt.Errorf("missing recipe object")
-	}
 	uuid := pgtype.UUID{
-		Bytes: obj.ID,
+		Bytes: obj.Author.ID,
 		Valid: true,
 	}
 	data, err := r.Queries.GetAuthorByRecipeId(ctx, uuid)
@@ -31,7 +29,7 @@ func (r *recipeResolver) Author(ctx context.Context, obj *model.Recipe) (*model.
 
 // ForkedFrom is the resolver for the forkedFrom field.
 func (r *recipeResolver) ForkedFrom(ctx context.Context, obj *model.Recipe) (*model.RecipeRevision, error) {
-	return r.RecipeService.GetRecipeForkedFromRevision(ctx, obj.ID)
+	return r.RecipeService.GetRecipeRevisionById(ctx, obj.ForkedFrom.ID)
 }
 
 // Revisions is the resolver for the revisions field.
@@ -49,22 +47,25 @@ func (r *recipeResolver) Revisions(ctx context.Context, obj *model.Recipe, input
 	} else {
 		input.RecipeID = &obj.ID
 	}
-	return r.RecipeService.ListRevisions(ctx, input)
+	return r.RecipeService.ListRecipeRevisions(ctx, input)
 }
 
 // FeaturedRevision is the resolver for the featuredRevision field.
 func (r *recipeResolver) FeaturedRevision(ctx context.Context, obj *model.Recipe) (*model.RecipeRevision, error) {
-	return r.RecipeService.GetRecipeFeaturedRevision(ctx, obj.ID)
+	if obj.FeaturedRevision.ID == uuid.Nil {
+		return r.RecipeService.GetRecipeRevisionById(ctx, obj.FeaturedRevision.ID)
+	}
+	return nil, nil
 }
 
 // Recipe is the resolver for the recipe field.
 func (r *recipeRevisionResolver) Recipe(ctx context.Context, obj *model.RecipeRevision) (*model.Recipe, error) {
-	return r.RecipeService.GetRevisionRecipe(ctx, obj.ID)
+	return r.RecipeService.GetRecipeByID(ctx, obj.Recipe.ID)
 }
 
 // Parent is the resolver for the parent field.
 func (r *recipeRevisionResolver) Parent(ctx context.Context, obj *model.RecipeRevision) (*model.RecipeRevision, error) {
-	return r.RecipeService.GetRevisionParent(ctx, obj.ID)
+	return r.RecipeService.GetRecipeRevisionById(ctx, obj.Parent.ID)
 }
 
 // Ingredients is the resolver for the ingredients field.
@@ -87,7 +88,7 @@ func (r *recipeRevisionResolver) Rating(ctx context.Context, obj *model.RecipeRe
 
 // Revision is the resolver for the revision field.
 func (r *recipeStepResolver) Revision(ctx context.Context, obj *model.RecipeStep) (*model.RecipeRevision, error) {
-	return r.RecipeService.GetRevisionForStep(ctx, int64(obj.ID))
+	return r.RecipeService.GetRecipeRevisionById(ctx, obj.Revision.ID)
 }
 
 // Recipe returns RecipeResolver implementation.

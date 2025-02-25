@@ -44,11 +44,13 @@ type CreateRecipeRevisionInput struct {
 	Ingredients   []*CreateRecipeRevisionIngredient `json:"ingredients"`
 	Steps         []*CreateRecipeRevisionStep       `json:"steps"`
 	ChangeComment *string                           `json:"changeComment,omitempty"`
+	Photo         *string                           `json:"photo,omitempty"`
 }
 
 type CreateRecipeRevisionStep struct {
-	Instruction string `json:"instruction"`
-	Step        int    `json:"step"`
+	Instruction string  `json:"instruction"`
+	Step        int     `json:"step"`
+	Photo       *string `json:"photo,omitempty"`
 }
 
 type Ingredient struct {
@@ -158,6 +160,7 @@ type RecipeRevision struct {
 	Ingredients       []*RecipeIngredient `json:"ingredients"`
 	Steps             []*RecipeStep       `json:"steps"`
 	Rating            *float64            `json:"rating,omitempty"`
+	Photo             *string             `json:"photo,omitempty"`
 }
 
 type RecipeStep struct {
@@ -165,6 +168,7 @@ type RecipeStep struct {
 	Revision *RecipeRevision `json:"revision"`
 	Content  string          `json:"content"`
 	Index    int             `json:"index"`
+	Photo    *string         `json:"photo,omitempty"`
 }
 
 type Tag struct {
@@ -180,6 +184,7 @@ type User struct {
 	UpdatedAt   time.Time         `json:"updatedAt"`
 	Email       string            `json:"email"`
 	DisplayName string            `json:"displayName"`
+	Photo       *string           `json:"photo,omitempty"`
 	Recipes     *PaginatedRecipes `json:"recipes"`
 }
 
@@ -198,6 +203,7 @@ type UserQuery struct {
 
 type UserUpdateInput struct {
 	DisplayName *string `json:"displayName,omitempty"`
+	Photo       *string `json:"photo,omitempty"`
 }
 
 type ListRecipeSortCol string

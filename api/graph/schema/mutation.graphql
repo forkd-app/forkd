@@ -29,6 +29,7 @@ type LoginResponse {
 
 input UserUpdateInput {
   displayName: String
+  photo: String
 }
 
 input CreateRecipeInput {
@@ -52,6 +53,7 @@ input CreateRecipeRevisionInput {
   ingredients: [CreateRecipeRevisionIngredient!]!
   steps: [CreateRecipeRevisionStep!]!
   changeComment: String
+  photo: String
 }
 
 input CreateRecipeRevisionIngredient {
@@ -64,4 +66,5 @@ input CreateRecipeRevisionIngredient {
 input CreateRecipeRevisionStep {
   instruction: String!
   step: Int!
+  photo: String
 }

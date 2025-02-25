@@ -6,137 +6,59 @@ import (
 	"forkd/db"
 	"forkd/graph/model"
 	"forkd/services/auth"
+	"forkd/services/object_storage"
 	"forkd/util"
+	"net/url"
+	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/minio/minio-go/v7/pkg/tags"
 )
 
 type RecipeService interface {
 	GetRecipeByID(ctx context.Context, id uuid.UUID) (*model.Recipe, error)
 	GetRecipeBySlug(ctx context.Context, slug string) (*model.Recipe, error)
-	GetRecipeForkedFromRevision(ctx context.Context, id uuid.UUID) (*model.RecipeRevision, error)
-	GetRecipeFeaturedRevision(ctx context.Context, id uuid.UUID) (*model.RecipeRevision, error)
-	GetRevisionRecipe(ctx context.Context, id uuid.UUID) (*model.Recipe, error)
-	GetRevisionParent(ctx context.Context, id uuid.UUID) (*model.RecipeRevision, error)
-	GetRevisionForStep(ctx context.Context, id int64) (*model.RecipeRevision, error)
-	GetRevisionForIngredient(ctx context.Context, id int64) (*model.RecipeRevision, error)
-	GetRevisionById(ctx context.Context, id uuid.UUID) (*model.RecipeRevision, error)
-	GetUnitForRecipeIngredient(ctx context.Context, id int64) (*model.MeasurementUnit, error)
-	GetIngredientForRecipeIngredient(ctx context.Context, id int64) (*model.Ingredient, error)
+	GetRecipeRevisionById(ctx context.Context, id uuid.UUID) (*model.RecipeRevision, error)
+	GetMeasurementUnitById(ctx context.Context, id int64) (*model.MeasurementUnit, error)
+	GetIngredientById(ctx context.Context, id int64) (*model.Ingredient, error)
 	ListRecipes(ctx context.Context, input *model.ListRecipeInput) (*model.PaginatedRecipes, error)
-	ListRevisions(ctx context.Context, input *model.ListRevisionsInput) (*model.PaginatedRecipeRevisions, error)
+	ListRecipeRevisions(ctx context.Context, input *model.ListRevisionsInput) (*model.PaginatedRecipeRevisions, error)
 	ListRecipeIngredients(ctx context.Context, id uuid.UUID) ([]*model.RecipeIngredient, error)
 	ListRecipeSteps(ctx context.Context, id uuid.UUID) ([]*model.RecipeStep, error)
 	CreateRecipe(ctx context.Context, input model.CreateRecipeInput) (*model.Recipe, error)
-	AddRevision(ctx context.Context, input model.AddRevisionInput) (*model.RecipeRevision, error)
+	AddRecipeRevision(ctx context.Context, input model.AddRevisionInput) (*model.RecipeRevision, error)
 }
 
 type recipeService struct {
-	queries     *db.Queries
-	conn        *pgxpool.Pool
-	authService auth.AuthService
+	queries        *db.Queries
+	conn           *pgxpool.Pool
+	authService    auth.AuthService
+	storageService object_storage.ObjectStorageService
 }
 
-// GetRevisionRecipe implements RecipeService.
-func (r recipeService) GetRevisionRecipe(ctx context.Context, id uuid.UUID) (*model.Recipe, error) {
-	uuid := pgtype.UUID{
-		Bytes: id,
-		Valid: true,
-	}
-	result, err := r.queries.GetRecipeByRevisionID(ctx, uuid)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch recipe for revision %s: %w", id, err)
-	}
-	return model.RecipeFromDBType(result), nil
-}
-
-// GetIngredientForRecipeIngredient implements RecipeService.
-func (r recipeService) GetIngredientForRecipeIngredient(ctx context.Context, id int64) (*model.Ingredient, error) {
-	result, err := r.queries.GetIngredientFromRecipeIngredientId(ctx, id)
+// GetIngredientById implements RecipeService.
+func (r recipeService) GetIngredientById(ctx context.Context, id int64) (*model.Ingredient, error) {
+	result, err := r.queries.GetIngredientById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-
 	return model.IngredientFromDBType(result), nil
 }
 
-// GetUnitForRecipeIngredient implements RecipeService.
-func (r recipeService) GetUnitForRecipeIngredient(ctx context.Context, id int64) (*model.MeasurementUnit, error) {
-	result, err := r.queries.GetMeasurementUnitFromIngredientId(ctx, id)
+// GetMeasurementUnitById implements RecipeService.
+func (r recipeService) GetMeasurementUnitById(ctx context.Context, id int64) (*model.MeasurementUnit, error) {
+	result, err := r.queries.GetMeasurementUnitById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-
 	return model.MeasurementUnitFromDBType(result), nil
 }
 
-// GetRevisionForIngredient implements RecipeService.
-func (r recipeService) GetRevisionForIngredient(ctx context.Context, id int64) (*model.RecipeRevision, error) {
-	result, err := r.queries.GetRecipeRevisionByIngredientId(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	return model.RevisionFromDBType(result), nil
-}
-
-// GetRevisionForStep implements RecipeService.
-func (r recipeService) GetRevisionForStep(ctx context.Context, id int64) (*model.RecipeRevision, error) {
-	result, err := r.queries.GetRecipeRevisionByStepId(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	return model.RevisionFromDBType(result), nil
-}
-
-// GetRevisionParent implements RecipeService.
-func (r recipeService) GetRevisionParent(ctx context.Context, id uuid.UUID) (*model.RecipeRevision, error) {
-	uuid := pgtype.UUID{
-		Bytes: id,
-		Valid: true,
-	}
-	result, err := r.queries.GetRecipeRevisionByParentID(ctx, uuid)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch parent for revision %s: %w", id, err)
-	}
-	return model.RevisionFromDBType(result), nil
-}
-
-// GetRecipeFeaturedRevision implements RecipeService.
-func (r recipeService) GetRecipeFeaturedRevision(ctx context.Context, id uuid.UUID) (*model.RecipeRevision, error) {
-	uuid := pgtype.UUID{
-		Bytes: id,
-		Valid: true,
-	}
-	data, err := r.queries.GetFeaturedRevisionByRecipeId(ctx, uuid)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch recipe with featured revision: %w", err)
-	}
-
-	return model.RevisionFromDBType(data), nil
-}
-
-// GetRecipeForkedFromRevision implements RecipeService.
-func (r recipeService) GetRecipeForkedFromRevision(ctx context.Context, id uuid.UUID) (*model.RecipeRevision, error) {
-	uuid := pgtype.UUID{
-		Bytes: id,
-		Valid: true,
-	}
-	data, err := r.queries.GetForkedFromRevisionByRecipeId(ctx, uuid)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch recipe with forkedFrom revision: %w", err)
-	}
-
-	return model.RevisionFromDBType(data), nil
-}
-
 // AddRevision implements RecipeService.
-func (r recipeService) AddRevision(ctx context.Context, input model.AddRevisionInput) (*model.RecipeRevision, error) {
+func (r recipeService) AddRecipeRevision(ctx context.Context, input model.AddRevisionInput) (*model.RecipeRevision, error) {
 	if input.Revision == nil {
 		// TODO: Write an actual error here
 		return nil, nil
@@ -192,17 +114,17 @@ func (r recipeService) AddRevision(ctx context.Context, input model.AddRevisionI
 		if err != nil {
 			return nil, err
 		}
-		db_unit, err := qtx.UpsertMeasurement(ctx, ingredient.Unit)
+		db_unit, err := qtx.UpsertMeasurementUnit(ctx, ingredient.Unit)
 		if err != nil {
 			return nil, err
 		}
-		params := db.CreateRevisionIngredientParams{
+		params := db.CreateRecipeIngredientParams{
 			RevisionID:        revision.ID,
 			IngredientID:      db_ingredient.ID,
 			MeasurementUnitID: db_unit.ID,
 			Quantity:          float32(ingredient.Quantity),
 		}
-		_, err = qtx.CreateRevisionIngredient(ctx, params)
+		_, err = qtx.CreateRecipeIngredient(ctx, params)
 		if err != nil {
 			return nil, err
 		}
@@ -212,12 +134,12 @@ func (r recipeService) AddRevision(ctx context.Context, input model.AddRevisionI
 			// TODO: Write an actual error here
 			return nil, nil
 		}
-		params := db.CreateRevisionStepParams{
+		params := db.CreateRecipeStepParams{
 			RevisionID: revision.ID,
 			Content:    step.Instruction,
 			Index:      int32(step.Step),
 		}
-		_, err = qtx.CreateRevisionStep(ctx, params)
+		_, err = qtx.CreateRecipeStep(ctx, params)
 		if err != nil {
 			return nil, err
 		}
@@ -270,9 +192,32 @@ func (r recipeService) CreateRecipe(ctx context.Context, input model.CreateRecip
 			Valid:  true,
 		}
 	}
+	if input.Revision.Photo != nil {
+		revisionParams.Photo = pgtype.Text{
+			String: *input.Revision.Photo,
+			Valid:  true,
+		}
+	}
 	revision, err := qtx.CreateRevision(ctx, revisionParams)
 	if err != nil {
 		return nil, err
+	}
+	// TODO: Maybe make this whole thing nicer
+	if revision.Photo.Valid {
+		objUrl, err := url.Parse(revision.Photo.String)
+		if err != nil {
+			return nil, err
+		}
+		pathSegments := strings.SplitN(objUrl.EscapedPath(), "/", 3)
+		name := pathSegments[len(pathSegments)-1]
+		otags, err := tags.NewTags(map[string]string{"revisionId": uuid.UUID(revision.ID.Bytes).String()}, false)
+		if err != nil {
+			return nil, err
+		}
+		err = r.storageService.SetTags(ctx, name, otags)
+		if err != nil {
+			return nil, err
+		}
 	}
 	for _, ingredient := range input.Revision.Ingredients {
 		if ingredient == nil {
@@ -283,17 +228,17 @@ func (r recipeService) CreateRecipe(ctx context.Context, input model.CreateRecip
 		if err != nil {
 			return nil, err
 		}
-		db_unit, err := qtx.UpsertMeasurement(ctx, ingredient.Unit)
+		db_unit, err := qtx.UpsertMeasurementUnit(ctx, ingredient.Unit)
 		if err != nil {
 			return nil, err
 		}
-		params := db.CreateRevisionIngredientParams{
+		params := db.CreateRecipeIngredientParams{
 			RevisionID:        revision.ID,
 			IngredientID:      db_ingredient.ID,
 			MeasurementUnitID: db_unit.ID,
 			Quantity:          float32(ingredient.Quantity),
 		}
-		_, err = qtx.CreateRevisionIngredient(ctx, params)
+		_, err = qtx.CreateRecipeIngredient(ctx, params)
 		if err != nil {
 			return nil, err
 		}
@@ -303,14 +248,30 @@ func (r recipeService) CreateRecipe(ctx context.Context, input model.CreateRecip
 			// TODO: Write an actual error here
 			return nil, nil
 		}
-		params := db.CreateRevisionStepParams{
+		params := db.CreateRecipeStepParams{
 			RevisionID: revision.ID,
 			Content:    step.Instruction,
 			Index:      int32(step.Step),
 		}
-		_, err = qtx.CreateRevisionStep(ctx, params)
+		result, err := qtx.CreateRecipeStep(ctx, params)
 		if err != nil {
 			return nil, err
+		}
+		if result.Photo.Valid {
+			objUrl, err := url.Parse(result.Photo.String)
+			if err != nil {
+				return nil, err
+			}
+			pathSegments := strings.SplitN(objUrl.EscapedPath(), "/", 3)
+			name := pathSegments[len(pathSegments)-1]
+			otags, err := tags.NewTags(map[string]string{"stepId": strconv.Itoa(int(result.ID))}, false)
+			if err != nil {
+				return nil, err
+			}
+			err = r.storageService.SetTags(ctx, name, otags)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 	return model.RecipeFromDBType(recipe), tx.Commit(ctx)
@@ -333,7 +294,7 @@ func (r recipeService) GetRecipeBySlug(ctx context.Context, slug string) (*model
 }
 
 // GetRevisionById implements RecipeService.
-func (r recipeService) GetRevisionById(ctx context.Context, id uuid.UUID) (*model.RecipeRevision, error) {
+func (r recipeService) GetRecipeRevisionById(ctx context.Context, id uuid.UUID) (*model.RecipeRevision, error) {
 	pgId := pgtype.UUID{
 		Bytes: id,
 		Valid: true,
@@ -371,7 +332,7 @@ func (r recipeService) ListRecipeSteps(ctx context.Context, id uuid.UUID) ([]*mo
 }
 
 // ListRevisionsForRecipe implements RecipeService.
-func (r recipeService) ListRevisions(ctx context.Context, input *model.ListRevisionsInput) (*model.PaginatedRecipeRevisions, error) {
+func (r recipeService) ListRecipeRevisions(ctx context.Context, input *model.ListRevisionsInput) (*model.PaginatedRecipeRevisions, error) {
 	var params db.ListRevisionsParams
 	if input == nil {
 		params.Limit = 20
@@ -580,11 +541,12 @@ func (r recipeService) ListRecipes(ctx context.Context, input *model.ListRecipeI
 	}, nil
 }
 
-func New(queries *db.Queries, conn *pgxpool.Pool, authService auth.AuthService) RecipeService {
+func New(queries *db.Queries, conn *pgxpool.Pool, authService auth.AuthService, storage object_storage.ObjectStorageService) RecipeService {
 	return recipeService{
 		queries,
 		conn,
 		authService,
+		storage,
 	}
 }
 

@@ -33,6 +33,7 @@ func UserFromDBType(result db.User) *User {
 		JoinDate:    result.JoinDate.Time,
 		DisplayName: result.DisplayName,
 		UpdatedAt:   result.UpdatedAt.Time,
+		Photo:       IfValidString(result.Photo),
 	}
 
 	return &user

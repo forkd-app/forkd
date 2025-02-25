@@ -21,6 +21,7 @@ type RecipeRevision {
   ingredients: [RecipeIngredient!]! @goField(forceResolver: true)
   steps: [RecipeStep!]! @goField(forceResolver: true)
   rating: Float @goField(forceResolver: true)
+  photo: String
 }
 
 type RecipeStep {
@@ -28,6 +29,7 @@ type RecipeStep {
   revision: RecipeRevision! @goField(forceResolver: true)
   content: String!
   index: Int!
+  photo: String
 }
 
 input ListRevisionsInput {

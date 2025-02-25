@@ -28,7 +28,7 @@ func (r *recipeMutationResolver) Create(ctx context.Context, obj *model.RecipeMu
 
 // AddRevision is the resolver for the addRevision field.
 func (r *recipeMutationResolver) AddRevision(ctx context.Context, obj *model.RecipeMutation, input model.AddRevisionInput) (*model.RecipeRevision, error) {
-	return r.RecipeService.AddRevision(ctx, input)
+	return r.RecipeService.AddRecipeRevision(ctx, input)
 }
 
 // RequestMagicLink is the resolver for the requestMagicLink field.
@@ -97,3 +97,19 @@ func (r *Resolver) UserMutation() UserMutationResolver { return &userMutationRes
 type mutationResolver struct{ *Resolver }
 type recipeMutationResolver struct{ *Resolver }
 type userMutationResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *recipeMutationResolver) GetRevisionPhotoUploadURL(ctx context.Context, obj *model.RecipeMutation) (*string, error) {
+	panic(fmt.Errorf("not implemented: GetRevisionPhotoUploadURL - getRevisionPhotoUploadUrl"))
+}
+func (r *recipeMutationResolver) GetStepUploadURL(ctx context.Context, obj *model.RecipeMutation) (*string, error) {
+	panic(fmt.Errorf("not implemented: GetStepUploadURL - getStepUploadUrl"))
+}
+func (r *userMutationResolver) GetProfilePhotoUploadURL(ctx context.Context, obj *model.UserMutation) (*string, error) {
+	panic(fmt.Errorf("not implemented: GetProfilePhotoUploadURL - getProfilePhotoUploadUrl"))
+}
