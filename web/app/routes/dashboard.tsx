@@ -1,16 +1,5 @@
-import type { MetaFunction } from "@remix-run/node"
-import { Grid } from "@mantine/core"
+import { SimpleGrid } from "@mantine/core"
 import { RecipeCard } from "../components/recipeCard/recipeCard"
-
-export const meta: MetaFunction = () => {
-  return [
-    { title: "Forkd App" },
-    {
-      name: "Create new recipes and add your spin on existing recipes",
-      content: "Welcome to Forkd!",
-    },
-  ]
-}
 
 const recipes = [
   { title: "pancakes" },
@@ -21,21 +10,22 @@ const recipes = [
   { title: "grape leaves" },
 ]
 
-export default function Index() {
+export default function Dashboard() {
   return (
     <>
       {/* recipe component */}
-      <Grid style={styles.gridContainer} justify="center">
+      <SimpleGrid
+        cols={{ base: 1, sm: 2, md: 2, lg: 4 }}
+        pb={40}
+        pt={40}
+        style={{ background: "#fffaf5", width: "90%", margin: "auto" }}
+      >
         {recipes.map((recipe) => (
-          <Grid.Col
-            key={recipe.title}
-            style={styles.grid}
-            span={{ base: 12, md: 5.5, lg: 3.5 }}
-          >
+          <div key={recipe.title} style={styles.grid}>
             <RecipeCard {...recipe} />
-          </Grid.Col>
+          </div>
         ))}
-      </Grid>
+      </SimpleGrid>
     </>
   )
 }
