@@ -12,7 +12,7 @@ export const meta: MetaFunction = () => {
   ]
 }
 
-export default function Index() {
+export default function AuthLayout() {
   return (
     <Container>
       <Flex
