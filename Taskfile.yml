@@ -146,3 +146,7 @@ tasks:
     cmds:
       - cp ./api/.env.sample ./api/.env
       - cp ./web/.env.sample ./web/.env
+
+  seed:
+    desc: "Seed the DB"
+    cmd: docker-compose --profile "scripts" run --rm seed

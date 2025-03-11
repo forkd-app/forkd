@@ -68,6 +68,12 @@ func ListIngredientsFromDBType(results []db.RecipeIngredient) []*RecipeIngredien
 			Revision: &RecipeRevision{
 				ID: result.RevisionID.Bytes,
 			},
+			Ingredient: &Ingredient{
+				ID: int(result.IngredientID),
+			},
+			Unit: &MeasurementUnit{
+				ID: int(result.MeasurementUnitID),
+			},
 		}
 	}
 

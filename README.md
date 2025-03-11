@@ -74,3 +74,8 @@ We use [sqlc](https://github.com/sqlc-dev/sqlc) to generate typesafe `go` code b
 
 - `task sqlc-gen`
   - This generates go files for our queries
+
+#### DB Seed
+
+- `task seed`
+  - Generate and insert random data into the database
