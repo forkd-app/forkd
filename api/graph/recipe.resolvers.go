@@ -52,10 +52,10 @@ func (r *recipeResolver) Revisions(ctx context.Context, obj *model.Recipe, input
 
 // FeaturedRevision is the resolver for the featuredRevision field.
 func (r *recipeResolver) FeaturedRevision(ctx context.Context, obj *model.Recipe) (*model.RecipeRevision, error) {
-	if obj.FeaturedRevision.ID == uuid.Nil {
+	if obj.FeaturedRevision.ID != uuid.Nil {
 		return r.RecipeService.GetRecipeRevisionById(ctx, obj.FeaturedRevision.ID)
 	}
-	return nil, nil
+	return r.RecipeService.GetLatestRecipeRevisionByRecipeId(ctx, obj.ID)
 }
 
 // Recipe is the resolver for the recipe field.

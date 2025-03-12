@@ -10,9 +10,11 @@ import (
 	"net/url"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
 	fakeData "github.com/brianvoe/gofakeit/v7/data"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -34,7 +36,7 @@ const RECIPE_REVISION_CHANGE_COMMENT_MAX = 5
 
 const USER_PHOTO_CHANCE = 4.0 / 5.0
 const RECIPE_PHOTO_CHANCE = 7.0 / 8.0
-const FORK_CHANCE = 1.0 / 4.0
+const FORK_CHANCE = 1.0 / 3.0
 const PRIVATE_CHANCE = 1.0 / 16.0
 const REVISION_DIVERGE_CHANCE = 1.0 / 8.0
 const REVISION_DESCRIPTION_CHANCE = 3.0 / 4.0
@@ -64,6 +66,8 @@ type RecipeWithRevisions struct {
 	revisions []RevisionWithIngredients
 }
 
+const MINUS_ONE_YEAR = -12 * 24 * 365 * time.Hour
+
 func createUsers(ctx context.Context, tx pgx.Tx, qtx *db.Queries) []db.User {
 	log.Println("creating users")
 	users := make([]db.User, USER_COUNT)
@@ -71,6 +75,10 @@ func createUsers(ctx context.Context, tx pgx.Tx, qtx *db.Queries) []db.User {
 		user, err := qtx.UpsertUser(ctx, db.UpsertUserParams{
 			DisplayName: gofakeit.Username(),
 			Email:       gofakeit.Email(),
+			JoinDate: pgtype.Timestamp{
+				Time:  gofakeit.DateRange(time.Now().Add(MINUS_ONE_YEAR), time.Now()),
+				Valid: true,
+			},
 		})
 		if err != nil {
 			// I know I shouldn't be ignoring this but whatever lol
@@ -190,7 +198,7 @@ func main() {
 	for _, user := range users {
 		recipeCount := randBetween(RECIPE_PER_USER_MIN, RECIPE_PER_USER_MAX)
 		log.Printf("inserting %d recipes for user %s", recipeCount, user.DisplayName)
-		userRecipes := make([]RecipeWithRevisions, recipeCount)
+		userRecipes := make([]RecipeWithRevisions, 0)
 		for i := 0; i < recipeCount; i++ {
 			var forkdFrom RevisionWithIngredients
 			title := getRandomFood()
@@ -198,12 +206,23 @@ func main() {
 				AuthorID: user.ID,
 				Slug:     strings.ToLower(fmt.Sprintf("%s/%s-%d", url.PathEscape(user.DisplayName), url.PathEscape(strings.ReplaceAll(title, " ", "-")), i)),
 				Private:  flipCoin(PRIVATE_CHANCE),
+				InitialPublishDate: pgtype.Timestamp{
+					Time:  gofakeit.DateRange(user.JoinDate.Time, time.Now()),
+					Valid: true,
+				},
 			}
 			if flipCoin(FORK_CHANCE) && len(recipes) > 0 {
 				recipe := getRandomVal(recipes)
 				if len(recipe.revisions) > 1 {
 					forkdFrom = getRandomVal(recipe.revisions)
 					recipeParams.ForkedFrom = forkdFrom.revision.ID
+					log.Printf("forking from %s", uuid.UUID(forkdFrom.revision.ID.Bytes).String())
+				}
+			}
+			if recipeParams.ForkedFrom.Valid {
+				recipeParams.InitialPublishDate = pgtype.Timestamp{
+					Time:  gofakeit.DateRange(forkdFrom.revision.PublishDate.Time, time.Now()),
+					Valid: true,
 				}
 			}
 			recipe, err := qtx.CreateRecipe(ctx, recipeParams)
@@ -214,13 +233,14 @@ func main() {
 			}
 
 			revisionCount := randBetween(REVISION_PER_RECIPE_MIN, REVISION_PER_RECIPE_MAX)
-			revisions := make([]RevisionWithIngredients, revisionCount)
+			revisions := make([]RevisionWithIngredients, 0)
 			if forkdFrom.revision.ID.Valid {
 				initialRevision, err := qtx.CreateRevision(ctx, db.CreateRevisionParams{
 					RecipeID:          forkdFrom.revision.RecipeID,
 					RecipeDescription: forkdFrom.revision.RecipeDescription,
 					ChangeComment:     forkdFrom.revision.ChangeComment,
 					Photo:             forkdFrom.revision.Photo,
+					PublishDate:       recipe.InitialPublishDate,
 				})
 				if err != nil {
 					// I know I shouldn't be ignoring this but whatever lol
@@ -263,6 +283,7 @@ func main() {
 					revision.steps = append(revision.steps, step)
 				}
 				revisions = append(revisions, revision)
+				log.Printf("inserted intial revision for forked recipe %s", uuid.UUID(revision.revision.ID.Bytes).String())
 			}
 			log.Printf("inserted recipe with slug %s", recipe.Slug)
 			log.Printf("inserting %d revisions for recipe %s", revisionCount, recipe.Slug)
@@ -276,16 +297,22 @@ func main() {
 				revisionParams := db.CreateRevisionParams{
 					Title:    title,
 					RecipeID: recipe.ID,
+					PublishDate: pgtype.Timestamp{
+						Valid: true,
+						Time:  gofakeit.DateRange(recipe.InitialPublishDate.Time, time.Now()),
+					},
 				}
-				if j > 1 {
 
-					if j > 2 && flipCoin(REVISION_DIVERGE_CHANCE) {
+				if j > 0 && len(revisions) > 0 {
+					if j > 2 && len(revisions) > 2 && flipCoin(REVISION_DIVERGE_CHANCE) {
 						parent = getRandomVal(revisions[0 : len(revisions)-2])
 						revisionParams.ParentID = parent.revision.ID
 					} else {
 						parent = revisions[j-1]
 						revisionParams.ParentID = parent.revision.ID
 					}
+
+					revisionParams.PublishDate.Time = gofakeit.DateRange(parent.revision.PublishDate.Time, time.Now())
 
 					if flipCoin(REVISION_CHANGE_COMMENT_CHANCE) {
 						revisionParams.ChangeComment = pgtype.Text{
@@ -312,13 +339,14 @@ func main() {
 						revisionParams.Title = getRandomFood()
 					}
 
-					revisionWithIngredients.revision, err = qtx.CreateRevision(ctx, revisionParams)
+					revision, err := qtx.CreateRevision(ctx, revisionParams)
 					if err != nil {
 						// I know I shouldn't be ignoring this but whatever lol
 						_ = tx.Rollback(ctx)
 						log.Panicln(err)
 					}
 
+					revisionWithIngredients.revision = revision
 				} else {
 					if flipCoin(REVISION_DESCRIPTION_CHANCE) {
 						revisionParams.RecipeDescription = pgtype.Text{
@@ -334,12 +362,14 @@ func main() {
 						}
 					}
 
-					revisionWithIngredients.revision, err = qtx.CreateRevision(ctx, revisionParams)
+					revision, err := qtx.CreateRevision(ctx, revisionParams)
 					if err != nil {
 						// I know I shouldn't be ignoring this but whatever lol
 						_ = tx.Rollback(ctx)
 						log.Panicf("error creating revision %x", err)
 					}
+
+					revisionWithIngredients.revision = revision
 				}
 
 				if parent.revision.ID.Valid {
@@ -505,6 +535,9 @@ func main() {
 						revisionWithIngredients.steps = append(revisionWithIngredients.steps, step)
 					}
 				}
+
+				log.Printf("inserted revision: %s with parent %s", uuid.UUID(revisionWithIngredients.revision.ID.Bytes).String(), uuid.UUID(parent.revision.ID.Bytes).String())
+				revisions = append(revisions, revisionWithIngredients)
 			}
 			userRecipes = append(userRecipes, RecipeWithRevisions{recipe: recipe, revisions: revisions})
 		}
@@ -514,6 +547,9 @@ func main() {
 }
 
 func randBetween(lower, upper int) int {
+	if upper < lower {
+		panic(fmt.Sprintf("INVALID RANGE %d, %d", lower, upper))
+	}
 	return rand.IntN(upper-lower) + lower
 }
 
@@ -525,6 +561,10 @@ func getRandomVal[T any](arr []T) T {
 	size := len(arr)
 	if size < 1 {
 		panic("EMPTY ARR")
+	}
+
+	if size == 1 {
+		return arr[0]
 	}
 	return arr[randBetween(0, size-1)]
 }

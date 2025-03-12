@@ -16,12 +16,14 @@ INSERT INTO recipes (
   author_id,
   forked_from,
   slug,
-  private
+  private,
+  initial_publish_date
 ) VALUES (
   $1,
   $2,
   $3,
-  $4
+  $4,
+  $5
 ) RETURNING
   id,
   author_id,
@@ -33,10 +35,11 @@ INSERT INTO recipes (
 `
 
 type CreateRecipeParams struct {
-	AuthorID   pgtype.UUID
-	ForkedFrom pgtype.UUID
-	Slug       string
-	Private    bool
+	AuthorID           pgtype.UUID
+	ForkedFrom         pgtype.UUID
+	Slug               string
+	Private            bool
+	InitialPublishDate pgtype.Timestamp
 }
 
 func (q *Queries) CreateRecipe(ctx context.Context, arg CreateRecipeParams) (Recipe, error) {
@@ -45,6 +48,7 @@ func (q *Queries) CreateRecipe(ctx context.Context, arg CreateRecipeParams) (Rec
 		arg.ForkedFrom,
 		arg.Slug,
 		arg.Private,
+		arg.InitialPublishDate,
 	)
 	var i Recipe
 	err := row.Scan(
