@@ -11,36 +11,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const getAuthorByRecipeId = `-- name: GetAuthorByRecipeId :one
-SELECT
-  users.id,
-  users.display_name,
-  users.email,
-  users.join_date,
-  users.updated_at,
-  users.photo
-FROM
-  users
-JOIN recipes ON users.id = recipes.author_id
-WHERE
-  recipes.id = $1
-LIMIT 1
-`
-
-func (q *Queries) GetAuthorByRecipeId(ctx context.Context, id pgtype.UUID) (User, error) {
-	row := q.db.QueryRow(ctx, getAuthorByRecipeId, id)
-	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.DisplayName,
-		&i.Email,
-		&i.JoinDate,
-		&i.UpdatedAt,
-		&i.Photo,
-	)
-	return i, err
-}
-
 const updateUser = `-- name: UpdateUser :one
 UPDATE users
 SET display_name = $2, email = $3, photo = $4

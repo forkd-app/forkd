@@ -2,7 +2,6 @@ package model
 
 import (
 	"forkd/db"
-
 	"github.com/jackc/pgx/v5/pgtype"
 )
 

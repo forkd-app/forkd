@@ -19,7 +19,7 @@ func (r *recipeResolver) Author(ctx context.Context, obj *model.Recipe) (*model.
 		Bytes: obj.Author.ID,
 		Valid: true,
 	}
-	data, err := r.Queries.GetAuthorByRecipeId(ctx, uuid)
+	data, err := r.Queries.GetUserById(ctx, uuid)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch author: %w", err)
 	}
