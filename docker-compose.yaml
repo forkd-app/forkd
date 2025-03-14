@@ -237,3 +237,24 @@ services:
       - ./:/app
     profiles:
       - "scripts"
+  seed:
+    # This specifies the docker file/context to build for the api container
+    build:
+      context: ./api
+      dockerfile: seed.Dockerfile
+    # Attach this container to our dedicated network for the services in this compose file
+    networks:
+      - app_network
+    # Expose the port that the api uses so you can access it at localhost:8000
+    # Use the .env file from the api dir
+    env_file:
+      - ./api/.env
+    # This container will wait for the db container to start before starting
+    depends_on:
+      - db
+      - object-storage
+    links:
+      - db:postgres
+      - object-storage:minio
+    profiles:
+      - "scripts"

@@ -18,7 +18,8 @@ INSERT INTO recipe_revisions (
   recipe_description,
   change_comment,
   title,
-  photo
+  photo,
+  publish_date
 )
 VALUES (
   $1,
@@ -26,7 +27,8 @@ VALUES (
   $3,
   $4,
   $5,
-  $6
+  $6,
+  $7
 )
 RETURNING
   id,
@@ -46,6 +48,7 @@ type CreateRevisionParams struct {
 	ChangeComment     pgtype.Text
 	Title             string
 	Photo             pgtype.Text
+	PublishDate       pgtype.Timestamp
 }
 
 func (q *Queries) CreateRevision(ctx context.Context, arg CreateRevisionParams) (RecipeRevision, error) {
@@ -56,6 +59,7 @@ func (q *Queries) CreateRevision(ctx context.Context, arg CreateRevisionParams) 
 		arg.ChangeComment,
 		arg.Title,
 		arg.Photo,
+		arg.PublishDate,
 	)
 	var i RecipeRevision
 	err := row.Scan(
