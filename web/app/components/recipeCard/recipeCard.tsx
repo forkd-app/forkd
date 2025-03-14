@@ -1,10 +1,13 @@
+import { FC } from "react"
 import { Flex, Text, Button, Image } from "@mantine/core"
 
-interface Recipe {
-  title: string
+interface Props {
+  recipe: {
+    title: string
+  }
 }
 
-export function RecipeCard({ title }: Recipe) {
+export const RecipeCard: FC<Props> = ({ recipe }) => {
   return (
     <Flex
       direction={"column"}
@@ -13,7 +16,7 @@ export function RecipeCard({ title }: Recipe) {
     >
       <Image src="images/image.jpg" alt="recipe" />
       <div>
-        <Text>{title}</Text>
+        <Text>{recipe.title}</Text>
         <Text>stars</Text>
         <Text>posted by author on date</Text>
       </div>

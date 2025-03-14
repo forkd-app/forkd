@@ -7,12 +7,8 @@ import {
 } from "@remix-run/react"
 import { MantineProvider } from "@mantine/core"
 import "@mantine/core/styles.css"
-import { Header } from "./components/header/header"
-import { MobileHeader } from "./components/header/mobileHeader"
-import { useMediaQuery } from "@mantine/hooks"
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const isMobile = useMediaQuery("(max-width: 1199px)")
   return (
     <html lang="en">
       <head>
@@ -22,10 +18,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <MantineProvider>
-          {isMobile ? <MobileHeader /> : <Header />}
-          {children}
-        </MantineProvider>
+        <MantineProvider>{children}</MantineProvider>
         <ScrollRestoration />
         <Scripts />
       </body>

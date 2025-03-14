@@ -1,6 +1,6 @@
-import type { MetaFunction } from "@remix-run/node"
-import { Grid } from "@mantine/core"
-import { RecipeCard } from "../components/recipeCard/recipeCard"
+import { SimpleGrid } from "@mantine/core"
+import { RecipeCard } from "../../components/recipeCard/recipeCard"
+import { MetaFunction } from "@remix-run/react"
 
 export const meta: MetaFunction = () => {
   return [
@@ -25,26 +25,29 @@ export default function Index() {
   return (
     <>
       {/* recipe component */}
-      <Grid style={styles.gridContainer} justify="center">
+      <SimpleGrid
+        cols={{ base: 1, sm: 2, md: 2, lg: 4 }}
+        pb={40}
+        pt={40}
+        style={styles.grid}
+      >
         {recipes.map((recipe) => (
-          <Grid.Col
-            key={recipe.title}
-            style={styles.grid}
-            span={{ base: 12, md: 5.5, lg: 3.5 }}
-          >
-            <RecipeCard {...recipe} />
-          </Grid.Col>
+          <div key={recipe.title} style={styles.col}>
+            <RecipeCard recipe={recipe} />
+          </div>
         ))}
-      </Grid>
+      </SimpleGrid>
     </>
   )
 }
 
 const styles = {
-  gridContainer: {
-    padding: 50,
-  },
   grid: {
+    background: "#fffaf5",
+    width: "90%",
+    margin: "auto",
+  },
+  col: {
     padding: 10,
     margin: 10,
     borderWidth: 0,

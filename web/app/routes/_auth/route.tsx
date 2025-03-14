@@ -1,9 +1,10 @@
 import type { MetaFunction } from "@remix-run/node"
-import { Text, Flex, Container } from "@mantine/core"
+import { Flex, Container } from "@mantine/core"
+import { Outlet } from "@remix-run/react"
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "Log In" },
+    { title: "Sign Up" },
     {
       name: "join in on the fun and start creating recipes",
       content: "Welcome to Forkd!",
@@ -11,16 +12,16 @@ export const meta: MetaFunction = () => {
   ]
 }
 
-export default function LogIn() {
+export default function AuthLayout() {
   return (
     <Container>
       <Flex
+        style={styles.contain}
         justify="center"
         align="center"
-        style={styles.contain}
         direction={"column"}
       >
-        <Text> Log In Page </Text>
+        <Outlet />
       </Flex>
     </Container>
   )
