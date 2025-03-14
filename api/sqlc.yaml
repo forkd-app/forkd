@@ -1,7 +1,13 @@
 version: "2"
 sql:
   - engine: "postgresql"
-    queries: "../db/queries/"
+    queries:
+      - "../db/queries/user"
+      - "../db/queries/auth"
+      - "../db/queries/recipe"
+      - "../db/queries/revision"
+      - "../db/queries/ingredient"
+      - "../db/queries/measurement_unit"
     schema: "../db/migrations/"
     gen:
       go:

@@ -3,6 +3,9 @@
 package model
 
 import (
+	"fmt"
+	"io"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,10 +16,68 @@ type PaginatedResult interface {
 	GetPagination() *PaginationInfo
 }
 
+type AddRevisionInput struct {
+	ID       uuid.UUID                  `json:"id"`
+	Parent   uuid.UUID                  `json:"parent"`
+	Slug     string                     `json:"slug"`
+	Revision *CreateRecipeRevisionInput `json:"revision"`
+}
+
+type CreateRecipeInput struct {
+	Slug      string                     `json:"slug"`
+	ForkdFrom *uuid.UUID                 `json:"forkdFrom,omitempty"`
+	Revision  *CreateRecipeRevisionInput `json:"revision"`
+	Private   bool                       `json:"private"`
+}
+
+type CreateRecipeRevisionIngredient struct {
+	Ingredient string  `json:"ingredient"`
+	Unit       string  `json:"unit"`
+	Quantity   float64 `json:"quantity"`
+	Comment    *string `json:"comment,omitempty"`
+}
+
+type CreateRecipeRevisionInput struct {
+	Title         string                            `json:"title"`
+	Description   *string                           `json:"description,omitempty"`
+	Tags          []string                          `json:"tags"`
+	Ingredients   []*CreateRecipeRevisionIngredient `json:"ingredients"`
+	Steps         []*CreateRecipeRevisionStep       `json:"steps"`
+	ChangeComment *string                           `json:"changeComment,omitempty"`
+	Photo         *string                           `json:"photo,omitempty"`
+}
+
+type CreateRecipeRevisionStep struct {
+	Instruction string  `json:"instruction"`
+	Step        int     `json:"step"`
+	Photo       *string `json:"photo,omitempty"`
+}
+
 type Ingredient struct {
 	ID          int     `json:"id"`
 	Name        string  `json:"name"`
 	Description *string `json:"description,omitempty"`
+}
+
+type ListRecipeInput struct {
+	AuthorID     *uuid.UUID         `json:"authorId,omitempty"`
+	PublishStart *time.Time         `json:"publishStart,omitempty"`
+	PublishEnd   *time.Time         `json:"publishEnd,omitempty"`
+	SortCol      *ListRecipeSortCol `json:"sortCol,omitempty"`
+	SortDir      *SortDir           `json:"sortDir,omitempty"`
+	Limit        *int               `json:"limit,omitempty"`
+	NextCursor   *string            `json:"nextCursor,omitempty"`
+}
+
+type ListRevisionsInput struct {
+	RecipeID     *uuid.UUID         `json:"recipeId,omitempty"`
+	ParentID     *uuid.UUID         `json:"parentId,omitempty"`
+	PublishStart *time.Time         `json:"publishStart,omitempty"`
+	PublishEnd   *time.Time         `json:"publishEnd,omitempty"`
+	SortCol      *ListRecipeSortCol `json:"sortCol,omitempty"`
+	SortDir      *SortDir           `json:"sortDir,omitempty"`
+	Limit        *int               `json:"limit,omitempty"`
+	NextCursor   *string            `json:"nextCursor,omitempty"`
 }
 
 type LoginResponse struct {
@@ -77,6 +138,11 @@ type RecipeIngredient struct {
 	Comment    *string          `json:"comment,omitempty"`
 }
 
+type RecipeMutation struct {
+	Create      *Recipe         `json:"create"`
+	AddRevision *RecipeRevision `json:"addRevision"`
+}
+
 type RecipeQuery struct {
 	ByID   *Recipe           `json:"byId,omitempty"`
 	BySlug *Recipe           `json:"bySlug,omitempty"`
@@ -94,6 +160,7 @@ type RecipeRevision struct {
 	Ingredients       []*RecipeIngredient `json:"ingredients"`
 	Steps             []*RecipeStep       `json:"steps"`
 	Rating            *float64            `json:"rating,omitempty"`
+	Photo             *string             `json:"photo,omitempty"`
 }
 
 type RecipeStep struct {
@@ -101,6 +168,7 @@ type RecipeStep struct {
 	Revision *RecipeRevision `json:"revision"`
 	Content  string          `json:"content"`
 	Index    int             `json:"index"`
+	Photo    *string         `json:"photo,omitempty"`
 }
 
 type Tag struct {
@@ -116,6 +184,7 @@ type User struct {
 	UpdatedAt   time.Time         `json:"updatedAt"`
 	Email       string            `json:"email"`
 	DisplayName string            `json:"displayName"`
+	Photo       *string           `json:"photo,omitempty"`
 	Recipes     *PaginatedRecipes `json:"recipes"`
 }
 
@@ -123,10 +192,98 @@ type UserMutation struct {
 	RequestMagicLink string         `json:"requestMagicLink"`
 	Login            *LoginResponse `json:"login"`
 	Logout           bool           `json:"logout"`
+	Update           *User          `json:"update"`
 }
 
 type UserQuery struct {
 	ByID    *User `json:"byId,omitempty"`
 	ByEmail *User `json:"byEmail,omitempty"`
 	Current *User `json:"current,omitempty"`
+}
+
+type UserUpdateInput struct {
+	DisplayName *string `json:"displayName,omitempty"`
+	Photo       *string `json:"photo,omitempty"`
+}
+
+type ListRecipeSortCol string
+
+const (
+	ListRecipeSortColPublishDate ListRecipeSortCol = "PUBLISH_DATE"
+	ListRecipeSortColSlug        ListRecipeSortCol = "SLUG"
+)
+
+var AllListRecipeSortCol = []ListRecipeSortCol{
+	ListRecipeSortColPublishDate,
+	ListRecipeSortColSlug,
+}
+
+func (e ListRecipeSortCol) IsValid() bool {
+	switch e {
+	case ListRecipeSortColPublishDate, ListRecipeSortColSlug:
+		return true
+	}
+	return false
+}
+
+func (e ListRecipeSortCol) String() string {
+	return string(e)
+}
+
+func (e *ListRecipeSortCol) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ListRecipeSortCol(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ListRecipeSortCol", str)
+	}
+	return nil
+}
+
+func (e ListRecipeSortCol) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SortDir string
+
+const (
+	SortDirAsc  SortDir = "ASC"
+	SortDirDesc SortDir = "DESC"
+)
+
+var AllSortDir = []SortDir{
+	SortDirAsc,
+	SortDirDesc,
+}
+
+func (e SortDir) IsValid() bool {
+	switch e {
+	case SortDirAsc, SortDirDesc:
+		return true
+	}
+	return false
+}
+
+func (e SortDir) String() string {
+	return string(e)
+}
+
+func (e *SortDir) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SortDir(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SortDir", str)
+	}
+	return nil
+}
+
+func (e SortDir) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }

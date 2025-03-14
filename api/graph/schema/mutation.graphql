@@ -1,5 +1,6 @@
 type Mutation {
   user: UserMutation
+  recipe: RecipeMutation
 }
 
 type UserMutation {
@@ -7,9 +8,63 @@ type UserMutation {
   login(code: String!, token: String!): LoginResponse!
     @goField(forceResolver: true)
   logout: Boolean! @auth(required: true) @goField(forceResolver: true)
+  update(input: UserUpdateInput!): User!
+    @auth(required: true)
+    @goField(forceResolver: true)
+}
+
+type RecipeMutation {
+  create(input: CreateRecipeInput!): Recipe!
+    @auth(required: true)
+    @goField(forceResolver: true)
+  addRevision(input: AddRevisionInput!): RecipeRevision!
+    @auth(required: true)
+    @goField(forceResolver: true)
 }
 
 type LoginResponse {
   token: String!
   user: User!
+}
+
+input UserUpdateInput {
+  displayName: String
+  photo: String
+}
+
+input CreateRecipeInput {
+  slug: String!
+  forkdFrom: UUID
+  revision: CreateRecipeRevisionInput!
+  private: Boolean!
+}
+
+input AddRevisionInput {
+  id: UUID!
+  parent: UUID!
+  slug: String!
+  revision: CreateRecipeRevisionInput!
+}
+
+input CreateRecipeRevisionInput {
+  title: String!
+  description: String
+  tags: [String!]!
+  ingredients: [CreateRecipeRevisionIngredient!]!
+  steps: [CreateRecipeRevisionStep!]!
+  changeComment: String
+  photo: String
+}
+
+input CreateRecipeRevisionIngredient {
+  ingredient: String!
+  unit: String!
+  quantity: Float!
+  comment: String
+}
+
+input CreateRecipeRevisionStep {
+  instruction: String!
+  step: Int!
+  photo: String
 }

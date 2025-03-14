@@ -16,20 +16,35 @@ func (r *mutationResolver) User(ctx context.Context) (*model.UserMutation, error
 	return &model.UserMutation{}, nil
 }
 
+// Recipe is the resolver for the recipe field.
+func (r *mutationResolver) Recipe(ctx context.Context) (*model.RecipeMutation, error) {
+	return &model.RecipeMutation{}, nil
+}
+
+// Create is the resolver for the create field.
+func (r *recipeMutationResolver) Create(ctx context.Context, obj *model.RecipeMutation, input model.CreateRecipeInput) (*model.Recipe, error) {
+	return r.RecipeService.CreateRecipe(ctx, input)
+}
+
+// AddRevision is the resolver for the addRevision field.
+func (r *recipeMutationResolver) AddRevision(ctx context.Context, obj *model.RecipeMutation, input model.AddRevisionInput) (*model.RecipeRevision, error) {
+	return r.RecipeService.AddRecipeRevision(ctx, input)
+}
+
 // RequestMagicLink is the resolver for the requestMagicLink field.
 func (r *userMutationResolver) RequestMagicLink(ctx context.Context, obj *model.UserMutation, email string) (string, error) {
-	user, err := r.Auth.UpsertUser(ctx, email)
+	user, err := r.AuthService.UpsertUser(ctx, email)
 	if err != nil {
 		return "", err
 	}
-	lookup, err := r.Auth.CreateMagicLink(ctx, user.ID)
+	lookup, err := r.AuthService.CreateMagicLink(ctx, user.ID)
 	if err != nil {
 		return "", err
 	}
 	// FIXME: Remove this before we push this to the public internet.
 	// THIS SHOULD ONLY BE USED FOR LOCAL TESTING
 	if util.GetEnv().GetSendMagicLinkEmail() {
-		emailData, err := r.Email.SendMagicLink(ctx, lookup.Code, user.Email)
+		emailData, err := r.EmailService.SendMagicLink(ctx, lookup.Code, user.Email)
 		if err != nil {
 			return "", err
 		} else if emailData.Data.Failed > 0 || emailData.Data.Succeeded < 1 {
@@ -43,11 +58,11 @@ func (r *userMutationResolver) RequestMagicLink(ctx context.Context, obj *model.
 
 // Login is the resolver for the login field.
 func (r *userMutationResolver) Login(ctx context.Context, obj *model.UserMutation, code string, token string) (*model.LoginResponse, error) {
-	userId, err := r.Auth.ValidateMagicLink(ctx, code, token)
+	userId, err := r.AuthService.ValidateMagicLink(ctx, code, token)
 	if err != nil {
 		return nil, err
 	}
-	result, err := r.Auth.CreateSession(ctx, userId, &code)
+	result, err := r.AuthService.CreateSession(ctx, userId, &code)
 	if err != nil {
 		return nil, err
 	}
@@ -60,16 +75,41 @@ func (r *userMutationResolver) Login(ctx context.Context, obj *model.UserMutatio
 
 // Logout is the resolver for the logout field.
 func (r *userMutationResolver) Logout(ctx context.Context, obj *model.UserMutation) (bool, error) {
-	_, session := r.Auth.GetUserSessionFromCtx(ctx)
-	err := r.Auth.DeleteSession(ctx, session.ID)
+	_, session := r.AuthService.GetUserSessionFromCtx(ctx)
+	err := r.AuthService.DeleteSession(ctx, session.ID)
 	return err == nil, nil
+}
+
+// Update is the resolver for the update field.
+func (r *userMutationResolver) Update(ctx context.Context, obj *model.UserMutation, input model.UserUpdateInput) (*model.User, error) {
+	return r.UserService.Update(ctx, input)
 }
 
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
+// RecipeMutation returns RecipeMutationResolver implementation.
+func (r *Resolver) RecipeMutation() RecipeMutationResolver { return &recipeMutationResolver{r} }
+
 // UserMutation returns UserMutationResolver implementation.
 func (r *Resolver) UserMutation() UserMutationResolver { return &userMutationResolver{r} }
 
 type mutationResolver struct{ *Resolver }
+type recipeMutationResolver struct{ *Resolver }
 type userMutationResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *recipeMutationResolver) GetRevisionPhotoUploadURL(ctx context.Context, obj *model.RecipeMutation) (*string, error) {
+	panic(fmt.Errorf("not implemented: GetRevisionPhotoUploadURL - getRevisionPhotoUploadUrl"))
+}
+func (r *recipeMutationResolver) GetStepUploadURL(ctx context.Context, obj *model.RecipeMutation) (*string, error) {
+	panic(fmt.Errorf("not implemented: GetStepUploadURL - getStepUploadUrl"))
+}
+func (r *userMutationResolver) GetProfilePhotoUploadURL(ctx context.Context, obj *model.UserMutation) (*string, error) {
+	panic(fmt.Errorf("not implemented: GetProfilePhotoUploadURL - getProfilePhotoUploadUrl"))
+}
