@@ -2,7 +2,6 @@ package model
 
 import (
 	"forkd/db"
-
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -67,6 +66,12 @@ func ListIngredientsFromDBType(results []db.RecipeIngredient) []*RecipeIngredien
 			Comment:  &result.Comment.String,
 			Revision: &RecipeRevision{
 				ID: result.RevisionID.Bytes,
+			},
+			Ingredient: &Ingredient{
+				ID: int(result.IngredientID),
+			},
+			Unit: &MeasurementUnit{
+				ID: int(result.MeasurementUnitID),
 			},
 		}
 	}

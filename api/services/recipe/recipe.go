@@ -18,10 +18,15 @@ import (
 	"github.com/minio/minio-go/v7/pkg/tags"
 )
 
+const DEFAULT_LIST_RECIPE_LIMIT = 20
+const DEFAULT_LIST_RECIPE_SORT_DIR = true
+const DEFAULT_LIST_RECIPE_SORT_FIELD = "publish_date"
+
 type RecipeService interface {
 	GetRecipeByID(ctx context.Context, id uuid.UUID) (*model.Recipe, error)
 	GetRecipeBySlug(ctx context.Context, slug string) (*model.Recipe, error)
 	GetRecipeRevisionById(ctx context.Context, id uuid.UUID) (*model.RecipeRevision, error)
+	GetLatestRecipeRevisionByRecipeId(ctx context.Context, id uuid.UUID) (*model.RecipeRevision, error)
 	GetMeasurementUnitById(ctx context.Context, id int64) (*model.MeasurementUnit, error)
 	GetIngredientById(ctx context.Context, id int64) (*model.Ingredient, error)
 	ListRecipes(ctx context.Context, input *model.ListRecipeInput) (*model.PaginatedRecipes, error)
@@ -37,6 +42,16 @@ type recipeService struct {
 	conn           *pgxpool.Pool
 	authService    auth.AuthService
 	storageService object_storage.ObjectStorageService
+}
+
+// GetLatestRecipeRevisionByRecipeId implements RecipeService.
+func (r recipeService) GetLatestRecipeRevisionByRecipeId(ctx context.Context, id uuid.UUID) (*model.RecipeRevision, error) {
+	pgId := pgtype.UUID{
+		Bytes: id,
+		Valid: true,
+	}
+	result, err := r.queries.GetLatestRecipeRevisionByRecipeId(ctx, pgId)
+	return util.HandleNoRowsOnNullableType(result, err, model.RevisionFromDBType)
 }
 
 // GetIngredientById implements RecipeService.
@@ -441,9 +456,9 @@ func (r recipeService) ListRecipes(ctx context.Context, input *model.ListRecipeI
 		params.CurrentUser = user.ID
 	}
 	if input == nil {
-		params.Limit = 20
-		params.SortDir = true
-		params.SortCol = "publish_date"
+		params.Limit = DEFAULT_LIST_RECIPE_LIMIT
+		params.SortDir = DEFAULT_LIST_RECIPE_SORT_DIR
+		params.SortCol = DEFAULT_LIST_RECIPE_SORT_FIELD
 	} else {
 		params.Limit = int32(*input.Limit)
 		switch *input.SortCol {
@@ -504,8 +519,20 @@ func (r recipeService) ListRecipes(ctx context.Context, input *model.ListRecipeI
 
 	var NextCursor *string = nil
 	if count == int(params.Limit) {
+		limit := DEFAULT_LIST_RECIPE_LIMIT
+		// TODO: abstract conversion between graphql and sql params
+		sortDir := model.SortDirDesc
+		sortCol := model.ListRecipeSortColPublishDate
+		listInput := model.ListRecipeInput{
+			Limit:   &limit,
+			SortDir: &sortDir,
+			SortCol: &sortCol,
+		}
+		if input != nil {
+			listInput = *input
+		}
 		cursor := ListRecipesCursor{
-			ListRecipeInput: *input,
+			ListRecipeInput: listInput,
 		}
 
 		switch params.SortCol {
