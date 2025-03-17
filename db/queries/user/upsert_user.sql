@@ -3,13 +3,11 @@ WITH upsert AS (
   INSERT INTO
     users (
       email,
-      display_name,
-      join_date
+      display_name
     )
   VALUES (
     $1,
-    $2,
-    $3
+    $2
   )
   ON CONFLICT (email)
   DO NOTHING

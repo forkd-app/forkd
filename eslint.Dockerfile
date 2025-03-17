@@ -9,7 +9,7 @@ WORKDIR /app
 
 FROM base AS builder
 ENV NODE_ENV development
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .eslintrc.cjs .eslintignore .prettierignore .prettierrc ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .eslintrc.cjs .eslintignore .prettierignore .prettierrc tsconfig.json ./
 COPY ./web/ ./web/
 RUN corepack prepare
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile

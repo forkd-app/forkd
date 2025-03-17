@@ -66,11 +66,11 @@ func (e emailService) SendMagicLink(ctx context.Context, token string, email str
 	// TODO: Put this in an env var
 	from := "Forkd <auth@forkd.gvasquez.dev>"
 	subject := "Forkd Login"
-	plainTextBody := fmt.Sprintf("Click here or copy and paste to login: %s/auth/validate?token=%s", linkBaseUrl, token)
+	plainTextBody := fmt.Sprintf("Click here or copy and paste to login: %s/auth/validate?code=%s", linkBaseUrl, token)
 	htmlBody := `
     <html>
       <body>
-        <p>Click or copy and paste into your browser to login: <a href="%[1]s/auth/validate?token=%[2]s">%[1]s/auth/validate?token=%[2]s</a></p>
+        <p>Click or copy and paste into your browser to login: <a href="%[1]s/auth/validate?code=%[2]s">%[1]s/auth/validate?code=%[2]s</a></p>
       </body>
     </html>
   `

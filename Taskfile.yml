@@ -150,3 +150,10 @@ tasks:
   seed:
     desc: "Seed the DB"
     cmd: docker-compose --profile "scripts" run --rm seed
+
+  reset:
+    desc: "Reset DB"
+    cmds:
+      - task: migrate-drop
+      - task: migrate-up
+      - task: seed

@@ -16,13 +16,11 @@ WITH upsert AS (
   INSERT INTO
     users (
       email,
-      display_name,
-      join_date
+      display_name
     )
   VALUES (
     $1,
-    $2,
-    $3
+    $2
   )
   ON CONFLICT (email)
   DO NOTHING
@@ -60,7 +58,6 @@ WHERE
 type UpsertUserParams struct {
 	Email       string
 	DisplayName string
-	JoinDate    pgtype.Timestamp
 }
 
 type UpsertUserRow struct {
@@ -73,7 +70,7 @@ type UpsertUserRow struct {
 }
 
 func (q *Queries) UpsertUser(ctx context.Context, arg UpsertUserParams) (UpsertUserRow, error) {
-	row := q.db.QueryRow(ctx, upsertUser, arg.Email, arg.DisplayName, arg.JoinDate)
+	row := q.db.QueryRow(ctx, upsertUser, arg.Email, arg.DisplayName)
 	var i UpsertUserRow
 	err := row.Scan(
 		&i.ID,
