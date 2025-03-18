@@ -114,7 +114,15 @@ export function Header() {
             variant="transparent"
             color="gray"
           >
-            Log In
+            Login
+          </Button>
+          <Button
+            component={Link}
+            to="/auth/logout"
+            variant="transparent"
+            color="gray"
+          >
+            Logout 
           </Button>
 
           <Button component={Link} to="/auth/signup" color="gray">
