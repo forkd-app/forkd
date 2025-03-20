@@ -12,6 +12,7 @@ import (
 )
 
 type UserService interface {
+	Create(ctx context.Context, email string, displayName string) (db.User, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*model.User, error)
 	GetByEmail(ctx context.Context, email string) (*model.User, error)
 	GetCurrent(ctx context.Context) (*model.User, error)
@@ -21,6 +22,17 @@ type UserService interface {
 type userService struct {
 	queries     *db.Queries
 	authService auth.AuthService
+}
+
+func (u userService) Create(ctx context.Context, email string, displayName string) (db.User, error) {
+	user, err := u.queries.CreateUser(ctx, db.CreateUserParams{
+		Email:       email,
+		DisplayName: displayName,
+	})
+	if err != nil {
+		return db.User{}, err
+	}
+	return user, nil
 }
 
 // GetCurrent implements UserService.

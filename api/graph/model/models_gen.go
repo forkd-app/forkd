@@ -189,7 +189,8 @@ type User struct {
 }
 
 type UserMutation struct {
-	RequestMagicLink string         `json:"requestMagicLink"`
+	RequestMagicLink *string        `json:"requestMagicLink,omitempty"`
+	Signup           *string        `json:"signup,omitempty"`
 	Login            *LoginResponse `json:"login"`
 	Logout           bool           `json:"logout"`
 	Update           *User          `json:"update"`
