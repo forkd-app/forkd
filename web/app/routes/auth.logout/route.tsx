@@ -1,5 +1,4 @@
-import { ReactNode, useEffect } from "react"
-import { redirect, useSearchParams, useSubmit } from "@remix-run/react"
+import { redirect } from "@remix-run/react"
 import { getSDK } from "~/gql/client"
 import { cookieSession, sessionWrapper } from "~/.server/session"
 
