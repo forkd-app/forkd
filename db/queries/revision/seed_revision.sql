@@ -1,11 +1,12 @@
--- name: CreateRevision :one
+-- name: SeedRevision :one
 INSERT INTO recipe_revisions (
   recipe_id,
   parent_id,
   recipe_description,
   change_comment,
   title,
-  photo
+  photo,
+  publish_date
 )
 VALUES (
   $1,
@@ -13,7 +14,8 @@ VALUES (
   $3,
   $4,
   $5,
-  $6
+  $6,
+  $7
 )
 RETURNING
   id,

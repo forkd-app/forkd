@@ -4,6 +4,7 @@ import { Categories } from "../../components/categoriesList/categories"
 import { useMediaQuery, useDisclosure } from "@mantine/hooks"
 import { useEffect, useState } from "react"
 import { Navigation } from "../../components/navigation/navigation"
+import { Link } from "@remix-run/react"
 
 export function Header() {
   const [opened, { toggle }] = useDisclosure()
@@ -107,10 +108,24 @@ export function Header() {
           />
         </Grid.Col>
         <Grid.Col style={styles.grid} span={{ base: 12, md: 6, lg: 2 }}>
-          <Button variant="transparent" color="gray">
-            Log In
+          <Button
+            component={Link}
+            to="/auth/login"
+            variant="transparent"
+            color="gray"
+          >
+            Login
           </Button>
-          <Button variant="" color="gray">
+          <Button
+            component={Link}
+            to="/auth/logout"
+            variant="transparent"
+            color="gray"
+          >
+            Logout
+          </Button>
+
+          <Button component={Link} to="/auth/signup" color="gray">
             Create Account
           </Button>
         </Grid.Col>

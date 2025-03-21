@@ -12,7 +12,7 @@ module.exports = {
     "eslint:recommended", // Base ESLint rules
     "plugin:prettier/recommended", // Integrates Prettier with ESLint
   ],
-  ignorePatterns: ["node_modules/"], // Exclude unnecessary files
+  ignorePatterns: ["node_modules/", "**/*.g.ts"], // Exclude unnecessary files
   rules: {
     "prettier/prettier": "error", // Prettier issues will be treated as errors
   },

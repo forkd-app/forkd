@@ -4,7 +4,9 @@ type Mutation {
 }
 
 type UserMutation {
-  requestMagicLink(email: String!): String! @goField(forceResolver: true)
+  requestMagicLink(email: String!): String @goField(forceResolver: true)
+  signup(email: String!, displayName: String!): String
+    @goField(forceResolver: true)
   login(code: String!, token: String!): LoginResponse!
     @goField(forceResolver: true)
   logout: Boolean! @auth(required: true) @goField(forceResolver: true)

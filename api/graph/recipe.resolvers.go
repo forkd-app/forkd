@@ -10,21 +10,16 @@ import (
 	"forkd/graph/model"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // Author is the resolver for the author field.
 func (r *recipeResolver) Author(ctx context.Context, obj *model.Recipe) (*model.User, error) {
-	uuid := pgtype.UUID{
-		Bytes: obj.Author.ID,
-		Valid: true,
-	}
-	data, err := r.Queries.GetUserById(ctx, uuid)
+	author, err := r.UserService.GetByID(ctx, obj.Author.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch author: %w", err)
 	}
 
-	return model.UserFromDBType(data), nil
+	return author, nil
 }
 
 // ForkedFrom is the resolver for the forkedFrom field.

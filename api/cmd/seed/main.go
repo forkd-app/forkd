@@ -72,7 +72,7 @@ func createUsers(ctx context.Context, tx pgx.Tx, qtx *db.Queries) []db.User {
 	log.Println("creating users")
 	users := make([]db.User, USER_COUNT)
 	for i := 0; i < USER_COUNT; i++ {
-		user, err := qtx.UpsertUser(ctx, db.UpsertUserParams{
+		user, err := qtx.SeedUser(ctx, db.SeedUserParams{
 			DisplayName: gofakeit.Username(),
 			Email:       gofakeit.Email(),
 			JoinDate: pgtype.Timestamp{
@@ -202,7 +202,7 @@ func main() {
 		for i := 0; i < recipeCount; i++ {
 			var forkdFrom RevisionWithIngredients
 			title := getRandomFood()
-			recipeParams := db.CreateRecipeParams{
+			recipeParams := db.SeedRecipeParams{
 				AuthorID: user.ID,
 				Slug:     strings.ToLower(fmt.Sprintf("%s/%s-%d", url.PathEscape(user.DisplayName), url.PathEscape(strings.ReplaceAll(title, " ", "-")), i)),
 				Private:  flipCoin(PRIVATE_CHANCE),
@@ -225,7 +225,7 @@ func main() {
 					Valid: true,
 				}
 			}
-			recipe, err := qtx.CreateRecipe(ctx, recipeParams)
+			recipe, err := qtx.SeedRecipe(ctx, recipeParams)
 			if err != nil {
 				// I know I shouldn't be ignoring this but whatever lol
 				_ = tx.Rollback(ctx)
@@ -235,7 +235,7 @@ func main() {
 			revisionCount := randBetween(REVISION_PER_RECIPE_MIN, REVISION_PER_RECIPE_MAX)
 			revisions := make([]RevisionWithIngredients, 0)
 			if forkdFrom.revision.ID.Valid {
-				initialRevision, err := qtx.CreateRevision(ctx, db.CreateRevisionParams{
+				initialRevision, err := qtx.SeedRevision(ctx, db.SeedRevisionParams{
 					RecipeID:          forkdFrom.revision.RecipeID,
 					RecipeDescription: forkdFrom.revision.RecipeDescription,
 					ChangeComment:     forkdFrom.revision.ChangeComment,
@@ -294,7 +294,7 @@ func main() {
 					steps:       make([]db.RecipeStep, 0),
 				}
 				var parent RevisionWithIngredients
-				revisionParams := db.CreateRevisionParams{
+				revisionParams := db.SeedRevisionParams{
 					Title:    title,
 					RecipeID: recipe.ID,
 					PublishDate: pgtype.Timestamp{
@@ -339,7 +339,7 @@ func main() {
 						revisionParams.Title = getRandomFood()
 					}
 
-					revision, err := qtx.CreateRevision(ctx, revisionParams)
+					revision, err := qtx.SeedRevision(ctx, revisionParams)
 					if err != nil {
 						// I know I shouldn't be ignoring this but whatever lol
 						_ = tx.Rollback(ctx)
@@ -362,7 +362,7 @@ func main() {
 						}
 					}
 
-					revision, err := qtx.CreateRevision(ctx, revisionParams)
+					revision, err := qtx.SeedRevision(ctx, revisionParams)
 					if err != nil {
 						// I know I shouldn't be ignoring this but whatever lol
 						_ = tx.Rollback(ctx)

@@ -2,14 +2,17 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"forkd/db"
+	"forkd/services/email"
 	"forkd/util"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -45,32 +48,74 @@ type MagicLinkLookup struct {
 }
 
 type AuthService interface {
-	CreateMagicLink(context.Context, pgtype.UUID) (*MagicLinkLookup, error)
-	CreateSession(context.Context, pgtype.UUID, *string) (UserWithSessionToken, error)
-	DeleteSession(context.Context, pgtype.UUID) error
-	GetUserSessionAndSetOnContext(context.Context) context.Context
-	GetUserSessionFromCtx(context.Context) (*db.User, *db.Session)
+	CreateSession(ctx context.Context, userId pgtype.UUID, code *string) (UserWithSessionToken, error)
+	DeleteSession(ctx context.Context, sessionId pgtype.UUID) error
+	GetUserSessionAndSetOnCtx(ctx context.Context) context.Context
+	GetUserSessionFromCtx(ctx context.Context) (*db.User, *db.Session)
 	SessionWrapper(http.HandlerFunc) http.HandlerFunc
-	SetTokenOnCtx(context.Context, string) context.Context
-	UpsertUser(context.Context, string) (db.User, error)
-	ValidateMagicLink(context.Context, string, string) (pgtype.UUID, error)
-	getTokenFromCtx(context.Context) *string
-	getUserFromCtx(context.Context) *db.User
-	getSessionFromCtx(context.Context) *db.Session
-	setUserOnCtx(context.Context, db.User) context.Context
-	setSessionOnCtx(context.Context, db.Session) context.Context
+	SetTokenOnCtx(ctx context.Context, token string) context.Context
+	ValidateMagicLink(ctx context.Context, code string, token string) (pgtype.UUID, error)
+	Signup(ctx context.Context, email string, displayName string) (*string, error)
+	RequestMagicLink(ctx context.Context, email string) (*string, error)
+	createMagicLink(ctx context.Context, user db.User) (*MagicLinkLookup, error)
+	getTokenFromCtx(ctx context.Context) *string
+	getUserFromCtx(ctx context.Context) *db.User
+	getSessionFromCtx(ctx context.Context) *db.Session
+	setUserOnCtx(ctx context.Context, user db.User) context.Context
+	setSessionOnCtx(ctx context.Context, session db.Session) context.Context
 }
 
 type authService struct {
-	conn    *pgxpool.Pool
-	queries *db.Queries
+	conn         *pgxpool.Pool
+	queries      *db.Queries
+	emailService email.EmailService
+}
+
+// RequestMagicLink implements AuthService.
+// TODO: Refactor to use a transaction
+func (a authService) RequestMagicLink(ctx context.Context, email string) (*string, error) {
+	user, err := a.queries.GetUserByEmail(ctx, email)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	lookup, err := a.createMagicLink(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+	return &lookup.Token, nil
+}
+
+// Signup implements AuthService.
+// TODO: Refactor to use a transaction
+func (a authService) Signup(ctx context.Context, email string, displayName string) (*string, error) {
+	user, err := a.queries.CreateUser(ctx, db.CreateUserParams{
+		Email:       email,
+		DisplayName: displayName,
+	})
+	if err != nil {
+		// If the error returned is a postgres error with the code for a unique violation, we just return null
+		// You can find a list of the error codes here: https://www.postgresql.org/docs/current/errcodes-appendix.html
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return nil, nil
+		}
+		return nil, err
+	}
+	lookup, err := a.createMagicLink(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+	return &lookup.Token, nil
 }
 
 func (a authService) DeleteSession(ctx context.Context, sessionId pgtype.UUID) error {
 	return a.queries.DeleteSession(ctx, sessionId)
 }
 
-func (a authService) GetUserSessionAndSetOnContext(ctx context.Context) context.Context {
+func (a authService) GetUserSessionAndSetOnCtx(ctx context.Context) context.Context {
 	sessionId := a.GetSessionIdFromCtxToken(ctx)
 	if !sessionId.Valid {
 		return ctx
@@ -107,7 +152,7 @@ func (a authService) ValidateMagicLink(ctx context.Context, code string, token s
 	return magicLink.UserID, nil
 }
 
-func (a authService) CreateMagicLink(ctx context.Context, userId pgtype.UUID) (*MagicLinkLookup, error) {
+func (a authService) createMagicLink(ctx context.Context, user db.User) (*MagicLinkLookup, error) {
 	// Set the expiry for 10 minutes
 	expiry := time.Now().Add(10 * time.Minute)
 	token := pgtype.UUID{
@@ -115,7 +160,7 @@ func (a authService) CreateMagicLink(ctx context.Context, userId pgtype.UUID) (*
 		Valid: true,
 	}
 	magicLink, err := a.queries.CreateMagicLink(ctx, db.CreateMagicLinkParams{
-		UserID: userId,
+		UserID: user.ID,
 		Token:  token,
 		Expiry: pgtype.Timestamp{
 			Time:  expiry,
@@ -143,6 +188,21 @@ func (a authService) CreateMagicLink(ctx context.Context, userId pgtype.UUID) (*
 		Token: magicLinkToken,
 		Code:  magicLinkCode,
 	}
+
+	// FIXME: Remove this before we push this to the public internet.
+	// THIS SHOULD ONLY BE USED FOR LOCAL TESTING
+	if util.GetEnv().GetSendMagicLinkEmail() {
+		// TODO: This should probably be done async, either just using a goroutine or a task queue
+		emailData, err := a.emailService.SendMagicLink(ctx, lookup.Code, user.Email)
+		if err != nil {
+			return nil, err
+		} else if emailData.Data.Failed > 0 || emailData.Data.Succeeded < 1 {
+			return nil, fmt.Errorf("error sending auth email: %+v", emailData.Data.Failures)
+		}
+	} else {
+		fmt.Printf("MAGIC LINK CODE: %s\n", lookup.Code)
+	}
+
 	return &lookup, nil
 }
 
@@ -204,18 +264,6 @@ func (a authService) GetUserSessionFromCtx(ctx context.Context) (*db.User, *db.S
 		sessionAddr = &session
 	}
 	return userAddr, sessionAddr
-}
-
-func (a authService) UpsertUser(ctx context.Context, email string) (db.User, error) {
-	displayName := strings.Split(email, "@")[0]
-	upsert, err := a.queries.UpsertUser(ctx, db.UpsertUserParams{
-		Email:       email,
-		DisplayName: displayName,
-	})
-	if err != nil {
-		return db.User{}, err
-	}
-	return db.User(upsert), nil
 }
 
 func (a authService) GetSessionIdFromCtxToken(ctx context.Context) pgtype.UUID {
@@ -287,9 +335,10 @@ func newUserWithToken(user db.User, token string) UserWithSessionToken {
 	}
 }
 
-func New(queries *db.Queries, conn *pgxpool.Pool) AuthService {
+func New(queries *db.Queries, conn *pgxpool.Pool, emailService email.EmailService) AuthService {
 	return authService{
-		queries: queries,
-		conn:    conn,
+		queries:      queries,
+		conn:         conn,
+		emailService: emailService,
 	}
 }

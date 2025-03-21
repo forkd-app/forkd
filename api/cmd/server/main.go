@@ -45,8 +45,8 @@ func main() {
 		panic(fmt.Errorf("Unable to connect to db: %w", err))
 	}
 
-	authService := auth.New(queries, conn)
 	emailService := email.New()
+	authService := auth.New(queries, conn, emailService)
 	photoService := object_storage.New("forkd")
 	recipeService := recipe.New(queries, conn, authService, photoService)
 	userService := user.New(queries, authService)
@@ -54,8 +54,6 @@ func main() {
 	// TODO: We should do a refactor here, it's getting pretty cluttered (Mostly my fault lol)
 	srvConf := graph.NewExecutableSchema(graph.Config{
 		Resolvers: &graph.Resolver{
-			Queries:       queries,
-			Conn:          conn,
 			AuthService:   authService,
 			EmailService:  emailService,
 			RecipeService: recipeService,
@@ -69,8 +67,9 @@ func main() {
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", authService.SessionWrapper(srv.ServeHTTP))
+	// TODO: Move this into a package, kinda ugly here lol
 	http.Handle("POST /get-upload-url", authService.SessionWrapper(func(w http.ResponseWriter, r *http.Request) {
-		ctx := authService.GetUserSessionAndSetOnContext(r.Context())
+		ctx := authService.GetUserSessionAndSetOnCtx(r.Context())
 		user, _ := authService.GetUserSessionFromCtx(ctx)
 		if user == nil {
 			http.Error(w, "unauthorized", 401)

@@ -1,16 +1,5 @@
-import type { MetaFunction } from "@remix-run/node"
 import { Flex, Container } from "@mantine/core"
 import { Outlet } from "@remix-run/react"
-
-export const meta: MetaFunction = () => {
-  return [
-    { title: "Sign Up" },
-    {
-      name: "join in on the fun and start creating recipes",
-      content: "Welcome to Forkd!",
-    },
-  ]
-}
 
 export default function AuthLayout() {
   return (

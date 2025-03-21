@@ -6,9 +6,7 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"forkd/graph/model"
-	"forkd/util"
 )
 
 // User is the resolver for the user field.
@@ -32,32 +30,18 @@ func (r *recipeMutationResolver) AddRevision(ctx context.Context, obj *model.Rec
 }
 
 // RequestMagicLink is the resolver for the requestMagicLink field.
-func (r *userMutationResolver) RequestMagicLink(ctx context.Context, obj *model.UserMutation, email string) (string, error) {
-	user, err := r.AuthService.UpsertUser(ctx, email)
-	if err != nil {
-		return "", err
-	}
-	lookup, err := r.AuthService.CreateMagicLink(ctx, user.ID)
-	if err != nil {
-		return "", err
-	}
-	// FIXME: Remove this before we push this to the public internet.
-	// THIS SHOULD ONLY BE USED FOR LOCAL TESTING
-	if util.GetEnv().GetSendMagicLinkEmail() {
-		emailData, err := r.EmailService.SendMagicLink(ctx, lookup.Code, user.Email)
-		if err != nil {
-			return "", err
-		} else if emailData.Data.Failed > 0 || emailData.Data.Succeeded < 1 {
-			return "", fmt.Errorf("error sending auth email: %+v", emailData.Data.Failures)
-		}
-	} else {
-		fmt.Printf("MAGIC LINK CODE: %s\n", lookup.Code)
-	}
-	return lookup.Token, nil
+func (r *userMutationResolver) RequestMagicLink(ctx context.Context, obj *model.UserMutation, email string) (*string, error) {
+	return r.AuthService.RequestMagicLink(ctx, email)
+}
+
+// Signup is the resolver for the signup field.
+func (r *userMutationResolver) Signup(ctx context.Context, obj *model.UserMutation, email string, displayName string) (*string, error) {
+	return r.AuthService.Signup(ctx, email, displayName)
 }
 
 // Login is the resolver for the login field.
 func (r *userMutationResolver) Login(ctx context.Context, obj *model.UserMutation, code string, token string) (*model.LoginResponse, error) {
+	// TODO: Move this into the AuthService
 	userId, err := r.AuthService.ValidateMagicLink(ctx, code, token)
 	if err != nil {
 		return nil, err
@@ -75,6 +59,7 @@ func (r *userMutationResolver) Login(ctx context.Context, obj *model.UserMutatio
 
 // Logout is the resolver for the logout field.
 func (r *userMutationResolver) Logout(ctx context.Context, obj *model.UserMutation) (bool, error) {
+	// TODO: Move this into the AuthService
 	_, session := r.AuthService.GetUserSessionFromCtx(ctx)
 	err := r.AuthService.DeleteSession(ctx, session.ID)
 	return err == nil, nil
@@ -97,19 +82,3 @@ func (r *Resolver) UserMutation() UserMutationResolver { return &userMutationRes
 type mutationResolver struct{ *Resolver }
 type recipeMutationResolver struct{ *Resolver }
 type userMutationResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//     it when you're done.
-//   - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *recipeMutationResolver) GetRevisionPhotoUploadURL(ctx context.Context, obj *model.RecipeMutation) (*string, error) {
-	panic(fmt.Errorf("not implemented: GetRevisionPhotoUploadURL - getRevisionPhotoUploadUrl"))
-}
-func (r *recipeMutationResolver) GetStepUploadURL(ctx context.Context, obj *model.RecipeMutation) (*string, error) {
-	panic(fmt.Errorf("not implemented: GetStepUploadURL - getStepUploadUrl"))
-}
-func (r *userMutationResolver) GetProfilePhotoUploadURL(ctx context.Context, obj *model.UserMutation) (*string, error) {
-	panic(fmt.Errorf("not implemented: GetProfilePhotoUploadURL - getProfilePhotoUploadUrl"))
-}

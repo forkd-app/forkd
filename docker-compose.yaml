@@ -25,6 +25,7 @@ services:
     networks:
       - app_network
     volumes:
+      - ./pnpm-lock.yaml:/app/pnpm-lock.yaml
       - ./web:/app/web
       - /app/node_modules
       - /app/web/node_modules
