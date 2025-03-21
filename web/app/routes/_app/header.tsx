@@ -122,7 +122,7 @@ export function Header() {
             variant="transparent"
             color="gray"
           >
-            Logout 
+            Logout
           </Button>
 
           <Button component={Link} to="/auth/signup" color="gray">

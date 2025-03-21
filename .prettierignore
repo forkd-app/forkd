@@ -4,3 +4,4 @@ build/
 db/migration/
 pnpm-lock.yaml
 .pnpm-store
+/**/*.g.ts

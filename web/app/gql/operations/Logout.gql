@@ -1,5 +1,5 @@
 mutation Logout {
-    user {
-        logout
-    }
+  user {
+    logout
+  }
 }
