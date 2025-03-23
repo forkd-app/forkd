@@ -1,12 +1,14 @@
 import { Header } from "./header"
 import { Footer } from "./footer"
 import { Outlet } from "@remix-run/react"
-import { sessionWrapper } from "~/.server/session"
+import { getSessionOrThrow } from "~/.server/session"
+import { LoaderFunctionArgs } from "@remix-run/node"
 
-export const loader = sessionWrapper((_args, session) => {
+export async function loader(args: LoaderFunctionArgs) {
+  const session = await getSessionOrThrow(args)
   console.log("Session Token: ", session.get("sessionToken"))
   return null
-})
+}
 
 export default function AppLayout() {
   return (

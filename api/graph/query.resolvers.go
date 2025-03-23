@@ -41,6 +41,11 @@ func (r *userQueryResolver) ByID(ctx context.Context, obj *model.UserQuery, id u
 	return r.UserService.GetByID(ctx, id)
 }
 
+// ByDisplayName is the resolver for the byDisplayName field.
+func (r *userQueryResolver) ByDisplayName(ctx context.Context, obj *model.UserQuery, displayName string) (*model.User, error) {
+	return r.UserService.GetByDisplayName(ctx, displayName)
+}
+
 // ByEmail is the resolver for the byEmail field.
 func (r *userQueryResolver) ByEmail(ctx context.Context, obj *model.UserQuery, email string) (*model.User, error) {
 	return r.UserService.GetByEmail(ctx, email)
