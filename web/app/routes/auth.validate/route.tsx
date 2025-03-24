@@ -2,13 +2,14 @@ import { ReactNode, useEffect } from "react"
 import { redirect, useSearchParams, useSubmit } from "@remix-run/react"
 import { getSDK } from "~/gql/client"
 import { cookieSession, sessionWrapper } from "~/.server/session"
+import { environment } from "~/.server/env"
 
 export const action = sessionWrapper(async ({ request }, session) => {
   try {
     const token = session.get("magicLinkToken")
     const code = await request.text()
     if (token && code) {
-      const sdk = getSDK("http://localhost:8000/query")
+      const sdk = getSDK(`${environment.BACKEND_URL}`)
       const res = await sdk.Login({
         token,
         code,

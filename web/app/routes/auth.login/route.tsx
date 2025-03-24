@@ -16,6 +16,7 @@ export const action = sessionWrapper(async ({ request }, session) => {
   const formdata = parse(loginForm, body)
   try {
     const res = await client.RequestMagicLink(formdata)
+    console.log(res, "this is the response")
     if (res.user?.requestMagicLink) {
       session.flash("magicLinkToken", res.user.requestMagicLink)
       return redirect("/auth/magic-link", {
@@ -23,6 +24,7 @@ export const action = sessionWrapper(async ({ request }, session) => {
           "Set-Cookie": await cookieSession.commitSession(session),
         },
       })
+      // request current user obect from gpl client
     }
   } catch (err) {
     console.error(err)
@@ -58,9 +60,9 @@ export default function LogIn() {
       <Form
         style={{ width: 300 }}
         method="POST"
-        onSubmit={form.onSubmit((values) =>
+        onSubmit={form.onSubmit((values) => {
           submit(values, { method: "POST", encType: "application/json" })
-        )}
+        })}
       >
         <Text style={{ marginBottom: 10 }}>LOGIN</Text>
         <TextInput
