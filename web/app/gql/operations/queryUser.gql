@@ -5,7 +5,6 @@ query CurrentUser {
       email
       photo
       joinDate
-      __typename
       displayName
     }
   }
