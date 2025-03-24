@@ -258,7 +258,8 @@ export type UserMutation = {
   __typename?: 'UserMutation';
   login: LoginResponse;
   logout: Scalars['Boolean']['output'];
-  requestMagicLink: Scalars['String']['output'];
+  requestMagicLink?: Maybe<Scalars['String']['output']>;
+  signup?: Maybe<Scalars['String']['output']>;
   update: User;
 };
 
@@ -270,6 +271,12 @@ export type UserMutationLoginArgs = {
 
 
 export type UserMutationRequestMagicLinkArgs = {
+  email: Scalars['String']['input'];
+};
+
+
+export type UserMutationSignupArgs = {
+  displayName: Scalars['String']['input'];
   email: Scalars['String']['input'];
 };
 
@@ -318,7 +325,12 @@ export type RequestMagicLinkMutationVariables = Exact<{
 }>;
 
 
-export type RequestMagicLinkMutation = { __typename?: 'Mutation', user?: { __typename?: 'UserMutation', requestMagicLink: string } | null };
+export type RequestMagicLinkMutation = { __typename?: 'Mutation', user?: { __typename?: 'UserMutation', requestMagicLink?: string | null } | null };
+
+export type CurrentUserQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type CurrentUserQuery = { __typename?: 'Query', user?: { __typename?: 'UserQuery', current?: { __typename: 'User', id: any, email: string, photo?: string | null, joinDate: any, displayName: string } | null } | null };
 
 
 export const LoginDocument = gql`
@@ -344,6 +356,20 @@ export const RequestMagicLinkDocument = gql`
   }
 }
     `;
+export const CurrentUserDocument = gql`
+    query CurrentUser {
+  user {
+    current {
+      id
+      email
+      photo
+      joinDate
+      __typename
+      displayName
+    }
+  }
+}
+    `;
 
 export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string, variables?: any) => Promise<T>;
 
@@ -360,6 +386,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     RequestMagicLink(variables: RequestMagicLinkMutationVariables, requestHeaders?: GraphQLClientRequestHeaders): Promise<RequestMagicLinkMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<RequestMagicLinkMutation>(RequestMagicLinkDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'RequestMagicLink', 'mutation', variables);
+    },
+    CurrentUser(variables?: CurrentUserQueryVariables, requestHeaders?: GraphQLClientRequestHeaders): Promise<CurrentUserQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CurrentUserQuery>(CurrentUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'CurrentUser', 'query', variables);
     }
   };
 }
