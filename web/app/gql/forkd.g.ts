@@ -287,9 +287,15 @@ export type UserMutationUpdateArgs = {
 
 export type UserQuery = {
   __typename?: 'UserQuery';
+  byDisplayName?: Maybe<User>;
   byEmail?: Maybe<User>;
   byId?: Maybe<User>;
   current?: Maybe<User>;
+};
+
+
+export type UserQueryByDisplayNameArgs = {
+  displayName: Scalars['String']['input'];
 };
 
 
@@ -306,6 +312,14 @@ export type UserUpdateInput = {
   displayName?: InputMaybe<Scalars['String']['input']>;
   photo?: InputMaybe<Scalars['String']['input']>;
 };
+
+export type CheckUserSignupQueryVariables = Exact<{
+  email: Scalars['String']['input'];
+  displayName: Scalars['String']['input'];
+}>;
+
+
+export type CheckUserSignupQuery = { __typename?: 'Query', user?: { __typename?: 'UserQuery', byEmail?: { __typename?: 'User', email: string } | null, byDisplayName?: { __typename?: 'User', displayName: string } | null } | null };
 
 export type LoginMutationVariables = Exact<{
   token: Scalars['String']['input'];
@@ -327,12 +341,32 @@ export type RequestMagicLinkMutationVariables = Exact<{
 
 export type RequestMagicLinkMutation = { __typename?: 'Mutation', user?: { __typename?: 'UserMutation', requestMagicLink?: string | null } | null };
 
+export type SignupMutationVariables = Exact<{
+  email: Scalars['String']['input'];
+  displayName: Scalars['String']['input'];
+}>;
+
+
+export type SignupMutation = { __typename?: 'Mutation', user?: { __typename?: 'UserMutation', signup?: string | null } | null };
+
 export type CurrentUserQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type CurrentUserQuery = { __typename?: 'Query', user?: { __typename?: 'UserQuery', current?: { __typename: 'User', id: any, email: string, photo?: string | null, joinDate: any, displayName: string } | null } | null };
+export type CurrentUserQuery = { __typename?: 'Query', user?: { __typename?: 'UserQuery', current?: { __typename?: 'User', id: any, email: string, photo?: string | null, joinDate: any, displayName: string } | null } | null };
 
 
+export const CheckUserSignupDocument = gql`
+    query CheckUserSignup($email: String!, $displayName: String!) {
+  user {
+    byEmail(email: $email) {
+      email
+    }
+    byDisplayName(displayName: $displayName) {
+      displayName
+    }
+  }
+}
+    `;
 export const LoginDocument = gql`
     mutation Login($token: String!, $code: String!) {
   user {
@@ -356,6 +390,13 @@ export const RequestMagicLinkDocument = gql`
   }
 }
     `;
+export const SignupDocument = gql`
+    mutation Signup($email: String!, $displayName: String!) {
+  user {
+    signup(email: $email, displayName: $displayName)
+  }
+}
+    `;
 export const CurrentUserDocument = gql`
     query CurrentUser {
   user {
@@ -364,7 +405,6 @@ export const CurrentUserDocument = gql`
       email
       photo
       joinDate
-      __typename
       displayName
     }
   }
@@ -378,6 +418,9 @@ const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationTy
 
 export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
   return {
+    CheckUserSignup(variables: CheckUserSignupQueryVariables, requestHeaders?: GraphQLClientRequestHeaders): Promise<CheckUserSignupQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CheckUserSignupQuery>(CheckUserSignupDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'CheckUserSignup', 'query', variables);
+    },
     Login(variables: LoginMutationVariables, requestHeaders?: GraphQLClientRequestHeaders): Promise<LoginMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<LoginMutation>(LoginDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'Login', 'mutation', variables);
     },
@@ -386,6 +429,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     RequestMagicLink(variables: RequestMagicLinkMutationVariables, requestHeaders?: GraphQLClientRequestHeaders): Promise<RequestMagicLinkMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<RequestMagicLinkMutation>(RequestMagicLinkDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'RequestMagicLink', 'mutation', variables);
+    },
+    Signup(variables: SignupMutationVariables, requestHeaders?: GraphQLClientRequestHeaders): Promise<SignupMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<SignupMutation>(SignupDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'Signup', 'mutation', variables);
     },
     CurrentUser(variables?: CurrentUserQueryVariables, requestHeaders?: GraphQLClientRequestHeaders): Promise<CurrentUserQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<CurrentUserQuery>(CurrentUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'CurrentUser', 'query', variables);

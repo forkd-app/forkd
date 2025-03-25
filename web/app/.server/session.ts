@@ -20,7 +20,7 @@ export const cookieSession = createCookieSessionStorage<
   },
 })
 
-export async function getSession(req: Request) {
+async function getSessionFromRequest(req: Request) {
   return cookieSession.getSession(req.headers.get("Cookie"))
 }
 
@@ -28,28 +28,20 @@ export async function getSession(req: Request) {
  * Wraps the session to reduce boilerplate when writing actions and loaders that need access to the session
  * Also includes a simple default for when the session is required
  */
-export function sessionWrapper<
-  T extends ActionFunctionArgs | LoaderFunctionArgs,
-  U extends T extends ActionFunctionArgs ? ActionFunction : LoaderFunction,
->(
-  cb: (
-    args: T,
-    session: Awaited<ReturnType<typeof getSession>>
-  ) => ReturnType<U>,
+export async function getSessionOrThrow(
+  args: ActionFunctionArgs | LoaderFunctionArgs,
   required?: boolean
-): (args: T) => Promise<ReturnType<U>> {
-  return async (args) => {
-    const session = await getSession(args.request)
-    if (required && !session.has("sessionToken")) {
-      throw data(
-        {
-          error: "unauthorized",
-        },
-        {
-          status: 401,
-        }
-      )
-    }
-    return cb(args, session)
+): ReturnType<typeof getSessionFromRequest> {
+  const session = await getSessionFromRequest(args.request)
+  if (required && !session.has("sessionToken")) {
+    throw data(
+      {
+        error: "unauthorized",
+      },
+      {
+        status: 401,
+      }
+    )
   }
+  return session
 }

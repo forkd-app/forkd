@@ -15,6 +15,7 @@ type UserService interface {
 	Create(ctx context.Context, email string, displayName string) (db.User, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*model.User, error)
 	GetByEmail(ctx context.Context, email string) (*model.User, error)
+	GetByDisplayName(ctx context.Context, displayName string) (*model.User, error)
 	GetCurrent(ctx context.Context) (*model.User, error)
 	Update(ctx context.Context, input model.UserUpdateInput) (*model.User, error)
 }
@@ -44,6 +45,11 @@ func (u userService) GetCurrent(ctx context.Context) (*model.User, error) {
 // GetByEmail implements UserService.
 func (u userService) GetByEmail(ctx context.Context, email string) (*model.User, error) {
 	result, err := u.queries.GetUserByEmail(ctx, email)
+	return util.HandleNoRowsOnNullableType(result, err, model.UserFromDBType)
+}
+
+func (u userService) GetByDisplayName(ctx context.Context, displayName string) (*model.User, error) {
+	result, err := u.queries.GetUserByDisplayName(ctx, displayName)
 	return util.HandleNoRowsOnNullableType(result, err, model.UserFromDBType)
 }
 

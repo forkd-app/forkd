@@ -5,6 +5,7 @@ type Query {
 
 type UserQuery {
   byId(id: UUID!): User @goField(forceResolver: true)
+  byDisplayName(displayName: String!): User @goField(forceResolver: true)
   byEmail(email: String!): User @goField(forceResolver: true)
   current: User @auth(required: true) @goField(forceResolver: true)
 }

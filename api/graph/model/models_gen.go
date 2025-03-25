@@ -197,9 +197,10 @@ type UserMutation struct {
 }
 
 type UserQuery struct {
-	ByID    *User `json:"byId,omitempty"`
-	ByEmail *User `json:"byEmail,omitempty"`
-	Current *User `json:"current,omitempty"`
+	ByID          *User `json:"byId,omitempty"`
+	ByDisplayName *User `json:"byDisplayName,omitempty"`
+	ByEmail       *User `json:"byEmail,omitempty"`
+	Current       *User `json:"current,omitempty"`
 }
 
 type UserUpdateInput struct {

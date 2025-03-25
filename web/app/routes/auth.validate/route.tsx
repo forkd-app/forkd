@@ -1,34 +1,32 @@
 import { ReactNode, useEffect } from "react"
 import { redirect, useSearchParams, useSubmit } from "@remix-run/react"
 import { getSDK } from "~/gql/client"
-import { cookieSession, sessionWrapper } from "~/.server/session"
+import { cookieSession, getSessionOrThrow } from "~/.server/session"
+import { ActionFunctionArgs } from "@remix-run/node"
 import { environment } from "~/.server/env"
 
-export const action = sessionWrapper(async ({ request }, session) => {
-  try {
-    const token = session.get("magicLinkToken")
-    const code = await request.text()
-    if (token && code) {
-      const sdk = getSDK(`${environment.BACKEND_URL}`)
-      const res = await sdk.Login({
-        token,
-        code,
-      })
+export async function action(args: ActionFunctionArgs) {
+  const session = await getSessionOrThrow(args)
+  const token = session.get("magicLinkToken")
+  const code = await args.request.text()
+  if (token && code) {
+    const sdk = getSDK(environment.BACKEND_URL)
+    const res = await sdk.Login({
+      token,
+      code,
+    })
 
-      if (res.user?.login.token) {
-        session.set("sessionToken", res.user.login.token)
-        return redirect("/", {
-          headers: {
-            "Set-Cookie": await cookieSession.commitSession(session),
-          },
-        })
-      }
+    if (res.user?.login.token) {
+      session.set("sessionToken", res.user.login.token)
+      return redirect("/", {
+        headers: {
+          "Set-Cookie": await cookieSession.commitSession(session),
+        },
+      })
     }
-  } catch (err) {
-    console.error(err)
   }
   return redirect("/auth/login")
-})
+}
 
 export default function Validate(): ReactNode {
   const [searchParams] = useSearchParams()
