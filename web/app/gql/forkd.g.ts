@@ -349,6 +349,11 @@ export type SignupMutationVariables = Exact<{
 
 export type SignupMutation = { __typename?: 'Mutation', user?: { __typename?: 'UserMutation', signup?: string | null } | null };
 
+export type CurrentUserQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type CurrentUserQuery = { __typename?: 'Query', user?: { __typename?: 'UserQuery', current?: { __typename?: 'User', id: any, email: string, photo?: string | null, joinDate: any, displayName: string } | null } | null };
+
 
 export const CheckUserSignupDocument = gql`
     query CheckUserSignup($email: String!, $displayName: String!) {
@@ -392,6 +397,19 @@ export const SignupDocument = gql`
   }
 }
     `;
+export const CurrentUserDocument = gql`
+    query CurrentUser {
+  user {
+    current {
+      id
+      email
+      photo
+      joinDate
+      displayName
+    }
+  }
+}
+    `;
 
 export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string, variables?: any) => Promise<T>;
 
@@ -414,6 +432,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     Signup(variables: SignupMutationVariables, requestHeaders?: GraphQLClientRequestHeaders): Promise<SignupMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<SignupMutation>(SignupDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'Signup', 'mutation', variables);
+    },
+    CurrentUser(variables?: CurrentUserQueryVariables, requestHeaders?: GraphQLClientRequestHeaders): Promise<CurrentUserQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CurrentUserQuery>(CurrentUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'CurrentUser', 'query', variables);
     }
   };
 }
