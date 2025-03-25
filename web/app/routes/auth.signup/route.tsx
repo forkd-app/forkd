@@ -51,7 +51,7 @@ export async function action(args: ActionFunctionArgs) {
   return null
 }
 
-export default function LogIn() {
+export default function Signup() {
   const navigation = useNavigation()
   const isSubmitting =
     navigation.formAction === "/auth/signup" &&
