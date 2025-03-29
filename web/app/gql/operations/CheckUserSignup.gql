@@ -1,0 +1,10 @@
+query CheckUserSignup($email: String!, $displayName: String!) {
+  user {
+    byEmail(email: $email) {
+      email
+    }
+    byDisplayName(displayName: $displayName) {
+      displayName
+    }
+  }
+}

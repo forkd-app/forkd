@@ -1,18 +1,22 @@
 import { Container, Text, Button, TextInput } from "@mantine/core"
 import { IconMail } from "@tabler/icons-react"
-import { Form, useSubmit } from "@remix-run/react"
+import { Form, useActionData, useNavigation, useSubmit } from "@remix-run/react"
 import { isEmail, useForm } from "@mantine/form"
-import { redirect } from "@remix-run/node"
+import { ActionFunctionArgs, redirect } from "@remix-run/node"
 import { object, string, email, pipe, parse } from "valibot"
 import { client } from "~/gql/client"
-import { cookieSession, sessionWrapper } from "~/.server/session"
+import { cookieSession, getSessionOrThrow } from "~/.server/session"
+import { ClientError } from "graphql-request"
+
+const NOT_REGISTERED_ERROR = "email not registered"
 
 const loginForm = object({
   email: pipe(string(), email()),
 })
 
-export const action = sessionWrapper(async ({ request }, session) => {
-  const body = await request.json()
+export async function action(args: ActionFunctionArgs) {
+  const session = await getSessionOrThrow(args)
+  const body = await args.request.json()
   const formdata = parse(loginForm, body)
   try {
     const res = await client.RequestMagicLink(formdata)
@@ -27,12 +31,25 @@ export const action = sessionWrapper(async ({ request }, session) => {
       // request current user obect from gpl client
     }
   } catch (err) {
-    console.error(err)
+    if (err instanceof ClientError) {
+      // TODO: Maybe revisit this and make it a little more resilient...
+      // Lol, this is kinda whack.
+      const msg = err.message.split(":", 2).slice(0, 2).join(":")
+      console.log(msg, err.message)
+      if (msg.startsWith(NOT_REGISTERED_ERROR)) {
+        return { errors: [{ field: "email", error: msg }] }
+      }
+    }
   }
   return null
-})
+}
 
 export default function LogIn() {
+  const navigation = useNavigation()
+  const isSubmitting =
+    navigation.formAction === "/auth/signup" &&
+    navigation.state === "submitting"
+  const data = useActionData<typeof action>()
   const form = useForm({
     name: "login",
     mode: "controlled",
@@ -67,14 +84,24 @@ export default function LogIn() {
         <Text style={{ marginBottom: 10 }}>LOGIN</Text>
         <TextInput
           withAsterisk
+          disabled={isSubmitting}
           type="email"
           label="email"
           placeholder="user@forkd.food"
           leftSection={<IconMail size={16} />}
           key={form.key("email")}
           {...form.getInputProps("email")}
+          error={
+            !!data &&
+            "errors" in data &&
+            data.errors.find((err) => err.field === "email")?.error
+          }
         />
-        <Button style={{ width: "100%", marginTop: 15 }} type="submit">
+        <Button
+          loading={isSubmitting}
+          style={{ width: "100%", marginTop: 15 }}
+          type="submit"
+        >
           login
         </Button>
       </Form>

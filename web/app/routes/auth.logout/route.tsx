@@ -1,24 +1,23 @@
 import { redirect } from "@remix-run/react"
 import { getSDK } from "~/gql/client"
-import { cookieSession, sessionWrapper } from "~/.server/session"
+import { cookieSession, getSessionOrThrow } from "~/.server/session"
+import { LoaderFunctionArgs } from "@remix-run/node"
+import { environment } from "~/.server/env"
 
-export const loader = sessionWrapper(async (_, session) => {
-  try {
-    const token = session.get("sessionToken")
-    if (token) {
-      const sdk = getSDK("http://localhost:8000/query", token)
-      const res = await sdk.Logout()
+export async function loader(args: LoaderFunctionArgs) {
+  const session = await getSessionOrThrow(args, true)
+  const token = session.get("sessionToken")
+  if (token) {
+    const sdk = getSDK(environment.BACKEND_URL, token)
+    const res = await sdk.Logout()
 
-      if (res.user?.logout) {
-        return redirect("/", {
-          headers: {
-            "Set-Cookie": await cookieSession.destroySession(session),
-          },
-        })
-      }
+    if (res.user?.logout) {
+      return redirect("/", {
+        headers: {
+          "Set-Cookie": await cookieSession.destroySession(session),
+        },
+      })
     }
-  } catch (err) {
-    console.error(err)
   }
   return redirect("/auth/login")
-})
+}

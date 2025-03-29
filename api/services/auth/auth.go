@@ -77,7 +77,7 @@ func (a authService) RequestMagicLink(ctx context.Context, email string) (*strin
 	user, err := a.queries.GetUserByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, nil
+			return nil, fmt.Errorf("email not registered: %s", email)
 		}
 		return nil, err
 	}
@@ -96,6 +96,7 @@ func (a authService) Signup(ctx context.Context, email string, displayName strin
 		DisplayName: displayName,
 	})
 	if err != nil {
+		fmt.Println(err)
 		// If the error returned is a postgres error with the code for a unique violation, we just return null
 		// You can find a list of the error codes here: https://www.postgresql.org/docs/current/errcodes-appendix.html
 		var pgErr *pgconn.PgError

@@ -180,9 +180,10 @@ type ComplexityRoot struct {
 	}
 
 	UserQuery struct {
-		ByEmail func(childComplexity int, email string) int
-		ByID    func(childComplexity int, id uuid.UUID) int
-		Current func(childComplexity int) int
+		ByDisplayName func(childComplexity int, displayName string) int
+		ByEmail       func(childComplexity int, email string) int
+		ByID          func(childComplexity int, id uuid.UUID) int
+		Current       func(childComplexity int) int
 	}
 }
 
@@ -240,6 +241,7 @@ type UserMutationResolver interface {
 }
 type UserQueryResolver interface {
 	ByID(ctx context.Context, obj *model.UserQuery, id uuid.UUID) (*model.User, error)
+	ByDisplayName(ctx context.Context, obj *model.UserQuery, displayName string) (*model.User, error)
 	ByEmail(ctx context.Context, obj *model.UserQuery, email string) (*model.User, error)
 	Current(ctx context.Context, obj *model.UserQuery) (*model.User, error)
 }
@@ -801,6 +803,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserMutation.Update(childComplexity, args["input"].(model.UserUpdateInput)), true
 
+	case "UserQuery.byDisplayName":
+		if e.complexity.UserQuery.ByDisplayName == nil {
+			break
+		}
+
+		args, err := ec.field_UserQuery_byDisplayName_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.UserQuery.ByDisplayName(childComplexity, args["displayName"].(string)), true
+
 	case "UserQuery.byEmail":
 		if e.complexity.UserQuery.ByEmail == nil {
 			break
@@ -1167,6 +1181,21 @@ func (ec *executionContext) field_UserMutation_update_args(ctx context.Context, 
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_UserQuery_byDisplayName_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["displayName"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("displayName"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["displayName"] = arg0
 	return args, nil
 }
 
@@ -2068,6 +2097,8 @@ func (ec *executionContext) fieldContext_Query_user(_ context.Context, field gra
 			switch field.Name {
 			case "byId":
 				return ec.fieldContext_UserQuery_byId(ctx, field)
+			case "byDisplayName":
+				return ec.fieldContext_UserQuery_byDisplayName(ctx, field)
 			case "byEmail":
 				return ec.fieldContext_UserQuery_byEmail(ctx, field)
 			case "current":
@@ -5049,6 +5080,74 @@ func (ec *executionContext) fieldContext_UserQuery_byId(ctx context.Context, fie
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_UserQuery_byId_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserQuery_byDisplayName(ctx context.Context, field graphql.CollectedField, obj *model.UserQuery) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserQuery_byDisplayName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserQuery().ByDisplayName(rctx, obj, fc.Args["displayName"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖforkdᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserQuery_byDisplayName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserQuery",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "joinDate":
+				return ec.fieldContext_User_joinDate(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_User_updatedAt(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "displayName":
+				return ec.fieldContext_User_displayName(ctx, field)
+			case "photo":
+				return ec.fieldContext_User_photo(ctx, field)
+			case "recipes":
+				return ec.fieldContext_User_recipes(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_UserQuery_byDisplayName_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -9145,6 +9244,39 @@ func (ec *executionContext) _UserQuery(ctx context.Context, sel ast.SelectionSet
 					}
 				}()
 				res = ec._UserQuery_byId(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "byDisplayName":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserQuery_byDisplayName(ctx, field, obj)
 				return res
 			}
 
