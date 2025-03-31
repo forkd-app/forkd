@@ -1,15 +1,30 @@
-import { IconSearch, IconGrillFork } from "@tabler/icons-react"
-import { Grid, Button, Autocomplete, Text, Flex, Burger } from "@mantine/core"
+import {
+  IconSearch,
+  IconGrillFork,
+  IconChevronCompactDown,
+  IconFilter,
+} from "@tabler/icons-react"
+import {
+  Grid,
+  Button,
+  Autocomplete,
+  Text,
+  Flex,
+  Burger,
+  Popover,
+  ActionIcon,
+} from "@mantine/core"
 import { Categories } from "../../components/categoriesList/categories"
 import { useMediaQuery, useDisclosure } from "@mantine/hooks"
 import { useEffect, useState } from "react"
 import { Navigation } from "../../components/navigation/navigation"
 import { Link } from "@remix-run/react"
+import { useGlobals } from "~/stores/global"
 
 export function Header() {
   const [opened, { toggle }] = useDisclosure()
   const [isVisible, setIsVisible] = useState(false)
-
+  const { user } = useGlobals()
   useEffect(() => {
     if (isVisible) {
       document.body.style.overflow = "hidden" // Disable scrolling
@@ -70,6 +85,29 @@ export function Header() {
           "Avocado Toast",
         ]}
         leftSection={<IconSearch size={16} stroke={1.5} />}
+        rightSection={
+          <Popover width={200} position="bottom" withArrow shadow="md">
+            <Popover.Target>
+              <IconChevronCompactDown />
+            </Popover.Target>
+            <Popover.Dropdown>
+              <Flex direction="column">
+                <Button variant="transparent" color="gray" size="xs">
+                  Recipe Title
+                </Button>
+                <Button variant="transparent" color="gray" size="xs">
+                  Author
+                </Button>
+                <Button variant="transparent" color="gray" size="xs">
+                  # of Forks
+                </Button>
+                <Button variant="transparent" color="gray" size="xs">
+                  Publish Date
+                </Button>
+              </Flex>
+            </Popover.Dropdown>
+          </Popover>
+        }
       />
       <Categories />
     </Flex>
@@ -105,29 +143,65 @@ export function Header() {
               "Avocado Toast",
             ]}
             leftSection={<IconSearch size={16} stroke={1.5} />}
+            rightSection={
+              <Popover width={200} position="bottom" withArrow shadow="md">
+                <Popover.Target>
+                  <ActionIcon variant="transparent">
+                    <Text>
+                      <IconFilter color="gray" size="18" />
+                    </Text>
+                  </ActionIcon>
+                </Popover.Target>
+                <Popover.Dropdown>
+                  <Flex direction="column">
+                    <Button variant="transparent" color="gray" size="xs">
+                      Recipe Title
+                    </Button>
+                    <Button variant="transparent" color="gray" size="xs">
+                      Author
+                    </Button>
+                    <Button variant="transparent" color="gray" size="xs">
+                      # of Forks
+                    </Button>
+                    <Button variant="transparent" color="gray" size="xs">
+                      Publish Date
+                    </Button>
+                  </Flex>
+                </Popover.Dropdown>
+              </Popover>
+            }
           />
         </Grid.Col>
         <Grid.Col style={styles.grid} span={{ base: 12, md: 6, lg: 2 }}>
-          <Button
-            component={Link}
-            to="/auth/login"
-            variant="transparent"
-            color="gray"
-          >
-            Login
-          </Button>
-          <Button
-            component={Link}
-            to="/auth/logout"
-            variant="transparent"
-            color="gray"
-          >
-            Logout
-          </Button>
-
-          <Button component={Link} to="/auth/signup" color="gray">
-            Create Account
-          </Button>
+          {user ? (
+            <>
+              <Button
+                component={Link}
+                to="/auth/logout"
+                variant="transparent"
+                color="gray"
+              >
+                Logout
+              </Button>
+              <Button component={Link} to="" color="gray">
+                Manage Account
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                component={Link}
+                to="/auth/login"
+                variant="transparent"
+                color="gray"
+              >
+                Login
+              </Button>
+              <Button component={Link} to="/auth/signup" color="gray">
+                Create Account
+              </Button>
+            </>
+          )}
         </Grid.Col>
       </Grid>
       <Categories />
