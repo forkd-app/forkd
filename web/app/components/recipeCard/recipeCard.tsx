@@ -1,5 +1,5 @@
 import { FC } from "react"
-import { Flex, Text, Button, Image } from "@mantine/core"
+import { Flex, Text, Button, Image, Rating } from "@mantine/core"
 
 interface Props {
   recipe: {
@@ -17,7 +17,7 @@ export const RecipeCard: FC<Props> = ({ recipe }) => {
       <Image src="images/image.jpg" alt="recipe" />
       <div>
         <Text>{recipe.title}</Text>
-        <Text>stars</Text>
+        <Rating defaultValue={4} />
         <Text>posted by author on date</Text>
       </div>
       <div>
