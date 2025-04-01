@@ -13,15 +13,22 @@ import { getSDK } from "~/gql/client"
 import { environment } from "~/.server/env"
 import { useGlobals } from "~/stores/global"
 import { LoaderFunctionArgs } from "@remix-run/node"
+import { ClientError } from "graphql-request"
 
 export async function loader(args: LoaderFunctionArgs) {
   const session = await getSessionOrThrow(args, false)
   console.log("Session Token: ", session.get("sessionToken"))
   const auth = session.get("sessionToken")
   const sdk = getSDK(`${environment.BACKEND_URL}`, auth)
-  const data = await sdk.CurrentUser()
-
-  return data?.user?.current
+  try {
+    const data = await sdk.CurrentUser().catch(console.error)
+    return data?.user?.current ?? null
+  } catch (err) {
+    if (err instanceof ClientError && err.message === "missing auth") {
+      return null
+    }
+    throw err
+  }
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
