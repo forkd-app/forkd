@@ -1,116 +1,26 @@
-import {
-  IconSearch,
-  IconGrillFork,
-  IconChevronCompactDown,
-  IconFilter,
-} from "@tabler/icons-react"
+import { IconSearch, IconGrillFork, IconFilter } from "@tabler/icons-react"
 import {
   Grid,
   Button,
   Autocomplete,
   Text,
   Flex,
-  Burger,
   Popover,
   ActionIcon,
 } from "@mantine/core"
 import { Categories } from "../../components/categoriesList/categories"
-import { useMediaQuery, useDisclosure } from "@mantine/hooks"
-import { useEffect, useState } from "react"
-import { Navigation } from "../../components/navigation/navigation"
+import { useMediaQuery } from "@mantine/hooks"
 import { Link } from "@remix-run/react"
 import { useGlobals } from "~/stores/global"
+import { MobileHeader } from "./mobileHeader"
 
 export function Header() {
-  const [opened, { toggle }] = useDisclosure()
-  const [isVisible, setIsVisible] = useState(false)
   const { user } = useGlobals()
-  useEffect(() => {
-    if (isVisible) {
-      document.body.style.overflow = "hidden" // Disable scrolling
-    } else {
-      document.body.style.overflow = "" // Re-enable scrolling
-    }
-
-    // Clean up on component unmount
-    return () => {
-      document.body.style.overflow = ""
-    }
-  }, [isVisible])
 
   const isMobile = useMediaQuery("(max-width: 1199px)")
 
   return isMobile ? (
-    <Flex
-      style={styles.flex}
-      direction="column"
-      justify="center"
-      align="stretch"
-    >
-      <Grid style={styles.mobileGrid} justify="space-around">
-        <Grid.Col
-          style={[styles.mobileGrid, { justifyContent: "left" }]}
-          span={{ base: 6, md: 6, lg: 6 }}
-        >
-          <IconGrillFork style={{ paddingRight: 5 }} />
-          <Text>FORKD</Text>
-        </Grid.Col>
-        <Grid.Col
-          style={[styles.mobileGrid, { justifyContent: "right" }]}
-          span={{ base: 6, md: 6, lg: 6 }}
-        >
-          <Burger
-            opened={opened}
-            lineSize={3}
-            onClick={() => {
-              toggle()
-              setIsVisible(!isVisible)
-            }}
-            aria-label="Toggle navigation"
-          />
-        </Grid.Col>
-      </Grid>
-      {isVisible && (
-        <div style={styles.navContainer}>
-          <Navigation />
-        </div>
-      )}
-      <Autocomplete
-        style={styles.autocomplete}
-        placeholder="Search for a recipe"
-        data={[
-          "Vegan Mac and Cheese",
-          "Chickpea Salad",
-          "Peanut Butter Cookies",
-          "Avocado Toast",
-        ]}
-        leftSection={<IconSearch size={16} stroke={1.5} />}
-        rightSection={
-          <Popover width={200} position="bottom" withArrow shadow="md">
-            <Popover.Target>
-              <IconChevronCompactDown />
-            </Popover.Target>
-            <Popover.Dropdown>
-              <Flex direction="column">
-                <Button variant="transparent" color="gray" size="xs">
-                  Recipe Title
-                </Button>
-                <Button variant="transparent" color="gray" size="xs">
-                  Author
-                </Button>
-                <Button variant="transparent" color="gray" size="xs">
-                  # of Forks
-                </Button>
-                <Button variant="transparent" color="gray" size="xs">
-                  Publish Date
-                </Button>
-              </Flex>
-            </Popover.Dropdown>
-          </Popover>
-        }
-      />
-      <Categories />
-    </Flex>
+    <MobileHeader />
   ) : (
     <div style={{ position: "static" }}>
       <Grid style={styles.grid} justify="space-around">

@@ -43,7 +43,7 @@ export default function Index() {
 
 const styles = {
   grid: {
-    background: "#fffaf5",
+    background: "#fff",
     width: "90%",
     margin: "auto",
   },

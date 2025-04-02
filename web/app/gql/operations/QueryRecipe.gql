@@ -1,0 +1,19 @@
+query Recipe {
+  recipe {
+    list {
+      items {
+        slug
+        id
+        author {
+          displayName
+        }
+        featuredRevision {
+          recipeDescription
+          publishDate
+          rating
+          title
+        }
+      }
+    }
+  }
+}
