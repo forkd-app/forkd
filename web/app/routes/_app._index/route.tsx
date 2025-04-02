@@ -1,6 +1,12 @@
 import { SimpleGrid } from "@mantine/core"
 import { RecipeCard } from "../../components/recipeCard/recipeCard"
 import { MetaFunction } from "@remix-run/react"
+import { LoaderFunctionArgs } from "@remix-run/node"
+import { ClientError } from "graphql-request"
+import { getSessionOrThrow } from "~/.server/session"
+import { getSDK } from "~/gql/client"
+import { useEffect } from "react"
+import { environment } from "~/.server/env"
 
 export const meta: MetaFunction = () => {
   return [
@@ -20,6 +26,22 @@ const recipes = [
   { title: "chai latte" },
   { title: "grape leaves" },
 ]
+
+export async function loader(args: LoaderFunctionArgs) {
+  const session = await getSessionOrThrow(args, false)
+  console.log("Session Token: ", session.get("sessionToken"))
+  const auth = session.get("sessionToken")
+  const sdk = getSDK(`${environment.BACKEND_URL}`, auth)
+  try {
+    const data = await sdk.Recipe().catch(console.error)
+    return data ?? null
+  } catch (err) {
+    if (err instanceof ClientError && err.message === "missing auth") {
+      return null
+    }
+    throw err
+  }
+}
 
 export default function Index() {
   return (
