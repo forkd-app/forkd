@@ -7,6 +7,7 @@ import { getSessionOrThrow } from "~/.server/session"
 import { getSDK } from "~/gql/client"
 import { useEffect } from "react"
 import { environment } from "~/.server/env"
+import { useLoaderData } from "@remix-run/react"
 
 export const meta: MetaFunction = () => {
   return [
@@ -42,6 +43,8 @@ export async function loader(args: LoaderFunctionArgs) {
     throw err
   }
 }
+const data = useLoaderData<typeof loader>()
+console.log(data)
 
 export default function Index() {
   return (
