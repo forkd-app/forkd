@@ -1,12 +1,11 @@
 import { SimpleGrid } from "@mantine/core"
 import { RecipeCard } from "../../components/recipeCard/recipeCard"
-import { MetaFunction } from "@remix-run/react"
+import { MetaFunction, useLoaderData } from "@remix-run/react"
 import { LoaderFunctionArgs } from "@remix-run/node"
 import { ClientError } from "graphql-request"
 import { getSessionOrThrow } from "~/.server/session"
 import { getSDK } from "~/gql/client"
 import { environment } from "~/.server/env"
-import { useLoaderData } from "@remix-run/react"
 
 export const meta: MetaFunction = () => {
   return [
