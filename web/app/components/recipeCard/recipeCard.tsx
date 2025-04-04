@@ -3,7 +3,15 @@ import { Flex, Text, Button, Image, Rating } from "@mantine/core"
 
 interface Props {
   recipe: {
-    title: string
+    slug: string
+    id: string
+    author: { displayName: string }
+    featuredRevision: {
+      recipeDescription: string | null
+      publishDate: string
+      rating: number
+      title: string
+    }
   }
 }
 
@@ -16,12 +24,17 @@ export const RecipeCard: FC<Props> = ({ recipe }) => {
     >
       <Image src="images/image.jpg" alt="recipe" />
       <div>
-        <Text>{recipe.title}</Text>
-        <Rating defaultValue={4} />
-        <Text>posted by author on date</Text>
+        <Text>{recipe.featuredRevision.title || "No Title"}</Text>
+        <Rating defaultValue={recipe.featuredRevision.rating} />
+        <Text>
+          posted by {recipe.author.displayName || "No Name"} on{" "}
+          {recipe.featuredRevision.publishDate || "unknown"}
+        </Text>
       </div>
       <div>
-        <Text>Lorem ipsum dolor sit amet, consectetur..</Text>
+        <Text>
+          {recipe.featuredRevision.recipeDescription || "No Description"}
+        </Text>
       </div>
       <Button>View Recipe</Button>
     </Flex>

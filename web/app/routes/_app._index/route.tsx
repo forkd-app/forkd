@@ -1,4 +1,4 @@
-import { SimpleGrid } from "@mantine/core"
+import { SimpleGrid, Loader, Center } from "@mantine/core"
 import { RecipeCard } from "../../components/recipeCard/recipeCard"
 import { MetaFunction, useLoaderData } from "@remix-run/react"
 import { LoaderFunctionArgs } from "@remix-run/node"
@@ -6,6 +6,7 @@ import { ClientError } from "graphql-request"
 import { getSessionOrThrow } from "~/.server/session"
 import { getSDK } from "~/gql/client"
 import { environment } from "~/.server/env"
+import { useEffect, useState } from "react"
 
 export const meta: MetaFunction = () => {
   return [
@@ -16,15 +17,6 @@ export const meta: MetaFunction = () => {
     },
   ]
 }
-
-const recipes = [
-  { title: "pancakes" },
-  { title: "chickpea salad" },
-  { title: "chocolate mousse" },
-  { title: "rice and beans" },
-  { title: "chai latte" },
-  { title: "grape leaves" },
-]
 
 export async function loader(args: LoaderFunctionArgs) {
   const session = await getSessionOrThrow(args, false)
@@ -44,10 +36,23 @@ export async function loader(args: LoaderFunctionArgs) {
 }
 
 export default function Index() {
+  const [recipes, setRecipes] = useState<any>([])
+  const [isLoading, setIsLoading] = useState<boolean>(true)
   const data = useLoaderData<typeof loader>()
-  console.log(data)
 
-  return (
+  useEffect(() => {
+    setRecipes(data ? data : [])
+    console.log(data)
+    setIsLoading(false)
+  }, [data])
+
+  return isLoading ? (
+    <>
+      <Center>
+        <Loader />
+      </Center>
+    </>
+  ) : (
     <>
       {/* recipe component */}
       <SimpleGrid
@@ -56,9 +61,9 @@ export default function Index() {
         pt={40}
         style={styles.grid}
       >
-        {recipes.map((recipe) => (
-          <div key={recipe.title} style={styles.col}>
-            <RecipeCard recipe={recipe} />
+        {recipes?.map((recipe: any) => (
+          <div key={recipe.slug} style={styles.col}>
+            <RecipeCard recipe={recipe || {}} />
           </div>
         ))}
       </SimpleGrid>
