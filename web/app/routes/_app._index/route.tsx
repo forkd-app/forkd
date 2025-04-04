@@ -5,7 +5,6 @@ import { LoaderFunctionArgs } from "@remix-run/node"
 import { ClientError } from "graphql-request"
 import { getSessionOrThrow } from "~/.server/session"
 import { getSDK } from "~/gql/client"
-import { useEffect } from "react"
 import { environment } from "~/.server/env"
 import { useLoaderData } from "@remix-run/react"
 
@@ -35,7 +34,8 @@ export async function loader(args: LoaderFunctionArgs) {
   const sdk = getSDK(`${environment.BACKEND_URL}`, auth)
   try {
     const data = await sdk.Recipe().catch(console.error)
-    return data ?? null
+    console.log(data?.recipe?.list?.items || null)
+    return data?.recipe?.list?.items
   } catch (err) {
     if (err instanceof ClientError && err.message === "missing auth") {
       return null
@@ -43,10 +43,11 @@ export async function loader(args: LoaderFunctionArgs) {
     throw err
   }
 }
-const data = useLoaderData<typeof loader>()
-console.log(data)
 
 export default function Index() {
+  const data = useLoaderData<typeof loader>()
+  console.log(data)
+
   return (
     <>
       {/* recipe component */}
