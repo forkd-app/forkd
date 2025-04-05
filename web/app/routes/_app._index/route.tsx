@@ -7,6 +7,7 @@ import { getSessionOrThrow } from "~/.server/session"
 import { getSDK } from "~/gql/client"
 import { environment } from "~/.server/env"
 import { useEffect, useState } from "react"
+import { Recipe } from "~/gql/forkd.g"
 
 export const meta: MetaFunction = () => {
   return [
@@ -20,7 +21,6 @@ export const meta: MetaFunction = () => {
 
 export async function loader(args: LoaderFunctionArgs) {
   const session = await getSessionOrThrow(args, false)
-  console.log("Session Token: ", session.get("sessionToken"))
   const auth = session.get("sessionToken")
   const sdk = getSDK(`${environment.BACKEND_URL}`, auth)
   try {
@@ -36,7 +36,7 @@ export async function loader(args: LoaderFunctionArgs) {
 }
 
 export default function Index() {
-  const [recipes, setRecipes] = useState<any>([])
+  const [recipes, setRecipes] = useState<Recipe[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const data = useLoaderData<typeof loader>()
 
@@ -48,7 +48,10 @@ export default function Index() {
 
   return isLoading ? (
     <>
-      <Center>
+      <Center
+        h={"80vh"}
+        // style={{height: '80vh'}}
+      >
         <Loader />
       </Center>
     </>
@@ -61,7 +64,7 @@ export default function Index() {
         pt={40}
         style={styles.grid}
       >
-        {recipes?.map((recipe: any) => (
+        {recipes?.map((recipe) => (
           <div key={recipe.slug} style={styles.col}>
             <RecipeCard recipe={recipe || {}} />
           </div>

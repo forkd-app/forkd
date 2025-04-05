@@ -52,7 +52,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   const data = useLoaderData<typeof loader>()
   useGlobals.getInitialState().setUser(data)
-  console.log(useGlobals.getState().user, "i need this")
+  console.log(useGlobals.getState().user, "user signing in")
 
   return <Outlet />
 }
