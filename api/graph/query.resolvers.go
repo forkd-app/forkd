@@ -27,8 +27,8 @@ func (r *recipeQueryResolver) ByID(ctx context.Context, obj *model.RecipeQuery, 
 }
 
 // BySlug is the resolver for the bySlug field.
-func (r *recipeQueryResolver) BySlug(ctx context.Context, obj *model.RecipeQuery, slug string) (*model.Recipe, error) {
-	return r.RecipeService.GetRecipeBySlug(ctx, slug)
+func (r *recipeQueryResolver) BySlug(ctx context.Context, obj *model.RecipeQuery, authorDisplayName string, slug string) (*model.Recipe, error) {
+	return r.RecipeService.GetRecipeBySlug(ctx, slug, authorDisplayName)
 }
 
 // List is the resolver for the list field.

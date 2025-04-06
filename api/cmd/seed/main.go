@@ -204,7 +204,7 @@ func main() {
 			title := getRandomFood()
 			recipeParams := db.SeedRecipeParams{
 				AuthorID: user.ID,
-				Slug:     strings.ToLower(fmt.Sprintf("%s/%s-%d", url.PathEscape(user.DisplayName), url.PathEscape(strings.ReplaceAll(title, " ", "-")), i)),
+				Slug:     strings.ToLower(fmt.Sprintf("%s-%d", url.PathEscape(strings.ReplaceAll(title, " ", "-")), i)),
 				Private:  flipCoin(PRIVATE_CHANCE),
 				InitialPublishDate: pgtype.Timestamp{
 					Time:  gofakeit.DateRange(user.JoinDate.Time, time.Now()),

@@ -24,7 +24,7 @@ const DEFAULT_LIST_RECIPE_SORT_FIELD = "publish_date"
 
 type RecipeService interface {
 	GetRecipeByID(ctx context.Context, id uuid.UUID) (*model.Recipe, error)
-	GetRecipeBySlug(ctx context.Context, slug string) (*model.Recipe, error)
+	GetRecipeBySlug(ctx context.Context, slug string, displayName string) (*model.Recipe, error)
 	GetRecipeRevisionById(ctx context.Context, id uuid.UUID) (*model.RecipeRevision, error)
 	GetLatestRecipeRevisionByRecipeId(ctx context.Context, id uuid.UUID) (*model.RecipeRevision, error)
 	GetMeasurementUnitById(ctx context.Context, id int64) (*model.MeasurementUnit, error)
@@ -303,8 +303,11 @@ func (r recipeService) GetRecipeByID(ctx context.Context, id uuid.UUID) (*model.
 }
 
 // GetRecipeBySlug implements RecipeService.
-func (r recipeService) GetRecipeBySlug(ctx context.Context, slug string) (*model.Recipe, error) {
-	result, err := r.queries.GetRecipeBySlug(ctx, slug)
+func (r recipeService) GetRecipeBySlug(ctx context.Context, slug string, displayName string) (*model.Recipe, error) {
+	result, err := r.queries.GetRecipeBySlug(ctx, db.GetRecipeBySlugParams{
+		Slug:        slug,
+		DisplayName: displayName,
+	})
 	return util.HandleNoRowsOnNullableType(result, err, model.RecipeFromDBType)
 }
 
