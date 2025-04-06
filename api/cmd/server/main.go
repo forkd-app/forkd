@@ -42,7 +42,7 @@ func main() {
 
 	queries, conn, err := db.GetQueriesWithConnection(dbConnStr)
 	if err != nil || queries == nil {
-		panic(fmt.Errorf("Unable to connect to db: %w", err))
+		panic(fmt.Errorf("unable to connect to db: %w", err))
 	}
 
 	emailService := email.New()

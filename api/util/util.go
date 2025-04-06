@@ -39,7 +39,7 @@ func ComparePointerValues[T comparable](a *T, b *T) bool {
 
 func HandleNoRowsOnNullableType[T any, U any](result T, err error, mapper func(T) *U) (*U, error) {
 	if mapper == nil {
-		err = errors.New(("Mapping function cannot be nil"))
+		err = errors.New(("mapping function cannot be nil"))
 	}
 
 	if err != nil {
@@ -50,7 +50,7 @@ func HandleNoRowsOnNullableType[T any, U any](result T, err error, mapper func(T
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
 		}
-		return nil, fmt.Errorf(("Error mapping row on nullable type: %w"), err)
+		return nil, fmt.Errorf(("error mapping row on nullable type: %w"), err)
 	}
 
 	return mapper(result), nil
