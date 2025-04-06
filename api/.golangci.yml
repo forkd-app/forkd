@@ -1,4 +1,4 @@
-version: 2
+version: "2"
 issues:
   exclude-files:
     - ./graph/generated.go
