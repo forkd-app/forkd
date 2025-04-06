@@ -334,10 +334,10 @@ export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
 
 export type LogoutMutation = { __typename?: 'Mutation', user?: { __typename?: 'UserMutation', logout: boolean } | null };
 
-export type RecipeQueryVariables = Exact<{ [key: string]: never; }>;
+export type ListRecipesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type RecipeQuery = { __typename?: 'Query', recipe?: { __typename?: 'RecipeQuery', list: { __typename?: 'PaginatedRecipes', items: Array<{ __typename?: 'Recipe', slug: string, id: any, author: { __typename?: 'User', displayName: string }, featuredRevision?: { __typename?: 'RecipeRevision', recipeDescription?: string | null, publishDate: any, rating?: number | null, title: string } | null }> } } | null };
+export type ListRecipesQuery = { __typename?: 'Query', recipe?: { __typename?: 'RecipeQuery', list: { __typename?: 'PaginatedRecipes', items: Array<{ __typename?: 'Recipe', slug: string, id: any, author: { __typename?: 'User', displayName: string }, featuredRevision?: { __typename?: 'RecipeRevision', recipeDescription?: string | null, publishDate: any, rating?: number | null, title: string } | null }> } } | null };
 
 export type RequestMagicLinkMutationVariables = Exact<{
   email: Scalars['String']['input'];
@@ -388,8 +388,8 @@ export const LogoutDocument = gql`
   }
 }
     `;
-export const RecipeDocument = gql`
-    query Recipe {
+export const ListRecipesDocument = gql`
+    query ListRecipes {
   recipe {
     list {
       items {
@@ -453,8 +453,8 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     Logout(variables?: LogoutMutationVariables, requestHeaders?: GraphQLClientRequestHeaders): Promise<LogoutMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<LogoutMutation>(LogoutDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'Logout', 'mutation', variables);
     },
-    Recipe(variables?: RecipeQueryVariables, requestHeaders?: GraphQLClientRequestHeaders): Promise<RecipeQuery> {
-      return withWrapper((wrappedRequestHeaders) => client.request<RecipeQuery>(RecipeDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'Recipe', 'query', variables);
+    ListRecipes(variables?: ListRecipesQueryVariables, requestHeaders?: GraphQLClientRequestHeaders): Promise<ListRecipesQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ListRecipesQuery>(ListRecipesDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'ListRecipes', 'query', variables);
     },
     RequestMagicLink(variables: RequestMagicLinkMutationVariables, requestHeaders?: GraphQLClientRequestHeaders): Promise<RequestMagicLinkMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<RequestMagicLinkMutation>(RequestMagicLinkDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'RequestMagicLink', 'mutation', variables);

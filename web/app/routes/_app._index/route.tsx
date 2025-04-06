@@ -1,4 +1,4 @@
-import { SimpleGrid, Loader, Center } from "@mantine/core"
+import { SimpleGrid } from "@mantine/core"
 import { RecipeCard } from "../../components/recipeCard/recipeCard"
 import { MetaFunction, useLoaderData } from "@remix-run/react"
 import { LoaderFunctionArgs } from "@remix-run/node"
@@ -6,8 +6,6 @@ import { ClientError } from "graphql-request"
 import { getSessionOrThrow } from "~/.server/session"
 import { getSDK } from "~/gql/client"
 import { environment } from "~/.server/env"
-import { useEffect, useState } from "react"
-import { Recipe } from "~/gql/forkd.g"
 
 export const meta: MetaFunction = () => {
   return [
@@ -24,9 +22,9 @@ export async function loader(args: LoaderFunctionArgs) {
   const auth = session.get("sessionToken")
   const sdk = getSDK(`${environment.BACKEND_URL}`, auth)
   try {
-    const data = await sdk.Recipe().catch(console.error)
-    console.log(data?.recipe?.list?.items || null)
-    return data?.recipe?.list?.items
+    const data = await sdk.ListRecipes().catch(console.error)
+    console.log(data?.recipe?.list || null)
+    return data?.recipe?.list
   } catch (err) {
     if (err instanceof ClientError && err.message === "missing auth") {
       return null
@@ -36,26 +34,9 @@ export async function loader(args: LoaderFunctionArgs) {
 }
 
 export default function Index() {
-  const [recipes, setRecipes] = useState<Recipe[]>([])
-  const [isLoading, setIsLoading] = useState<boolean>(true)
-  const data = useLoaderData<typeof loader>()
+  const recipes = useLoaderData<typeof loader>()
 
-  useEffect(() => {
-    setRecipes(data ? data : [])
-    console.log(data)
-    setIsLoading(false)
-  }, [data])
-
-  return isLoading ? (
-    <>
-      <Center
-        h={"80vh"}
-        // style={{height: '80vh'}}
-      >
-        <Loader />
-      </Center>
-    </>
-  ) : (
+  return (
     <>
       {/* recipe component */}
       <SimpleGrid
@@ -64,7 +45,7 @@ export default function Index() {
         pt={40}
         style={styles.grid}
       >
-        {recipes?.map((recipe) => (
+        {recipes?.items.map((recipe) => (
           <div key={recipe.slug} style={styles.col}>
             <RecipeCard recipe={recipe || {}} />
           </div>

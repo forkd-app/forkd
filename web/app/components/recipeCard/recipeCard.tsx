@@ -1,10 +1,15 @@
 import { FC } from "react"
 import { Flex, Text, Button, Image, Rating, Title } from "@mantine/core"
-import { Recipe } from "~/gql/forkd.g"
+import { ListRecipesQuery } from "~/gql/forkd.g"
 
 interface Props {
   recipe: Recipe
 }
+
+type Recipe = Exclude<
+  ListRecipesQuery["recipe"],
+  null | undefined
+>["list"]["items"][0]
 
 export const RecipeCard: FC<Props> = ({ recipe }) => {
   return (
