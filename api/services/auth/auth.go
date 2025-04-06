@@ -71,25 +71,26 @@ type authService struct {
 	emailService email.EmailService
 }
 
-// RequestMagicLink implements AuthService.
-// TODO: Refactor to use a transaction
+// TODO: Refactor to use a transaction.
 func (a authService) RequestMagicLink(ctx context.Context, email string) (*string, error) {
 	user, err := a.queries.GetUserByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, fmt.Errorf("email not registered: %s", email)
 		}
+
 		return nil, err
 	}
+
 	lookup, err := a.createMagicLink(ctx, user)
 	if err != nil {
 		return nil, err
 	}
+
 	return &lookup.Token, nil
 }
 
-// Signup implements AuthService.
-// TODO: Refactor to use a transaction
+// TODO: Refactor to use a transaction.
 func (a authService) Signup(ctx context.Context, email string, displayName string) (*string, error) {
 	user, err := a.queries.CreateUser(ctx, db.CreateUserParams{
 		Email:       email,
@@ -103,12 +104,15 @@ func (a authService) Signup(ctx context.Context, email string, displayName strin
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 			return nil, nil
 		}
+
 		return nil, err
 	}
+
 	lookup, err := a.createMagicLink(ctx, user)
 	if err != nil {
 		return nil, err
 	}
+
 	return &lookup.Token, nil
 }
 
@@ -121,25 +125,32 @@ func (a authService) GetUserSessionAndSetOnCtx(ctx context.Context) context.Cont
 	if !sessionId.Valid {
 		return ctx
 	}
+
 	result, err := a.queries.GetUserBySessionId(ctx, sessionId)
 	if err != nil {
 		return ctx
 	}
+
 	return a.setSessionOnCtx(a.setUserOnCtx(ctx, result.User), result.Session)
 }
 
 func (a authService) ValidateMagicLink(ctx context.Context, code string, token string) (pgtype.UUID, error) {
 	var id pgtype.UUID
+
 	var magicLinkCode MagicLinkCode
+
 	var magicLinkToken MagicLinkToken
+
 	err := util.DecodeBase64StringToStruct(code, &magicLinkCode)
 	if err != nil {
 		return id, err
 	}
+
 	err = util.DecodeBase64StringToStruct(token, &magicLinkToken)
 	if err != nil {
 		return id, err
 	}
+
 	magicLink, err := a.queries.GetMagicLink(ctx, db.GetMagicLinkParams{
 		ID:    magicLinkCode.ID,
 		Token: magicLinkToken.Token,
@@ -147,9 +158,11 @@ func (a authService) ValidateMagicLink(ctx context.Context, code string, token s
 	if err != nil {
 		return id, err
 	}
+
 	if magicLink.Expiry.Time.Before(time.Now()) {
 		return id, fmt.Errorf("magic link expired")
 	}
+
 	return magicLink.UserID, nil
 }
 
@@ -160,6 +173,7 @@ func (a authService) createMagicLink(ctx context.Context, user db.User) (*MagicL
 		Bytes: uuid.New(),
 		Valid: true,
 	}
+
 	magicLink, err := a.queries.CreateMagicLink(ctx, db.CreateMagicLinkParams{
 		UserID: user.ID,
 		Token:  token,
@@ -171,20 +185,25 @@ func (a authService) createMagicLink(ctx context.Context, user db.User) (*MagicL
 	if err != nil {
 		return nil, err
 	}
+
 	magicLinkCodeStruct := MagicLinkCode{
 		ID: magicLink.ID,
 	}
+
 	magicLinkCode, err := util.EncodeStructToBase64String(magicLinkCodeStruct)
 	if err != nil {
 		return nil, err
 	}
+
 	magicLinkTokenStruct := MagicLinkToken{
 		Token: magicLink.Token,
 	}
+
 	magicLinkToken, err := util.EncodeStructToBase64String(magicLinkTokenStruct)
 	if err != nil {
 		return nil, err
 	}
+
 	lookup := MagicLinkLookup{
 		Token: magicLinkToken,
 		Code:  magicLinkCode,
@@ -213,10 +232,11 @@ func (a authService) CreateSession(ctx context.Context, userId pgtype.UUID, code
 		return UserWithSessionToken{}, err
 	}
 	// I'm ignoring the linter here because I feel we can safely ignore the error here
-	defer tx.Rollback(ctx) //nolint:all
+	defer tx.Rollback(ctx) //nolint:errcheck
 	qtx := a.queries.WithTx(tx)
 	// Set expiry to 2 weeks, this will refresh everyime we access the session
 	expiry := time.Now().AddDate(0, 0, 14)
+
 	result, err := qtx.CreateSession(ctx, db.CreateSessionParams{
 		UserID: userId,
 		Expiry: pgtype.Timestamp{
@@ -227,15 +247,19 @@ func (a authService) CreateSession(ctx context.Context, userId pgtype.UUID, code
 	if err != nil {
 		return UserWithSessionToken{}, err
 	}
+
 	session := SessionToken{
 		ID: result.ID,
 	}
+
 	sessionToken, err := util.EncodeStructToBase64String(session)
 	if err != nil {
 		return UserWithSessionToken{}, err
 	}
+
 	if code != nil {
 		var magicLinkCode MagicLinkCode
+
 		err = util.DecodeBase64StringToStruct(*code, &magicLinkCode)
 		if err != nil {
 			return UserWithSessionToken{}, err
@@ -246,38 +270,48 @@ func (a authService) CreateSession(ctx context.Context, userId pgtype.UUID, code
 			return UserWithSessionToken{}, err
 		}
 	}
+
 	err = tx.Commit(ctx)
 	if err != nil {
 		return UserWithSessionToken{}, err
 	}
+
 	return newUserWithToken(result.User, sessionToken), nil
 }
 
 func (a authService) GetUserSessionFromCtx(ctx context.Context) (*db.User, *db.Session) {
 	var userAddr *db.User
+
 	var sessionAddr *db.Session
+
 	user, ok := ctx.Value(USER_KEY).(db.User)
 	if ok {
 		userAddr = &user
 	}
+
 	session, ok := ctx.Value(SESSION_KEY).(db.Session)
 	if ok {
 		sessionAddr = &session
 	}
+
 	return userAddr, sessionAddr
 }
 
 func (a authService) GetSessionIdFromCtxToken(ctx context.Context) pgtype.UUID {
 	id := pgtype.UUID{}
 	token := a.getTokenFromCtx(ctx)
+
 	if token == nil {
 		return id
 	}
+
 	var session SessionToken
+
 	err := util.DecodeBase64StringToStruct(*token, &session)
 	if err != nil {
 		return id
 	}
+
 	return session.ID
 }
 
@@ -286,8 +320,10 @@ func (a authService) SessionWrapper(handler http.HandlerFunc) http.HandlerFunc {
 		val, ok := r.Header[http.CanonicalHeaderKey("authorization")]
 		if !ok {
 			handler(w, r)
+
 			return
 		}
+
 		req := r.WithContext(a.SetTokenOnCtx(r.Context(), val[0]))
 		handler(w, req)
 	}
@@ -302,6 +338,7 @@ func (a authService) getUserFromCtx(ctx context.Context) *db.User {
 	if !ok {
 		return nil
 	}
+
 	return &user
 }
 
@@ -314,6 +351,7 @@ func (a authService) getSessionFromCtx(ctx context.Context) *db.Session {
 	if !ok {
 		return nil
 	}
+
 	return &user
 }
 
@@ -326,6 +364,7 @@ func (a authService) getTokenFromCtx(ctx context.Context) *string {
 	if !ok {
 		return nil
 	}
+
 	return &token
 }
 

@@ -1,4 +1,6 @@
 version: "2"
-issues:
-  exclude-files:
-    - ./graph/generated.go
+linters:
+  exclusions:
+    generated: strict
+    paths:
+      - cmd/seed/*
