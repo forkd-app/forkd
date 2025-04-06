@@ -11,6 +11,29 @@ import {
 } from "@mantine/core"
 import { IconArrowLeft, IconShare } from "@tabler/icons-react"
 import { useMediaQuery } from "@mantine/hooks"
+import { LoaderFunctionArgs } from "@remix-run/node"
+import { getSessionOrThrow } from "~/.server/session"
+import { getSDK } from "~/gql/client"
+import { environment } from "~/.server/env"
+
+export async function loader(args: LoaderFunctionArgs) {
+  const session = await getSessionOrThrow(args, false)
+  const auth = session.get("sessionToken")
+  const sdk = getSDK(`${environment.BACKEND_URL}`, auth)
+  try {
+    if (args.params.author && args.params.slug) {
+      const data = await sdk.RecipeBySlug({
+        slug: args.params.slug,
+        authorDisplayName: args.params.author,
+      })
+      console.log("recipe by author/ slug", data)
+      return data
+    }
+  } catch (error) {
+    return null
+  }
+  return null
+}
 
 export default function Recipe() {
   const isMobile = useMediaQuery("(max-width: 1199px)")
@@ -23,7 +46,7 @@ export default function Recipe() {
       </Flex>
       <Flex direction={isMobile ? "column" : "row"}>
         <Flex style={styles.column} direction="column">
-          <Image src="images/image.jpg" alt="recipe" />
+          <Image src="" alt="recipe" />
           <Flex justify="space-between">
             <Text style={styles.text}> Chris Burger </Text>
             <Text style={styles.text}> Posted on 01/01/1001 </Text>

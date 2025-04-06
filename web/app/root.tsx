@@ -21,10 +21,10 @@ export async function loader(args: LoaderFunctionArgs) {
   const auth = session.get("sessionToken")
   const sdk = getSDK(`${environment.BACKEND_URL}`, auth)
   try {
-    const data = await sdk.CurrentUser().catch(console.error)
+    const data = await sdk.CurrentUser()
     return data?.user?.current ?? null
   } catch (err) {
-    if (err instanceof ClientError && err.message === "missing auth") {
+    if (err instanceof ClientError && err.message.includes("missing auth")) {
       return null
     }
     throw err

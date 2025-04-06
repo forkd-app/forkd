@@ -1,6 +1,7 @@
 import { FC } from "react"
 import { Flex, Text, Button, Image, Rating, Title } from "@mantine/core"
 import { ListRecipesQuery } from "~/gql/forkd.g"
+import { Link } from "@remix-run/react"
 
 interface Props {
   recipe: Recipe
@@ -39,7 +40,12 @@ export const RecipeCard: FC<Props> = ({ recipe }) => {
           </Text>
         </div>
       </Flex>
-      <Button>View Recipe</Button>
+      <Button
+        component={Link}
+        to={`/${recipe?.author?.displayName}/${recipe?.slug}`}
+      >
+        View Recipe
+      </Button>
     </Flex>
   )
 }

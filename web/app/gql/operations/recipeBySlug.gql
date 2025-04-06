@@ -1,0 +1,45 @@
+query RecipeBySlug($slug: String!, $authorDisplayName: String!) {
+  recipe {
+    bySlug(slug: $slug, authorDisplayName: $authorDisplayName) {
+      id
+      initialPublishDate
+      author {
+        displayName
+      }
+      forkedFrom {
+        title
+        id
+        recipe {
+          author {
+            displayName
+          }
+        }
+      }
+      featuredRevision {
+        id
+        publishDate
+        photo
+        title
+        rating
+        recipeDescription
+        ingredients {
+          id
+          unit {
+            name
+          }
+          ingredient {
+            name
+          }
+          quantity
+          comment
+        }
+        steps {
+          id
+          content
+          index
+          photo
+        }
+      }
+    }
+  }
+}
