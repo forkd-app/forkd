@@ -15,6 +15,10 @@ import { LoaderFunctionArgs } from "@remix-run/node"
 import { getSessionOrThrow } from "~/.server/session"
 import { getSDK } from "~/gql/client"
 import { environment } from "~/.server/env"
+import { useLoaderData } from "@remix-run/react"
+import { RecipeBySlugQuery } from "~/gql/forkd.g"
+
+type Recipe = Exclude<RecipeBySlugQuery["recipe"], null | undefined>["bySlug"]
 
 export async function loader(args: LoaderFunctionArgs) {
   const session = await getSessionOrThrow(args, false)
@@ -27,7 +31,7 @@ export async function loader(args: LoaderFunctionArgs) {
         authorDisplayName: args.params.author,
       })
       console.log("recipe by author/ slug", data)
-      return data
+      return data?.recipe?.bySlug
     }
   } catch (error) {
     return null
@@ -37,25 +41,41 @@ export async function loader(args: LoaderFunctionArgs) {
 
 export default function Recipe() {
   const isMobile = useMediaQuery("(max-width: 1199px)")
+  const recipe: Recipe = useLoaderData<typeof loader>()
+  console.log(
+    recipe?.featuredRevision?.photo
+      ? recipe.featuredRevision.photo
+      : "/images/image.png"
+  )
 
   return (
     <Flex style={styles.container} direction="column">
       <Flex align="center" style={styles.header}>
         <IconArrowLeft size={30} />
-        <Title order={1}> Lasagna </Title>
+        <Title order={1}> {recipe?.featuredRevision?.title} </Title>
       </Flex>
       <Flex direction={isMobile ? "column" : "row"}>
         <Flex style={styles.column} direction="column">
-          <Image src="" alt="recipe" />
+          <Image
+            src={
+              recipe?.featuredRevision?.photo
+                ? recipe.featuredRevision.photo
+                : "/images/image.jpg"
+            }
+            alt="recipe"
+          />
           <Flex justify="space-between">
-            <Text style={styles.text}> Chris Burger </Text>
-            <Text style={styles.text}> Posted on 01/01/1001 </Text>
+            <Text style={styles.text}> {recipe?.author?.displayName} </Text>
+            <Text style={styles.text}>
+              {" "}
+              Posted on {recipe?.featuredRevision?.publishDate}{" "}
+            </Text>
           </Flex>
           <Flex justify="space-between">
             <Text style={styles.text}> 0 Forks </Text>
             <Flex align="center">
-              <Rating />
-              <Text>(0 ratings)</Text>
+              <Rating defaultValue={recipe?.featuredRevision?.rating || 0} />
+              <Text>({recipe?.featuredRevision?.rating} ratings)</Text>
             </Flex>
           </Flex>
           <Flex>
@@ -73,8 +93,7 @@ export default function Recipe() {
             </Pill>
           </Flex>
           <Text style={styles.text}>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-            eiusmod tempor incididunt ut labore et dolore magna aliqua.
+            {recipe?.featuredRevision?.recipeDescription || "No Description"}
             <span style={{ textDecoration: "underline" }}> READ MORE</span>
           </Text>
           <Flex align="center">
@@ -93,34 +112,26 @@ export default function Recipe() {
         <Flex style={styles.column} direction="column">
           <Flex direction="column">
             <Title order={2}>Ingredients</Title>
-            <Checkbox
-              style={styles.text}
-              defaultChecked
-              label="2 1/2 cups small shell pasta"
-              color="gray"
-            />
-            <Checkbox
-              style={styles.text}
-              defaultChecked
-              label="1 tablespoon extra vigin olive oil"
-              color="gray"
-            />
-            <Checkbox
-              style={styles.text}
-              defaultChecked
-              label="1 small yellow onion"
-              color="gray"
-            />
+            {recipe?.featuredRevision?.ingredients?.map((ingredient) => (
+              <Checkbox
+                key={ingredient?.id}
+                style={styles.text}
+                defaultChecked
+                label={`${ingredient?.quantity} ${ingredient?.unit.name} ${ingredient?.comment}`}
+                color="gray"
+              />
+            ))}
           </Flex>
           <Flex direction="column">
             <Title order={2}>Instructions</Title>
             <div>
               <Title order={3}>Part One</Title>
               <List type="ordered">
-                <List.Item style={styles.text}>
-                  Boil pasta: Lorem ipsum dolor sit amet, sed do eiusmod tempor
-                  incididunt ut labore et dolore magna aliqua.
-                </List.Item>
+                {recipe?.featuredRevision?.steps?.map((step) => (
+                  <List.Item key={step?.id} style={styles.text}>
+                    {step?.content}
+                  </List.Item>
+                ))}
                 <List.Item style={styles.text}>
                   Saute onion: Lorem ipsum dolor sit amet, consectetur
                   adipiscing elit.
