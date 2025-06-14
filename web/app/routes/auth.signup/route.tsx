@@ -17,6 +17,7 @@ type SignupForm = InferOutput<typeof signupForm>
 export async function action(args: ActionFunctionArgs) {
   const session = await getSessionOrThrow(args, false)
   const body = await args.request.json()
+
   const formdata = parse(signupForm, body)
   const userExists = await client.CheckUserSignup(formdata)
   const errors: { field: keyof SignupForm; error: string }[] = []

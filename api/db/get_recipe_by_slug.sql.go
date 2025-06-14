@@ -11,22 +11,29 @@ import (
 
 const getRecipeBySlug = `-- name: GetRecipeBySlug :one
 SELECT
-  id,
-  author_id,
-  slug,
-  private,
-  initial_publish_date,
-  forked_from,
-  featured_revision
+  recipes.id,
+  recipes.author_id,
+  recipes.slug,
+  recipes.private,
+  recipes.initial_publish_date,
+  recipes.forked_from,
+  recipes.featured_revision
 FROM
   recipes
+JOIN
+  users ON users.id = recipes.author_id
 WHERE
-  slug = $1
+  lower(recipes.slug) = lower($1::text) AND lower(users.display_name) = lower($2::text)
 LIMIT 1
 `
 
-func (q *Queries) GetRecipeBySlug(ctx context.Context, slug string) (Recipe, error) {
-	row := q.db.QueryRow(ctx, getRecipeBySlug, slug)
+type GetRecipeBySlugParams struct {
+	Slug        string
+	DisplayName string
+}
+
+func (q *Queries) GetRecipeBySlug(ctx context.Context, arg GetRecipeBySlugParams) (Recipe, error) {
+	row := q.db.QueryRow(ctx, getRecipeBySlug, arg.Slug, arg.DisplayName)
 	var i Recipe
 	err := row.Scan(
 		&i.ID,

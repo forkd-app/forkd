@@ -128,7 +128,7 @@ type ComplexityRoot struct {
 
 	RecipeQuery struct {
 		ByID   func(childComplexity int, id uuid.UUID) int
-		BySlug func(childComplexity int, slug string) int
+		BySlug func(childComplexity int, authorDisplayName string, slug string) int
 		List   func(childComplexity int, input *model.ListRecipeInput) int
 	}
 
@@ -214,7 +214,7 @@ type RecipeMutationResolver interface {
 }
 type RecipeQueryResolver interface {
 	ByID(ctx context.Context, obj *model.RecipeQuery, id uuid.UUID) (*model.Recipe, error)
-	BySlug(ctx context.Context, obj *model.RecipeQuery, slug string) (*model.Recipe, error)
+	BySlug(ctx context.Context, obj *model.RecipeQuery, authorDisplayName string, slug string) (*model.Recipe, error)
 	List(ctx context.Context, obj *model.RecipeQuery, input *model.ListRecipeInput) (*model.PaginatedRecipes, error)
 }
 type RecipeRevisionResolver interface {
@@ -540,7 +540,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.RecipeQuery.BySlug(childComplexity, args["slug"].(string)), true
+		return e.complexity.RecipeQuery.BySlug(childComplexity, args["authorDisplayName"].(string), args["slug"].(string)), true
 
 	case "RecipeQuery.list":
 		if e.complexity.RecipeQuery.List == nil {
@@ -1065,14 +1065,23 @@ func (ec *executionContext) field_RecipeQuery_bySlug_args(ctx context.Context, r
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["slug"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slug"))
+	if tmp, ok := rawArgs["authorDisplayName"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("authorDisplayName"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["slug"] = arg0
+	args["authorDisplayName"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["slug"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slug"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["slug"] = arg1
 	return args, nil
 }
 
@@ -3300,7 +3309,7 @@ func (ec *executionContext) _RecipeQuery_bySlug(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.RecipeQuery().BySlug(rctx, obj, fc.Args["slug"].(string))
+		return ec.resolvers.RecipeQuery().BySlug(rctx, obj, fc.Args["authorDisplayName"].(string), fc.Args["slug"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

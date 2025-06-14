@@ -1,6 +1,11 @@
 import { SimpleGrid } from "@mantine/core"
 import { RecipeCard } from "../../components/recipeCard/recipeCard"
-import { MetaFunction } from "@remix-run/react"
+import { MetaFunction, useLoaderData } from "@remix-run/react"
+import { LoaderFunctionArgs } from "@remix-run/node"
+import { ClientError } from "graphql-request"
+import { getSessionOrThrow } from "~/.server/session"
+import { getSDK } from "~/gql/client"
+import { environment } from "~/.server/env"
 
 export const meta: MetaFunction = () => {
   return [
@@ -12,16 +17,25 @@ export const meta: MetaFunction = () => {
   ]
 }
 
-const recipes = [
-  { title: "pancakes" },
-  { title: "chickpea salad" },
-  { title: "chocolate mousse" },
-  { title: "rice and beans" },
-  { title: "chai latte" },
-  { title: "grape leaves" },
-]
+export async function loader(args: LoaderFunctionArgs) {
+  const session = await getSessionOrThrow(args, false)
+  const auth = session.get("sessionToken")
+  const sdk = getSDK(`${environment.BACKEND_URL}`, auth)
+  try {
+    const data = await sdk.ListRecipes()
+    // console.log(data?.recipe?.list || null)
+    return data?.recipe?.list ?? null
+  } catch (err) {
+    if (err instanceof ClientError && err.message === "missing auth") {
+      return null
+    }
+    throw err
+  }
+}
 
 export default function Index() {
+  const recipes = useLoaderData<typeof loader>()
+
   return (
     <>
       {/* recipe component */}
@@ -31,9 +45,9 @@ export default function Index() {
         pt={40}
         style={styles.grid}
       >
-        {recipes.map((recipe) => (
-          <div key={recipe.title} style={styles.col}>
-            <RecipeCard recipe={recipe} />
+        {recipes?.items.map((recipe) => (
+          <div key={recipe.slug} style={styles.col}>
+            <RecipeCard recipe={recipe || {}} />
           </div>
         ))}
       </SimpleGrid>
@@ -43,7 +57,7 @@ export default function Index() {
 
 const styles = {
   grid: {
-    background: "#fffaf5",
+    background: "#fff",
     width: "90%",
     margin: "auto",
   },

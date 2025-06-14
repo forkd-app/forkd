@@ -12,7 +12,8 @@ type UserQuery {
 
 type RecipeQuery {
   byId(id: UUID!): Recipe @goField(forceResolver: true)
-  bySlug(slug: String!): Recipe @goField(forceResolver: true)
+  bySlug(authorDisplayName: String!, slug: String!): Recipe
+    @goField(forceResolver: true)
   list(input: ListRecipeInput): PaginatedRecipes! @goField(forceResolver: true)
 }
 

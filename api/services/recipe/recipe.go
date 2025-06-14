@@ -24,7 +24,7 @@ const DEFAULT_LIST_RECIPE_SORT_FIELD = "publish_date"
 
 type RecipeService interface {
 	GetRecipeByID(ctx context.Context, id uuid.UUID) (*model.Recipe, error)
-	GetRecipeBySlug(ctx context.Context, slug string) (*model.Recipe, error)
+	GetRecipeBySlug(ctx context.Context, slug string, displayName string) (*model.Recipe, error)
 	GetRecipeRevisionById(ctx context.Context, id uuid.UUID) (*model.RecipeRevision, error)
 	GetLatestRecipeRevisionByRecipeId(ctx context.Context, id uuid.UUID) (*model.RecipeRevision, error)
 	GetMeasurementUnitById(ctx context.Context, id int64) (*model.MeasurementUnit, error)
@@ -51,6 +51,7 @@ func (r recipeService) GetLatestRecipeRevisionByRecipeId(ctx context.Context, id
 		Valid: true,
 	}
 	result, err := r.queries.GetLatestRecipeRevisionByRecipeId(ctx, pgId)
+
 	return util.HandleNoRowsOnNullableType(result, err, model.RevisionFromDBType)
 }
 
@@ -60,6 +61,7 @@ func (r recipeService) GetIngredientById(ctx context.Context, id int64) (*model.
 	if err != nil {
 		return nil, err
 	}
+
 	return model.IngredientFromDBType(result), nil
 }
 
@@ -69,6 +71,7 @@ func (r recipeService) GetMeasurementUnitById(ctx context.Context, id int64) (*m
 	if err != nil {
 		return nil, err
 	}
+
 	return model.MeasurementUnitFromDBType(result), nil
 }
 
@@ -78,12 +81,15 @@ func (r recipeService) AddRecipeRevision(ctx context.Context, input model.AddRev
 		// TODO: Write an actual error here
 		return nil, nil
 	}
+
 	tx, err := r.conn.Begin(ctx)
 	if err != nil {
 		return nil, err
 	}
+
 	qtx := r.queries.WithTx(tx)
-	defer tx.Rollback(ctx) //nolint:all
+	defer tx.Rollback(ctx) //nolint:errcheck
+
 	recipeParams := db.UpdateRecipeParams{
 		ID: pgtype.UUID{
 			Bytes: input.ID,
@@ -91,10 +97,12 @@ func (r recipeService) AddRecipeRevision(ctx context.Context, input model.AddRev
 		},
 		Slug: input.Slug,
 	}
+
 	recipe, err := qtx.UpdateRecipe(ctx, recipeParams)
 	if err != nil {
 		return nil, err
 	}
+
 	revisionParams := db.CreateRevisionParams{
 		RecipeID: recipe.ID,
 		Title:    input.Revision.Title,
@@ -110,55 +118,66 @@ func (r recipeService) AddRecipeRevision(ctx context.Context, input model.AddRev
 			Valid:  true,
 		}
 	}
+
 	if input.Revision.ChangeComment != nil {
 		revisionParams.ChangeComment = pgtype.Text{
 			String: *input.Revision.ChangeComment,
 			Valid:  true,
 		}
 	}
+
 	revision, err := qtx.CreateRevision(ctx, revisionParams)
 	if err != nil {
 		return nil, err
 	}
+
 	for _, ingredient := range input.Revision.Ingredients {
 		if ingredient == nil {
 			// TODO: Write an actual error here
 			return nil, nil
 		}
+
 		db_ingredient, err := qtx.UpsertIngredient(ctx, ingredient.Ingredient)
 		if err != nil {
 			return nil, err
 		}
+
 		db_unit, err := qtx.UpsertMeasurementUnit(ctx, ingredient.Unit)
 		if err != nil {
 			return nil, err
 		}
+
 		params := db.CreateRecipeIngredientParams{
 			RevisionID:        revision.ID,
 			IngredientID:      db_ingredient.ID,
 			MeasurementUnitID: db_unit.ID,
 			Quantity:          float32(ingredient.Quantity),
 		}
+
 		_, err = qtx.CreateRecipeIngredient(ctx, params)
 		if err != nil {
 			return nil, err
 		}
 	}
+
 	for _, step := range input.Revision.Steps {
 		if step == nil {
 			// TODO: Write an actual error here
 			return nil, nil
 		}
+
 		params := db.CreateRecipeStepParams{
 			RevisionID: revision.ID,
 			Content:    step.Instruction,
 			Index:      int32(step.Step),
 		}
+
 		_, err = qtx.CreateRecipeStep(ctx, params)
 		if err != nil {
 			return nil, err
 		}
 	}
+
 	return model.RevisionFromDBType(revision), tx.Commit(ctx)
 }
 
@@ -168,28 +187,35 @@ func (r recipeService) CreateRecipe(ctx context.Context, input model.CreateRecip
 		// TODO: Write an actual error here
 		return nil, nil
 	}
+
 	user, _ := r.authService.GetUserSessionFromCtx(ctx)
+
 	tx, err := r.conn.Begin(ctx)
 	if err != nil {
 		return nil, err
 	}
+
 	qtx := r.queries.WithTx(tx)
-	defer tx.Rollback(ctx) //nolint:all
+	defer tx.Rollback(ctx) //nolint:errcheck
+
 	var forkdFrom pgtype.UUID
 	if input.ForkdFrom != nil {
 		forkdFrom.Bytes = *input.ForkdFrom
 		forkdFrom.Valid = true
 	}
+
 	recipeParams := db.CreateRecipeParams{
 		AuthorID:   user.ID,
 		ForkedFrom: forkdFrom,
 		Slug:       input.Slug,
 		Private:    input.Private,
 	}
+
 	recipe, err := qtx.CreateRecipe(ctx, recipeParams)
 	if err != nil {
 		return nil, err
 	}
+
 	revisionParams := db.CreateRevisionParams{
 		RecipeID: recipe.ID,
 		Title:    input.Revision.Title,
@@ -201,18 +227,21 @@ func (r recipeService) CreateRecipe(ctx context.Context, input model.CreateRecip
 			Valid:  true,
 		}
 	}
+
 	if input.Revision.ChangeComment != nil {
 		revisionParams.ChangeComment = pgtype.Text{
 			String: *input.Revision.ChangeComment,
 			Valid:  true,
 		}
 	}
+
 	if input.Revision.Photo != nil {
 		revisionParams.Photo = pgtype.Text{
 			String: *input.Revision.Photo,
 			Valid:  true,
 		}
 	}
+
 	revision, err := qtx.CreateRevision(ctx, revisionParams)
 	if err != nil {
 		return nil, err
@@ -223,72 +252,88 @@ func (r recipeService) CreateRecipe(ctx context.Context, input model.CreateRecip
 		if err != nil {
 			return nil, err
 		}
+
 		pathSegments := strings.SplitN(objUrl.EscapedPath(), "/", 3)
 		name := pathSegments[len(pathSegments)-1]
+
 		otags, err := tags.NewTags(map[string]string{"revisionId": uuid.UUID(revision.ID.Bytes).String()}, false)
 		if err != nil {
 			return nil, err
 		}
+
 		err = r.storageService.SetTags(ctx, name, otags)
 		if err != nil {
 			return nil, err
 		}
 	}
+
 	for _, ingredient := range input.Revision.Ingredients {
 		if ingredient == nil {
 			// TODO: Write an actual error here
 			return nil, nil
 		}
+
 		db_ingredient, err := qtx.UpsertIngredient(ctx, ingredient.Ingredient)
 		if err != nil {
 			return nil, err
 		}
+
 		db_unit, err := qtx.UpsertMeasurementUnit(ctx, ingredient.Unit)
 		if err != nil {
 			return nil, err
 		}
+
 		params := db.CreateRecipeIngredientParams{
 			RevisionID:        revision.ID,
 			IngredientID:      db_ingredient.ID,
 			MeasurementUnitID: db_unit.ID,
 			Quantity:          float32(ingredient.Quantity),
 		}
+
 		_, err = qtx.CreateRecipeIngredient(ctx, params)
 		if err != nil {
 			return nil, err
 		}
 	}
+
 	for _, step := range input.Revision.Steps {
 		if step == nil {
 			// TODO: Write an actual error here
 			return nil, nil
 		}
+
 		params := db.CreateRecipeStepParams{
 			RevisionID: revision.ID,
 			Content:    step.Instruction,
 			Index:      int32(step.Step),
 		}
+
 		result, err := qtx.CreateRecipeStep(ctx, params)
 		if err != nil {
 			return nil, err
 		}
+
 		if result.Photo.Valid {
 			objUrl, err := url.Parse(result.Photo.String)
 			if err != nil {
 				return nil, err
 			}
+
 			pathSegments := strings.SplitN(objUrl.EscapedPath(), "/", 3)
 			name := pathSegments[len(pathSegments)-1]
+
 			otags, err := tags.NewTags(map[string]string{"stepId": strconv.Itoa(int(result.ID))}, false)
 			if err != nil {
 				return nil, err
 			}
+
 			err = r.storageService.SetTags(ctx, name, otags)
 			if err != nil {
 				return nil, err
 			}
 		}
 	}
+
 	return model.RecipeFromDBType(recipe), tx.Commit(ctx)
 }
 
@@ -299,12 +344,17 @@ func (r recipeService) GetRecipeByID(ctx context.Context, id uuid.UUID) (*model.
 		Valid: true,
 	}
 	result, err := r.queries.GetRecipeById(ctx, pgId)
+
 	return util.HandleNoRowsOnNullableType(result, err, model.RecipeFromDBType)
 }
 
 // GetRecipeBySlug implements RecipeService.
-func (r recipeService) GetRecipeBySlug(ctx context.Context, slug string) (*model.Recipe, error) {
-	result, err := r.queries.GetRecipeBySlug(ctx, slug)
+func (r recipeService) GetRecipeBySlug(ctx context.Context, slug string, displayName string) (*model.Recipe, error) {
+	result, err := r.queries.GetRecipeBySlug(ctx, db.GetRecipeBySlugParams{
+		Slug:        slug,
+		DisplayName: displayName,
+	})
+
 	return util.HandleNoRowsOnNullableType(result, err, model.RecipeFromDBType)
 }
 
@@ -315,6 +365,7 @@ func (r recipeService) GetRecipeRevisionById(ctx context.Context, id uuid.UUID) 
 		Valid: true,
 	}
 	result, err := r.queries.GetRecipeRevisionById(ctx, pgId)
+
 	return util.HandleNoRowsOnNullableType(result, err, model.RevisionFromDBType)
 }
 
@@ -329,6 +380,7 @@ func (r recipeService) ListRecipeIngredients(ctx context.Context, id uuid.UUID) 
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch ingredients for revision %s: %w", id, err)
 	}
+
 	return model.ListIngredientsFromDBType(result), nil
 }
 
@@ -343,6 +395,7 @@ func (r recipeService) ListRecipeSteps(ctx context.Context, id uuid.UUID) ([]*mo
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch steps for revision %s: %w", id, err)
 	}
+
 	return model.ListStepsFromDBType(result), nil
 }
 
@@ -355,51 +408,61 @@ func (r recipeService) ListRecipeRevisions(ctx context.Context, input *model.Lis
 		params.SortCol = "publish_date"
 	} else {
 		params.Limit = int32(*input.Limit)
+
 		switch *input.SortCol {
 		case model.ListRecipeSortColPublishDate:
 			params.SortCol = "publish_date"
 		}
+
 		switch *input.SortDir {
 		case model.SortDirDesc:
 			params.SortDir = true
 		case model.SortDirAsc:
 			params.SortDir = false
 		}
+
 		if input.RecipeID != nil {
 			params.RecipeID = pgtype.UUID{
 				Bytes: *input.RecipeID,
 				Valid: true,
 			}
 		}
+
 		if input.ParentID != nil {
 			params.ParentID = pgtype.UUID{
 				Bytes: *input.ParentID,
 				Valid: true,
 			}
 		}
+
 		if input.PublishStart != nil {
 			params.PublishStart = pgtype.Timestamp{
 				Time:  *input.PublishStart,
 				Valid: true,
 			}
 		}
+
 		if input.PublishEnd != nil {
 			params.PublishEnd = pgtype.Timestamp{
 				Time:  *input.PublishEnd,
 				Valid: true,
 			}
 		}
+
 		if input.NextCursor != nil {
 			cursor := new(ListRevisionsCursor)
+
 			err := cursor.Decode(*input.NextCursor)
 			if err != nil {
 				return nil, err
 			}
+
 			if !cursor.Validate(ListRevisionsCursor{
 				ListRevisionsInput: *input,
 			}) {
 				return nil, fmt.Errorf("invalid cursor")
 			}
+
 			params.PublishCursor = cursor.PublishCursor
 		}
 	}
@@ -415,6 +478,7 @@ func (r recipeService) ListRecipeRevisions(ctx context.Context, input *model.Lis
 	}
 
 	var NextCursor *string = nil
+
 	if len(revisions) == int(params.Limit) {
 		cursor := ListRevisionsCursor{
 			ListRevisionsInput: *input,
@@ -451,78 +515,93 @@ func (r recipeService) ListRecipeRevisions(ctx context.Context, input *model.Lis
 // ListRecipes implements RecipeService.
 func (r recipeService) ListRecipes(ctx context.Context, input *model.ListRecipeInput) (*model.PaginatedRecipes, error) {
 	var params db.ListRecipesParams
+
 	user, _ := r.authService.GetUserSessionFromCtx(ctx)
 	if user != nil {
 		params.CurrentUser = user.ID
 	}
+
 	if input == nil {
 		params.Limit = DEFAULT_LIST_RECIPE_LIMIT
 		params.SortDir = DEFAULT_LIST_RECIPE_SORT_DIR
 		params.SortCol = DEFAULT_LIST_RECIPE_SORT_FIELD
 	} else {
 		params.Limit = int32(*input.Limit)
+
 		switch *input.SortCol {
 		case model.ListRecipeSortColPublishDate:
 			params.SortCol = "publish_date"
 		case model.ListRecipeSortColSlug:
 			params.SortCol = "slug"
 		}
+
 		switch *input.SortDir {
 		case model.SortDirDesc:
 			params.SortDir = true
 		case model.SortDirAsc:
 			params.SortDir = false
 		}
+
 		if input.AuthorID != nil {
 			params.AuthorID = pgtype.UUID{
 				Bytes: *input.AuthorID,
 				Valid: true,
 			}
 		}
+
 		if input.PublishStart != nil {
 			params.PublishStart = pgtype.Timestamp{
 				Time:  *input.PublishStart,
 				Valid: true,
 			}
 		}
+
 		if input.PublishEnd != nil {
 			params.PublishEnd = pgtype.Timestamp{
 				Time:  *input.PublishEnd,
 				Valid: true,
 			}
 		}
+
 		if input.NextCursor != nil {
 			cursor := new(ListRecipesCursor)
+
 			err := cursor.Decode(*input.NextCursor)
 			if err != nil {
 				return nil, err
 			}
+
 			if !cursor.Validate(ListRecipesCursor{
 				ListRecipeInput: *input,
 			}) {
 				return nil, fmt.Errorf("invalid cursor")
 			}
+
 			params.PublishCursor = cursor.PublishCursor
 			params.SlugCursor = cursor.SlugCursor
 		}
 	}
+
 	result, err := r.queries.ListRecipes(ctx, params)
 	if err != nil {
 		return nil, err
 	}
 
 	count := len(result)
+
 	recipes := make([]*model.Recipe, count)
 	for i, recipe := range result {
 		recipes[i] = model.RecipeFromDBType(recipe)
 	}
 
 	var NextCursor *string = nil
+
 	if count == int(params.Limit) {
 		limit := DEFAULT_LIST_RECIPE_LIMIT
 		// TODO: abstract conversion between graphql and sql params
 		sortDir := model.SortDirDesc
 		sortCol := model.ListRecipeSortColPublishDate
+
 		listInput := model.ListRecipeInput{
 			Limit:   &limit,
 			SortDir: &sortDir,
@@ -531,6 +610,7 @@ func (r recipeService) ListRecipes(ctx context.Context, input *model.ListRecipeI
 		if input != nil {
 			listInput = *input
 		}
+
 		cursor := ListRecipesCursor{
 			ListRecipeInput: listInput,
 		}

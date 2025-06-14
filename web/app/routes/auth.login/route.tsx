@@ -20,7 +20,6 @@ export async function action(args: ActionFunctionArgs) {
   const formdata = parse(loginForm, body)
   try {
     const res = await client.RequestMagicLink(formdata)
-    console.log(res, "this is the response")
     if (res.user?.requestMagicLink) {
       session.flash("magicLinkToken", res.user.requestMagicLink)
       return redirect("/auth/magic-link", {

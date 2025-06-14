@@ -52,10 +52,10 @@ type SendEmailResponseBody struct {
 }
 
 type SendEmailResponseBodyData struct {
-	Failed    int8          `json:"failed,omitempty"`
-	Failures  []interface{} `json:"-"`
-	Succeeded int8          `json:"succeeded,omitempty"`
-	EmailID   string        `json:"email_id,omitempty"`
+	Failed    int8   `json:"failed,omitempty"`
+	Failures  []any  `json:"-"`
+	Succeeded int8   `json:"succeeded,omitempty"`
+	EmailID   string `json:"email_id,omitempty"`
 }
 
 // TODO: This really needs some love lol
@@ -96,7 +96,7 @@ func (e emailService) SendMagicLink(ctx context.Context, token string, email str
 	if err != nil {
 		return nil, err
 	}
-	defer res.Body.Close()
+	defer res.Body.Close() //nolint:errcheck
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err

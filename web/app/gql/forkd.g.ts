@@ -193,6 +193,7 @@ export type RecipeQueryByIdArgs = {
 
 
 export type RecipeQueryBySlugArgs = {
+  authorDisplayName: Scalars['String']['input'];
   slug: Scalars['String']['input'];
 };
 
@@ -321,6 +322,11 @@ export type CheckUserSignupQueryVariables = Exact<{
 
 export type CheckUserSignupQuery = { __typename?: 'Query', user?: { __typename?: 'UserQuery', byEmail?: { __typename?: 'User', email: string } | null, byDisplayName?: { __typename?: 'User', displayName: string } | null } | null };
 
+export type ListRecipesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ListRecipesQuery = { __typename?: 'Query', recipe?: { __typename?: 'RecipeQuery', list: { __typename?: 'PaginatedRecipes', items: Array<{ __typename?: 'Recipe', slug: string, id: any, author: { __typename?: 'User', displayName: string }, featuredRevision?: { __typename?: 'RecipeRevision', recipeDescription?: string | null, publishDate: any, rating?: number | null, title: string } | null }> } } | null };
+
 export type LoginMutationVariables = Exact<{
   token: Scalars['String']['input'];
   code: Scalars['String']['input'];
@@ -354,6 +360,14 @@ export type CurrentUserQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type CurrentUserQuery = { __typename?: 'Query', user?: { __typename?: 'UserQuery', current?: { __typename?: 'User', id: any, email: string, photo?: string | null, joinDate: any, displayName: string } | null } | null };
 
+export type RecipeBySlugQueryVariables = Exact<{
+  slug: Scalars['String']['input'];
+  authorDisplayName: Scalars['String']['input'];
+}>;
+
+
+export type RecipeBySlugQuery = { __typename?: 'Query', recipe?: { __typename?: 'RecipeQuery', bySlug?: { __typename?: 'Recipe', id: any, initialPublishDate: any, author: { __typename?: 'User', displayName: string }, forkedFrom?: { __typename?: 'RecipeRevision', title: string, id: any, recipe: { __typename?: 'Recipe', author: { __typename?: 'User', displayName: string } } } | null, featuredRevision?: { __typename?: 'RecipeRevision', id: any, publishDate: any, photo?: string | null, title: string, rating?: number | null, recipeDescription?: string | null, ingredients: Array<{ __typename?: 'RecipeIngredient', id: string, quantity: number, comment?: string | null, unit: { __typename?: 'MeasurementUnit', name: string }, ingredient: { __typename?: 'Ingredient', name: string } }>, steps: Array<{ __typename?: 'RecipeStep', id: string, content: string, index: number, photo?: string | null }> } | null } | null } | null };
+
 
 export const CheckUserSignupDocument = gql`
     query CheckUserSignup($email: String!, $displayName: String!) {
@@ -363,6 +377,27 @@ export const CheckUserSignupDocument = gql`
     }
     byDisplayName(displayName: $displayName) {
       displayName
+    }
+  }
+}
+    `;
+export const ListRecipesDocument = gql`
+    query ListRecipes {
+  recipe {
+    list {
+      items {
+        slug
+        id
+        author {
+          displayName
+        }
+        featuredRevision {
+          recipeDescription
+          publishDate
+          rating
+          title
+        }
+      }
     }
   }
 }
@@ -410,6 +445,53 @@ export const CurrentUserDocument = gql`
   }
 }
     `;
+export const RecipeBySlugDocument = gql`
+    query RecipeBySlug($slug: String!, $authorDisplayName: String!) {
+  recipe {
+    bySlug(slug: $slug, authorDisplayName: $authorDisplayName) {
+      id
+      initialPublishDate
+      author {
+        displayName
+      }
+      forkedFrom {
+        title
+        id
+        recipe {
+          author {
+            displayName
+          }
+        }
+      }
+      featuredRevision {
+        id
+        publishDate
+        photo
+        title
+        rating
+        recipeDescription
+        ingredients {
+          id
+          unit {
+            name
+          }
+          ingredient {
+            name
+          }
+          quantity
+          comment
+        }
+        steps {
+          id
+          content
+          index
+          photo
+        }
+      }
+    }
+  }
+}
+    `;
 
 export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string, variables?: any) => Promise<T>;
 
@@ -420,6 +502,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
   return {
     CheckUserSignup(variables: CheckUserSignupQueryVariables, requestHeaders?: GraphQLClientRequestHeaders): Promise<CheckUserSignupQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<CheckUserSignupQuery>(CheckUserSignupDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'CheckUserSignup', 'query', variables);
+    },
+    ListRecipes(variables?: ListRecipesQueryVariables, requestHeaders?: GraphQLClientRequestHeaders): Promise<ListRecipesQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ListRecipesQuery>(ListRecipesDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'ListRecipes', 'query', variables);
     },
     Login(variables: LoginMutationVariables, requestHeaders?: GraphQLClientRequestHeaders): Promise<LoginMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<LoginMutation>(LoginDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'Login', 'mutation', variables);
@@ -435,6 +520,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     CurrentUser(variables?: CurrentUserQueryVariables, requestHeaders?: GraphQLClientRequestHeaders): Promise<CurrentUserQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<CurrentUserQuery>(CurrentUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'CurrentUser', 'query', variables);
+    },
+    RecipeBySlug(variables: RecipeBySlugQueryVariables, requestHeaders?: GraphQLClientRequestHeaders): Promise<RecipeBySlugQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<RecipeBySlugQuery>(RecipeBySlugDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'RecipeBySlug', 'query', variables);
     }
   };
 }

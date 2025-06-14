@@ -21,10 +21,10 @@ export async function loader(args: LoaderFunctionArgs) {
   const auth = session.get("sessionToken")
   const sdk = getSDK(`${environment.BACKEND_URL}`, auth)
   try {
-    const data = await sdk.CurrentUser().catch(console.error)
+    const data = await sdk.CurrentUser()
     return data?.user?.current ?? null
   } catch (err) {
-    if (err instanceof ClientError && err.message === "missing auth") {
+    if (err instanceof ClientError && err.message.includes("missing auth")) {
       return null
     }
     throw err
@@ -52,7 +52,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   const data = useLoaderData<typeof loader>()
   useGlobals.getInitialState().setUser(data)
-  console.log(useGlobals.getState().user, "i need this")
+  console.log(useGlobals.getState().user, "user signing in")
 
   return <Outlet />
 }

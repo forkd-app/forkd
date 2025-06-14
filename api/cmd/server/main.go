@@ -42,7 +42,7 @@ func main() {
 
 	queries, conn, err := db.GetQueriesWithConnection(dbConnStr)
 	if err != nil || queries == nil {
-		panic(fmt.Errorf("Unable to connect to db: %w", err))
+		panic(fmt.Errorf("unable to connect to db: %w", err))
 	}
 
 	emailService := email.New()
@@ -72,7 +72,7 @@ func main() {
 		ctx := authService.GetUserSessionAndSetOnCtx(r.Context())
 		user, _ := authService.GetUserSessionFromCtx(ctx)
 		if user == nil {
-			http.Error(w, "unauthorized", 401)
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
 		var body GetUploadUrlBody
