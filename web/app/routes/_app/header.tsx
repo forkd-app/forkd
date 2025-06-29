@@ -8,7 +8,6 @@ import {
   Popover,
   ActionIcon,
 } from "@mantine/core"
-import { Categories } from "../../components/categoriesList/categories"
 import { useMediaQuery } from "@mantine/hooks"
 import { Link } from "@remix-run/react"
 import { useGlobals } from "~/stores/global"
@@ -114,7 +113,6 @@ export function Header() {
           )}
         </Grid.Col>
       </Grid>
-      <Categories />
     </div>
   )
 }
