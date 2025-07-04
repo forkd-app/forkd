@@ -1,4 +1,4 @@
-# Forkd:
+# Forkd
 
 This is a monorepo with the following packages:
 
