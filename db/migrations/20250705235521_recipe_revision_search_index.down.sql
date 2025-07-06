@@ -1,0 +1,1 @@
+DROP INDEX recipe_revisions_search_text;

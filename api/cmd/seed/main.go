@@ -19,41 +19,47 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const USER_COUNT = 15
-const RECIPE_PER_USER_MIN = 0
-const RECIPE_PER_USER_MAX = 8
-const REVISION_PER_RECIPE_MIN = 1
-const REVISION_PER_RECIPE_MAX = 6
-const INGREDIENT_COUNT_MIN = 3
-const INGREDIENT_COUNT_MAX = 8
-const STEP_COUNT_MIN = 2
-const STEP_COUNT_MAX = 5
+const (
+	USER_COUNT              = 50
+	RECIPE_PER_USER_MIN     = 0
+	RECIPE_PER_USER_MAX     = 20
+	REVISION_PER_RECIPE_MIN = 1
+	REVISION_PER_RECIPE_MAX = 12
+	INGREDIENT_COUNT_MIN    = 3
+	INGREDIENT_COUNT_MAX    = 9
+	STEP_COUNT_MIN          = 2
+	STEP_COUNT_MAX          = 10
+)
 
-const RECIPE_REVISION_DESCRIPTION_MIN = 4
-const RECIPE_REVISION_DESCRIPTION_MAX = 10
-const RECIPE_REVISION_CHANGE_COMMENT_MIN = 2
-const RECIPE_REVISION_CHANGE_COMMENT_MAX = 5
+const (
+	RECIPE_REVISION_DESCRIPTION_MIN    = 4
+	RECIPE_REVISION_DESCRIPTION_MAX    = 10
+	RECIPE_REVISION_CHANGE_COMMENT_MIN = 2
+	RECIPE_REVISION_CHANGE_COMMENT_MAX = 5
+)
 
-const USER_PHOTO_CHANCE = 4.0 / 5.0
-const RECIPE_PHOTO_CHANCE = 7.0 / 8.0
-const FORK_CHANCE = 1.0 / 3.0
-const PRIVATE_CHANCE = 1.0 / 16.0
-const REVISION_DIVERGE_CHANCE = 1.0 / 8.0
-const REVISION_DESCRIPTION_CHANCE = 3.0 / 4.0
-const REVISION_CHANGE_COMMENT_CHANCE = 1.0 / 2.0
-const INGREDIENT_COMMENT_CHANCE = 1.0 / 6.0
-const REVISION_PHOTO_CHANGE_CHANCE = 1.0 / 16.0
-const REVISION_TITLE_CHANGE_CHANCE = 1.0 / 20.0
-const REVISION_DESCRIPTION_CHANGE_CHANCE = 1.0 / 14.0
-const REVISION_ADD_INGREDIENT_CHANCE = 1.0 / 3.0
-const REVISION_REMOVE_INGREDIENT_CHANCE = 1.0 / 4.0
-const REVISION_ADD_STEP_CHANCE = 1.0 / 8.0
-const REVISION_REMOVE_STEP_CHANCE = 1.0 / 9.0
-const REVISION_CHANGE_STEP_CHANCE = 1.0 / 10.0
-const INGREDIENT_QUANTITY_CHANGE_CHANCE = 2.0 / 3.0
-const INGREDIENT_CHANGE_CHANCE = 2.0 / 3.0
-const INGREDIENT_COMMENT_CHANGE_CHANCE = 1.0 / 5.0
-const UNIT_CHANGE_CHANCE = 2.0 / 3.0
+const (
+	USER_PHOTO_CHANCE                  = 4.0 / 5.0
+	RECIPE_PHOTO_CHANCE                = 7.0 / 8.0
+	FORK_CHANCE                        = 1.0 / 3.0
+	PRIVATE_CHANCE                     = 1.0 / 16.0
+	REVISION_DIVERGE_CHANCE            = 1.0 / 8.0
+	REVISION_DESCRIPTION_CHANCE        = 3.0 / 4.0
+	REVISION_CHANGE_COMMENT_CHANCE     = 1.0 / 2.0
+	INGREDIENT_COMMENT_CHANCE          = 1.0 / 6.0
+	REVISION_PHOTO_CHANGE_CHANCE       = 1.0 / 16.0
+	REVISION_TITLE_CHANGE_CHANCE       = 1.0 / 20.0
+	REVISION_DESCRIPTION_CHANGE_CHANCE = 1.0 / 14.0
+	REVISION_ADD_INGREDIENT_CHANCE     = 1.0 / 3.0
+	REVISION_REMOVE_INGREDIENT_CHANCE  = 1.0 / 4.0
+	REVISION_ADD_STEP_CHANCE           = 1.0 / 8.0
+	REVISION_REMOVE_STEP_CHANCE        = 1.0 / 9.0
+	REVISION_CHANGE_STEP_CHANCE        = 1.0 / 10.0
+	INGREDIENT_QUANTITY_CHANGE_CHANCE  = 2.0 / 3.0
+	INGREDIENT_CHANGE_CHANCE           = 2.0 / 3.0
+	INGREDIENT_COMMENT_CHANGE_CHANCE   = 1.0 / 5.0
+	UNIT_CHANGE_CHANCE                 = 2.0 / 3.0
+)
 
 type RevisionWithIngredients struct {
 	revision    db.RecipeRevision
@@ -229,7 +235,7 @@ func main() {
 			if err != nil {
 				// I know I shouldn't be ignoring this but whatever lol
 				_ = tx.Rollback(ctx)
-				log.Panicf("error creating recipe %x", err)
+				log.Panicf("error creating recipe %+v", err)
 			}
 
 			revisionCount := randBetween(REVISION_PER_RECIPE_MIN, REVISION_PER_RECIPE_MAX)
@@ -245,7 +251,7 @@ func main() {
 				if err != nil {
 					// I know I shouldn't be ignoring this but whatever lol
 					_ = tx.Rollback(ctx)
-					log.Panicf("error creating initial revision for forked recipe %x", err)
+					log.Panicf("error creating initial revision for forked recipe %+v", err)
 				}
 
 				revision := RevisionWithIngredients{
@@ -264,7 +270,7 @@ func main() {
 					if err != nil {
 						// I know I shouldn't be ignoring this but whatever lol
 						_ = tx.Rollback(ctx)
-						log.Panicf("error creating ingredient for forked recipe %x", err)
+						log.Panicf("error creating ingredient for forked recipe %+v", err)
 					}
 					revision.ingredients = append(revision.ingredients, ingredient)
 				}
@@ -278,7 +284,7 @@ func main() {
 					if err != nil {
 						// I know I shouldn't be ignoring this but whatever lol
 						_ = tx.Rollback(ctx)
-						log.Panicf("error creating step for forked recipe %x", err)
+						log.Panicf("error creating step for forked recipe %+v", err)
 					}
 					revision.steps = append(revision.steps, step)
 				}
@@ -361,12 +367,12 @@ func main() {
 							String: fmt.Sprintf("https://picsum.photos/id/%d/500", randBetween(0, 255)),
 						}
 					}
-
+					fmt.Printf("%+v\n", revisionParams)
 					revision, err := qtx.SeedRevision(ctx, revisionParams)
 					if err != nil {
 						// I know I shouldn't be ignoring this but whatever lol
 						_ = tx.Rollback(ctx)
-						log.Panicf("error creating revision %x", err)
+						log.Panicf("error creating revision %+v", err)
 					}
 
 					revisionWithIngredients.revision = revision
@@ -394,7 +400,7 @@ func main() {
 						if err != nil {
 							// I know I shouldn't be ignoring this but whatever lol
 							_ = tx.Rollback(ctx)
-							log.Panicf("error creating child revision step %x", err)
+							log.Panicf("error creating child revision step %+v", err)
 						}
 
 						revisionWithIngredients.steps = append(revisionWithIngredients.steps, step)
@@ -410,7 +416,7 @@ func main() {
 						if err != nil {
 							// I know I shouldn't be ignoring this but whatever lol
 							_ = tx.Rollback(ctx)
-							log.Panicf("error adding step to child revision %x", err)
+							log.Panicf("error adding step to child revision %+v", err)
 						}
 
 						revisionWithIngredients.steps = append(revisionWithIngredients.steps, step)
@@ -457,7 +463,7 @@ func main() {
 						if err != nil {
 							// I know I shouldn't be ignoring this but whatever lol
 							_ = tx.Rollback(ctx)
-							log.Panicf("error creating ingredient for child revision %x", err)
+							log.Panicf("error creating ingredient for child revision %+v", err)
 						}
 
 						revisionWithIngredients.ingredients = append(revisionWithIngredients.ingredients, ingredient)
@@ -482,7 +488,7 @@ func main() {
 						if err != nil {
 							// I know I shouldn't be ignoring this but whatever lol
 							_ = tx.Rollback(ctx)
-							log.Panicf("error adding step to child revision %x", err)
+							log.Panicf("error adding step to child revision %+v", err)
 						}
 
 						revisionWithIngredients.ingredients = append(revisionWithIngredients.ingredients, ingredient)
@@ -512,7 +518,7 @@ func main() {
 						if err != nil {
 							// I know I shouldn't be ignoring this but whatever lol
 							_ = tx.Rollback(ctx)
-							log.Panicf("error creating recipe ingredient %x", err)
+							log.Panicf("error creating recipe ingredient %+v", err)
 						}
 
 						revisionWithIngredients.ingredients = append(revisionWithIngredients.ingredients, ingredient)
@@ -529,7 +535,7 @@ func main() {
 						if err != nil {
 							// I know I shouldn't be ignoring this but whatever lol
 							_ = tx.Rollback(ctx)
-							log.Panicf("error creating recipe step %x", err)
+							log.Panicf("error creating recipe step %+v", err)
 						}
 
 						revisionWithIngredients.steps = append(revisionWithIngredients.steps, step)
