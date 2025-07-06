@@ -35,4 +35,5 @@ input ListRecipeInput {
   sortDir: SortDir = DESC
   limit: Int = 20
   nextCursor: String
+  query: String
 }

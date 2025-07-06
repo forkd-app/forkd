@@ -15,7 +15,7 @@ const listRecipesWithQuery = `-- name: ListRecipesWithQuery :many
 WITH rankings AS (
   SELECT
     r.id, r.author_id, r.slug, r.private, r.initial_publish_date, r.forked_from, r.featured_revision,
-    ts_rank(setweight(to_tsvector('english', title), 'A') || setweight(to_tsvector('english', coalesce(recipe_description, '')), 'B'), websearch_to_tsquery('english', coalesce($12))) AS rank
+    ts_rank(setweight(to_tsvector('english', title), 'A') || setweight(to_tsvector('english', coalesce(recipe_description, '')), 'B'), websearch_to_tsquery('english', $12)) AS rank
   FROM
     recipes r
   JOIN LATERAL (
@@ -112,7 +112,7 @@ type ListRecipesWithQueryParams struct {
 	PublishCursor pgtype.Timestamp
 	SlugCursor    pgtype.Text
 	Limit         int32
-	Query         interface{}
+	Query         string
 }
 
 type ListRecipesWithQueryRow struct {

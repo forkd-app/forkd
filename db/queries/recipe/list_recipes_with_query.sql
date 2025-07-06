@@ -2,7 +2,7 @@
 WITH rankings AS (
   SELECT
     r.*,
-    ts_rank(setweight(to_tsvector('english', title), 'A') || setweight(to_tsvector('english', coalesce(recipe_description, '')), 'B'), websearch_to_tsquery('english', coalesce(sqlc.narg('query')))) AS rank
+    ts_rank(setweight(to_tsvector('english', title), 'A') || setweight(to_tsvector('english', coalesce(recipe_description, '')), 'B'), websearch_to_tsquery('english', sqlc.arg('query'))) AS rank
   FROM
     recipes r
   JOIN LATERAL (
