@@ -2,6 +2,7 @@ import { FC } from "react"
 import { Flex, Text, Button, Image, Rating, Title } from "@mantine/core"
 import { ListRecipesQuery } from "~/gql/forkd.g"
 import { Link } from "@remix-run/react"
+import dayjs from "dayjs"
 
 interface Props {
   recipe: Recipe
@@ -20,7 +21,7 @@ export const RecipeCard: FC<Props> = ({ recipe }) => {
       style={styles.flexContainer}
     >
       <Flex direction={"column"}>
-        <Image src="images/image.jpg" alt="recipe" />
+        <Image src="images/image.jp" alt="recipe" />
         <div>
           <Title style={styles.text} order={4}>
             {recipe?.featuredRevision?.title || "No Title"}
@@ -31,11 +32,13 @@ export const RecipeCard: FC<Props> = ({ recipe }) => {
           />
           <Text style={styles.text}>
             posted by {recipe.author.displayName || "No Name"} on{" "}
-            {recipe?.featuredRevision?.publishDate || "unknown"}
+            {dayjs(recipe?.featuredRevision?.publishDate).format(
+              "DD/MM/YYYY"
+            ) || "unknown"}
           </Text>
         </div>
         <div>
-          <Text style={styles.text}>
+          <Text style={styles.text} lineClamp={3}>
             {recipe?.featuredRevision?.recipeDescription || "No Description"}
           </Text>
         </div>
@@ -55,7 +58,7 @@ const styles = {
     height: "100%",
   },
   text: {
-    paddingTop: 5,
-    paddingBottom: 5,
+    paddingTop: 4,
+    paddingBottom: 4,
   },
 }
