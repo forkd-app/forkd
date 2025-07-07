@@ -74,7 +74,7 @@ type RecipeWithRevisions struct {
 
 const MINUS_ONE_YEAR = -12 * 24 * 365 * time.Hour
 
-func createUsers(ctx context.Context, tx pgx.Tx, qtx *db.Queries) []db.User {
+func createUsers(ctx context.Context, tx pgx.Tx, qtx db.QueryWrapper) []db.User {
 	log.Println("creating users")
 	users := make([]db.User, USER_COUNT)
 	for i := 0; i < USER_COUNT; i++ {

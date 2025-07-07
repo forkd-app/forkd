@@ -4,6 +4,7 @@ go 1.23.0
 
 require (
 	github.com/99designs/gqlgen v0.17.49
+	github.com/brianvoe/gofakeit/v7 v7.2.1
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/joho/godotenv v1.5.1
@@ -13,7 +14,6 @@ require (
 
 require (
 	github.com/agnivade/levenshtein v1.1.1 // indirect
-	github.com/brianvoe/gofakeit/v7 v7.2.1 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/go-ini/ini v1.67.0 // indirect

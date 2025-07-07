@@ -111,7 +111,7 @@ type ListRecipesWithQueryParams struct {
 	SortDir       bool
 	PublishCursor pgtype.Timestamp
 	SlugCursor    pgtype.Text
-	Limit         int32
+	Limit         int64
 	Query         string
 }
 

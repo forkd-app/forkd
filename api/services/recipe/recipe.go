@@ -40,7 +40,7 @@ type RecipeService interface {
 }
 
 type recipeService struct {
-	queries        *db.Queries
+	queries        db.QueryWrapper
 	conn           *pgxpool.Pool
 	authService    auth.AuthService
 	storageService object_storage.ObjectStorageService
@@ -407,7 +407,7 @@ func (r recipeService) ListRecipeRevisions(ctx context.Context, input *model.Lis
 		params.SortDir = true
 		params.SortCol = "publish_date"
 	} else {
-		params.Limit = int32(*input.Limit)
+		params.Limit = int64(*input.Limit)
 
 		switch *input.SortCol {
 		case model.ListRecipeSortColPublishDate:
@@ -527,7 +527,7 @@ func (r recipeService) ListRecipes(ctx context.Context, input *model.ListRecipeI
 		params.SortDir = DEFAULT_LIST_RECIPE_SORT_DIR
 		params.SortCol = DEFAULT_LIST_RECIPE_SORT_FIELD
 	} else {
-		params.Limit = int32(*input.Limit)
+		params.Limit = int64(*input.Limit)
 
 		switch *input.SortCol {
 		case model.ListRecipeSortColPublishDate:
@@ -668,7 +668,7 @@ func (r recipeService) ListRecipes(ctx context.Context, input *model.ListRecipeI
 	}, nil
 }
 
-func New(queries *db.Queries, conn *pgxpool.Pool, authService auth.AuthService, storage object_storage.ObjectStorageService) RecipeService {
+func New(queries db.QueryWrapper, conn *pgxpool.Pool, authService auth.AuthService, storage object_storage.ObjectStorageService) RecipeService {
 	return recipeService{
 		queries,
 		conn,

@@ -86,7 +86,7 @@ type ListRecipesParams struct {
 	SortDir       bool
 	PublishCursor pgtype.Timestamp
 	SlugCursor    pgtype.Text
-	Limit         int32
+	Limit         int64
 }
 
 func (q *Queries) ListRecipes(ctx context.Context, arg ListRecipesParams) ([]Recipe, error) {
