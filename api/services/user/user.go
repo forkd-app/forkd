@@ -21,7 +21,7 @@ type UserService interface {
 }
 
 type userService struct {
-	queries     *db.Queries
+	queries     db.QueryWrapper
 	authService auth.AuthService
 }
 
@@ -81,7 +81,7 @@ func (u userService) Update(ctx context.Context, input model.UserUpdateInput) (*
 	return model.UserFromDBType(updatedUser), nil
 }
 
-func New(queries *db.Queries, authService auth.AuthService) UserService {
+func New(queries db.QueryWrapper, authService auth.AuthService) UserService {
 	return userService{
 		queries,
 		authService,

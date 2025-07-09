@@ -3,10 +3,28 @@ package db
 import (
 	"context"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func GetQueriesWithConnection(connectionString string) (*Queries, *pgxpool.Pool, error) {
+// QueryWrapper wraps the sqlc Querier interface and adds the `WithTx` method
+type QueryWrapper interface {
+	Querier
+	WithTx(tx pgx.Tx) QueryWrapper
+}
+
+// QueriesWrapper implements QueryWrapper
+type QueriesWrapper struct {
+	*Queries
+}
+
+func (q *QueriesWrapper) WithTx(tx pgx.Tx) QueryWrapper {
+	return &QueriesWrapper{
+		Queries: q.Queries.WithTx(tx),
+	}
+}
+
+func GetQueriesWithConnection(connectionString string) (QueryWrapper, *pgxpool.Pool, error) {
 	ctx := context.Background()
 	pool, err := pgxpool.New(ctx, connectionString)
 	if err != nil {
@@ -18,5 +36,8 @@ func GetQueriesWithConnection(connectionString string) (*Queries, *pgxpool.Pool,
 	}
 
 	queries := New(pool)
-	return queries, pool, nil
+	// Wrap the sqlc Queries struct in our wrapper so we can have an interface with the `WithTx` method
+	return &QueriesWrapper{
+		Queries: queries,
+	}, pool, nil
 }

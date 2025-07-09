@@ -23,7 +23,9 @@ FROM
 JOIN
   users ON users.id = recipes.author_id
 WHERE
-  lower(recipes.slug) = lower($1::text) AND lower(users.display_name) = lower($2::text)
+  lower(recipes.slug) = lower($1::text)
+  AND
+  lower(users.display_name) = lower($2::text)
 LIMIT 1
 `
 

@@ -14,3 +14,8 @@ sql:
         package: "db"
         out: "db"
         sql_package: "pgx/v5"
+        emit_interface: true
+    database:
+      uri: "postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable"
+    rules:
+      - sqlc/db-prepare

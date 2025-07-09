@@ -7356,7 +7356,7 @@ func (ec *executionContext) unmarshalInputListRecipeInput(ctx context.Context, o
 		asMap["limit"] = 20
 	}
 
-	fieldsInOrder := [...]string{"authorId", "publishStart", "publishEnd", "sortCol", "sortDir", "limit", "nextCursor"}
+	fieldsInOrder := [...]string{"authorId", "publishStart", "publishEnd", "sortCol", "sortDir", "limit", "nextCursor", "query"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -7412,6 +7412,13 @@ func (ec *executionContext) unmarshalInputListRecipeInput(ctx context.Context, o
 				return it, err
 			}
 			it.NextCursor = data
+		case "query":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Query = data
 		}
 	}
 

@@ -67,7 +67,7 @@ type AuthService interface {
 
 type authService struct {
 	conn         *pgxpool.Pool
-	queries      *db.Queries
+	queries      db.QueryWrapper
 	emailService email.EmailService
 }
 
@@ -375,7 +375,7 @@ func newUserWithToken(user db.User, token string) UserWithSessionToken {
 	}
 }
 
-func New(queries *db.Queries, conn *pgxpool.Pool, emailService email.EmailService) AuthService {
+func New(queries db.QueryWrapper, conn *pgxpool.Pool, emailService email.EmailService) AuthService {
 	return authService{
 		queries:      queries,
 		conn:         conn,

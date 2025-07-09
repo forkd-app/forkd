@@ -18,9 +18,11 @@ import (
 	"github.com/minio/minio-go/v7/pkg/tags"
 )
 
-const DEFAULT_LIST_RECIPE_LIMIT = 20
-const DEFAULT_LIST_RECIPE_SORT_DIR = true
-const DEFAULT_LIST_RECIPE_SORT_FIELD = "publish_date"
+const (
+	DEFAULT_LIST_RECIPE_LIMIT      = 20
+	DEFAULT_LIST_RECIPE_SORT_DIR   = true
+	DEFAULT_LIST_RECIPE_SORT_FIELD = "publish_date"
+)
 
 type RecipeService interface {
 	GetRecipeByID(ctx context.Context, id uuid.UUID) (*model.Recipe, error)
@@ -38,7 +40,7 @@ type RecipeService interface {
 }
 
 type recipeService struct {
-	queries        *db.Queries
+	queries        db.QueryWrapper
 	conn           *pgxpool.Pool
 	authService    auth.AuthService
 	storageService object_storage.ObjectStorageService
@@ -376,7 +378,6 @@ func (r recipeService) ListRecipeIngredients(ctx context.Context, id uuid.UUID) 
 		Valid: true,
 	}
 	result, err := r.queries.ListIngredientsByRecipeRevisionID(ctx, uuid)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch ingredients for revision %s: %w", id, err)
 	}
@@ -391,7 +392,6 @@ func (r recipeService) ListRecipeSteps(ctx context.Context, id uuid.UUID) ([]*mo
 		Valid: true,
 	}
 	result, err := r.queries.ListStepsByRecipeRevisionID(ctx, uuid)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch steps for revision %s: %w", id, err)
 	}
@@ -407,7 +407,7 @@ func (r recipeService) ListRecipeRevisions(ctx context.Context, input *model.Lis
 		params.SortDir = true
 		params.SortCol = "publish_date"
 	} else {
-		params.Limit = int32(*input.Limit)
+		params.Limit = int64(*input.Limit)
 
 		switch *input.SortCol {
 		case model.ListRecipeSortColPublishDate:
@@ -495,7 +495,6 @@ func (r recipeService) ListRecipeRevisions(ctx context.Context, input *model.Lis
 		}
 
 		encoded, err := cursor.Encode()
-
 		if err != nil {
 			return nil, err
 		}
@@ -514,7 +513,9 @@ func (r recipeService) ListRecipeRevisions(ctx context.Context, input *model.Lis
 
 // ListRecipes implements RecipeService.
 func (r recipeService) ListRecipes(ctx context.Context, input *model.ListRecipeInput) (*model.PaginatedRecipes, error) {
+	var count int
 	var params db.ListRecipesParams
+	recipes := make([]*model.Recipe, 0)
 
 	user, _ := r.authService.GetUserSessionFromCtx(ctx)
 	if user != nil {
@@ -526,7 +527,7 @@ func (r recipeService) ListRecipes(ctx context.Context, input *model.ListRecipeI
 		params.SortDir = DEFAULT_LIST_RECIPE_SORT_DIR
 		params.SortCol = DEFAULT_LIST_RECIPE_SORT_FIELD
 	} else {
-		params.Limit = int32(*input.Limit)
+		params.Limit = int64(*input.Limit)
 
 		switch *input.SortCol {
 		case model.ListRecipeSortColPublishDate:
@@ -581,17 +582,37 @@ func (r recipeService) ListRecipes(ctx context.Context, input *model.ListRecipeI
 			params.SlugCursor = cursor.SlugCursor
 		}
 	}
+	if input.Query != nil {
+		params := db.ListRecipesWithQueryParams{
+			Limit:         params.Limit,
+			SortDir:       params.SortDir,
+			SortCol:       params.SortCol,
+			AuthorID:      params.AuthorID,
+			PublishStart:  params.PublishStart,
+			PublishEnd:    params.PublishEnd,
+			PublishCursor: params.PublishCursor,
+			SlugCursor:    params.SlugCursor,
+			Query:         *input.Query,
+		}
 
-	result, err := r.queries.ListRecipes(ctx, params)
-	if err != nil {
-		return nil, err
-	}
+		result, err := r.queries.ListRecipesWithQuery(ctx, params)
+		if err != nil {
+			return nil, err
+		}
+		count = len(result)
+		for _, recipe := range result {
+			recipes = append(recipes, model.RecipeFromDBType(model.RecipeWithQueryToRecipe(recipe)))
+		}
+	} else {
+		result, err := r.queries.ListRecipes(ctx, params)
+		if err != nil {
+			return nil, err
+		}
+		count = len(result)
+		for _, recipe := range result {
+			recipes = append(recipes, model.RecipeFromDBType(recipe))
+		}
 
-	count := len(result)
-
-	recipes := make([]*model.Recipe, count)
-	for i, recipe := range result {
-		recipes[i] = model.RecipeFromDBType(recipe)
 	}
 
 	var NextCursor *string = nil
@@ -631,7 +652,6 @@ func (r recipeService) ListRecipes(ctx context.Context, input *model.ListRecipeI
 		}
 
 		encoded, err := cursor.Encode()
-
 		if err != nil {
 			return nil, err
 		}
@@ -648,7 +668,7 @@ func (r recipeService) ListRecipes(ctx context.Context, input *model.ListRecipeI
 	}, nil
 }
 
-func New(queries *db.Queries, conn *pgxpool.Pool, authService auth.AuthService, storage object_storage.ObjectStorageService) RecipeService {
+func New(queries db.QueryWrapper, conn *pgxpool.Pool, authService auth.AuthService, storage object_storage.ObjectStorageService) RecipeService {
 	return recipeService{
 		queries,
 		conn,
@@ -677,7 +697,8 @@ func (cursor ListRecipesCursor) Validate(input ListRecipesCursor) bool {
 		util.ComparePointerValues(cursor.SortDir, input.SortDir) &&
 		util.ComparePointerValues(cursor.AuthorID, input.AuthorID) &&
 		util.ComparePointerValues(cursor.PublishStart, input.PublishStart) &&
-		util.ComparePointerValues(cursor.PublishEnd, input.PublishEnd)
+		util.ComparePointerValues(cursor.PublishEnd, input.PublishEnd) &&
+		util.ComparePointerValues(cursor.Query, input.Query)
 }
 
 type ListRevisionsCursor struct {

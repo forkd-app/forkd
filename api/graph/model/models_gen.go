@@ -67,6 +67,7 @@ type ListRecipeInput struct {
 	SortDir      *SortDir           `json:"sortDir,omitempty"`
 	Limit        *int               `json:"limit,omitempty"`
 	NextCursor   *string            `json:"nextCursor,omitempty"`
+	Query        *string            `json:"query,omitempty"`
 }
 
 type ListRevisionsInput struct {

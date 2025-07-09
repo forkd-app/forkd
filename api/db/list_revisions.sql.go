@@ -67,7 +67,7 @@ type ListRevisionsParams struct {
 	SortCol       string
 	SortDir       bool
 	PublishCursor pgtype.Timestamp
-	Limit         int32
+	Limit         int64
 }
 
 func (q *Queries) ListRevisions(ctx context.Context, arg ListRevisionsParams) ([]RecipeRevision, error) {

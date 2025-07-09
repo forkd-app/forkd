@@ -2,8 +2,21 @@ package model
 
 import (
 	"forkd/db"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+func RecipeWithQueryToRecipe(result db.ListRecipesWithQueryRow) db.Recipe {
+	return db.Recipe{
+		ID:                 result.ID,
+		AuthorID:           result.AuthorID,
+		Slug:               result.Slug,
+		Private:            result.Private,
+		InitialPublishDate: result.InitialPublishDate,
+		ForkedFrom:         result.ForkedFrom,
+		FeaturedRevision:   result.FeaturedRevision,
+	}
+}
 
 func RecipeFromDBType(result db.Recipe) *Recipe {
 	recipe := Recipe{
@@ -94,7 +107,6 @@ func ListStepsFromDBType(results []db.RecipeStep) []*RecipeStep {
 	}
 
 	return steps
-
 }
 
 func MeasurementUnitFromDBType(result db.MeasurementUnit) *MeasurementUnit {
