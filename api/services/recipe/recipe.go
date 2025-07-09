@@ -697,7 +697,8 @@ func (cursor ListRecipesCursor) Validate(input ListRecipesCursor) bool {
 		util.ComparePointerValues(cursor.SortDir, input.SortDir) &&
 		util.ComparePointerValues(cursor.AuthorID, input.AuthorID) &&
 		util.ComparePointerValues(cursor.PublishStart, input.PublishStart) &&
-		util.ComparePointerValues(cursor.PublishEnd, input.PublishEnd)
+		util.ComparePointerValues(cursor.PublishEnd, input.PublishEnd) &&
+		util.ComparePointerValues(cursor.Query, input.Query)
 }
 
 type ListRevisionsCursor struct {

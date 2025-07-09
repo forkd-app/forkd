@@ -367,7 +367,6 @@ func main() {
 							String: fmt.Sprintf("https://picsum.photos/id/%d/500", randBetween(0, 255)),
 						}
 					}
-					fmt.Printf("%+v\n", revisionParams)
 					revision, err := qtx.SeedRevision(ctx, revisionParams)
 					if err != nil {
 						// I know I shouldn't be ignoring this but whatever lol
