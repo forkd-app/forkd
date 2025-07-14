@@ -97,6 +97,7 @@ services:
       POSTGRES_DB: forkd
   object-storage:
     image: minio/minio:RELEASE.2025-06-13T11-33-47Z
+    command: server --console-address ":9001" /data
     ports:
       - "9000:9000"
       - "9001:9001"

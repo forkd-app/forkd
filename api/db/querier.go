@@ -27,6 +27,7 @@ type Querier interface {
 	GetRecipeById(ctx context.Context, id pgtype.UUID) (Recipe, error)
 	GetRecipeBySlug(ctx context.Context, arg GetRecipeBySlugParams) (Recipe, error)
 	GetRecipeRevisionById(ctx context.Context, id pgtype.UUID) (RecipeRevision, error)
+	GetRecipeRevisionRatingAverage(ctx context.Context, revisionID pgtype.UUID) (pgtype.Numeric, error)
 	GetUserByDisplayName(ctx context.Context, displayName string) (User, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserById(ctx context.Context, id pgtype.UUID) (User, error)
@@ -43,6 +44,7 @@ type Querier interface {
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 	UpsertIngredient(ctx context.Context, name string) (UpsertIngredientRow, error)
 	UpsertMeasurementUnit(ctx context.Context, name string) (UpsertMeasurementUnitRow, error)
+	UpsertRating(ctx context.Context, arg UpsertRatingParams) (Rating, error)
 }
 
 var _ Querier = (*Queries)(nil)

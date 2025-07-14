@@ -76,9 +76,8 @@ func (r *recipeRevisionResolver) Steps(ctx context.Context, obj *model.RecipeRev
 // Rating is the resolver for the rating field.
 func (r *recipeRevisionResolver) Rating(ctx context.Context, obj *model.RecipeRevision) (*float64, error) {
 	// TODO: Implement logic for computing the rating. This might be best done as a computed field inside the db, but might also be good to have a dedicated resolver for
-	rating := float64(0)
-
-	return &rating, nil
+	rating, err := r.RecipeService.GetRevisionRating(ctx, obj.ID)
+	return &rating, err
 }
 
 // Revision is the resolver for the revision field.
@@ -95,6 +94,8 @@ func (r *Resolver) RecipeRevision() RecipeRevisionResolver { return &recipeRevis
 // RecipeStep returns RecipeStepResolver implementation.
 func (r *Resolver) RecipeStep() RecipeStepResolver { return &recipeStepResolver{r} }
 
-type recipeResolver struct{ *Resolver }
-type recipeRevisionResolver struct{ *Resolver }
-type recipeStepResolver struct{ *Resolver }
+type (
+	recipeResolver         struct{ *Resolver }
+	recipeRevisionResolver struct{ *Resolver }
+	recipeStepResolver     struct{ *Resolver }
+)
