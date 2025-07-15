@@ -33,6 +33,9 @@ type Querier interface {
 	GetUserBySessionId(ctx context.Context, id pgtype.UUID) (GetUserBySessionIdRow, error)
 	ListIngredientsByRecipeRevisionID(ctx context.Context, id pgtype.UUID) ([]RecipeIngredient, error)
 	ListRecipes(ctx context.Context, arg ListRecipesParams) ([]Recipe, error)
+	//Used when there is not a featured recipe
+	//and recipe_id = 'ae1f8b91-3659-4f7e-b484-dd54e7f3d2b3'
+	//Used when there is a featured recipe
 	ListRecipesWithQuery(ctx context.Context, arg ListRecipesWithQueryParams) ([]ListRecipesWithQueryRow, error)
 	ListRevisions(ctx context.Context, arg ListRevisionsParams) ([]RecipeRevision, error)
 	ListStepsByRecipeRevisionID(ctx context.Context, id pgtype.UUID) ([]RecipeStep, error)
