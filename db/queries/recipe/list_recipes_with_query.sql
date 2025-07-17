@@ -7,7 +7,6 @@ AS (
 			PARTITION BY recipe_id ORDER BY publish_date DESC
 			) AS row_num
 		,recipe_id
-		,publish_date
 		,recipe_description
 		,title
 		,id
@@ -19,7 +18,6 @@ AS (
 	SELECT LDR.recipe_description
 		,LDR.title
 		,LDR.id AS revisionid
-		,r.id AS recipeid
 	FROM recipes r
 	JOIN RevisionsWithRowNumbers LDR ON r.id = LDR.recipe_id
 	WHERE LDR.row_num = 1
@@ -31,7 +29,6 @@ AS (
 	SELECT recipe_revisions.recipe_description
 		,recipe_revisions.title
 		,recipe_revisions.id AS revisionid
-		,r.id AS recipeid
 	FROM recipes r
 	JOIN recipe_revisions ON r.featured_revision = recipe_revisions.id
 	)
