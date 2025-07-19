@@ -1,10 +1,10 @@
 -- name: GetMeasurementUnitById :one
 SELECT
-  measurement_units.id,
-  measurement_units.name,
-  measurement_units.description
+    measurement_units.id,
+    measurement_units.name,
+    measurement_units.description
 FROM
-  measurement_units
+    measurement_units
 WHERE
-  measurement_units.id = $1
+    measurement_units.id = sqlc.arg('id')
 LIMIT 1;

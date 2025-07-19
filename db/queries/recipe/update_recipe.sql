@@ -1,15 +1,16 @@
 -- name: UpdateRecipe :one
 UPDATE recipes
 SET
-  slug = coalesce($1, slug),
-  private = coalesce($2, private),
-  featured_revision = coalesce($3, featured_revision)
-WHERE id = $4
+    slug = coalesce(sqlc.arg('slug'), slug),
+    private = coalesce(sqlc.arg('private'), private),
+    featured_revision
+    = coalesce(sqlc.arg('featured_revision'), featured_revision)
+WHERE id = sqlc.arg('id')
 RETURNING
-  id,
-  author_id,
-  slug,
-  private,
-  initial_publish_date,
-  forked_from,
-  featured_revision;
+    id,
+    author_id,
+    slug,
+    private,
+    initial_publish_date,
+    forked_from,
+    featured_revision;
