@@ -37,6 +37,7 @@ type RecipeService interface {
 	ListRecipeSteps(ctx context.Context, id uuid.UUID) ([]*model.RecipeStep, error)
 	CreateRecipe(ctx context.Context, input model.CreateRecipeInput) (*model.Recipe, error)
 	AddRecipeRevision(ctx context.Context, input model.AddRevisionInput) (*model.RecipeRevision, error)
+	GetRevisionRating(ctx context.Context, revision_id uuid.UUID) (float64, error)
 }
 
 type recipeService struct {
@@ -44,6 +45,23 @@ type recipeService struct {
 	conn           *pgxpool.Pool
 	authService    auth.AuthService
 	storageService object_storage.ObjectStorageService
+}
+
+// GetRevisionRating implements RecipeService.
+func (r recipeService) GetRevisionRating(ctx context.Context, revisionId uuid.UUID) (float64, error) {
+	pgId := pgtype.UUID{
+		Bytes: revisionId,
+		Valid: true,
+	}
+	avg, err := r.queries.GetRecipeRevisionRatingAverage(ctx, pgId)
+	if err != nil {
+		return 0, err
+	}
+	val, err := avg.Float64Value()
+	if err != nil {
+		return 0, err
+	}
+	return val.Float64, err
 }
 
 // GetLatestRecipeRevisionByRecipeId implements RecipeService.
@@ -582,7 +600,7 @@ func (r recipeService) ListRecipes(ctx context.Context, input *model.ListRecipeI
 			params.SlugCursor = cursor.SlugCursor
 		}
 	}
-	if input.Query != nil {
+	if input != nil && input.Query != nil {
 		params := db.ListRecipesWithQueryParams{
 			Limit:         params.Limit,
 			SortDir:       params.SortDir,
