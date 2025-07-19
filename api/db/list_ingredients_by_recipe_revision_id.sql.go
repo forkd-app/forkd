@@ -28,8 +28,8 @@ WHERE
 ORDER BY recipe_ingredients.id
 `
 
-func (q *Queries) ListIngredientsByRecipeRevisionID(ctx context.Context, id pgtype.UUID) ([]RecipeIngredient, error) {
-	rows, err := q.db.Query(ctx, listIngredientsByRecipeRevisionID, id)
+func (q *Queries) ListIngredientsByRecipeRevisionID(ctx context.Context, revisionID pgtype.UUID) ([]RecipeIngredient, error) {
+	rows, err := q.db.Query(ctx, listIngredientsByRecipeRevisionID, revisionID)
 	if err != nil {
 		return nil, err
 	}
