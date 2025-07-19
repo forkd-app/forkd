@@ -55,12 +55,14 @@ tasks:
     deps:
       - lint:ts
       - lint:go
+      - lint:sql
 
   lint:fix:
     desc: "Run linting for the entire repository (ESLint for non-Go code and golangci-lint for Go) with auto-fixes"
     deps:
       - lint:ts:fix
       - lint:go:fix
+      - lint:sql:fix
 
   lint:ts:
     desc: "Run ESLint"
@@ -78,6 +80,14 @@ tasks:
     desc: "Run Go linting with golangci-lint"
     cmd: docker-compose --profile "scripts" run --rm golangci-lint golangci-lint run -v --fix {{.CLI_ARGS}}
 
+  lint:sql:
+    desc: "Run sqlfluff against our queries and migrations"
+    cmd: docker-compose --profile "scripts" run --build --rm sqlfluff lint --dialect postgres
+
+  lint:sql:fix:
+    desc: "Run sqlfluff against our queries and migrations"
+    cmd: docker-compose --profile "scripts" run --build --rm sqlfluff fix --dialect postgres
+
   format:check:
     desc: "Check formatting for whole project"
     deps:
@@ -89,6 +99,11 @@ tasks:
     deps:
       - gofmt
       - prettier
+      - sql:format
+
+  sql:format:
+    desc: "Run sqlfluff against our queries and migrations"
+    cmd: docker-compose --profile "scripts" run --build --rm sqlfluff lint --dialect postgres
 
   gofmt:
     desc: "Apply Go formatting"
