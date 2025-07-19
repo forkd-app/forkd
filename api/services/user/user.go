@@ -39,6 +39,9 @@ func (u userService) Create(ctx context.Context, email string, displayName strin
 // GetCurrent implements UserService.
 func (u userService) GetCurrent(ctx context.Context) (*model.User, error) {
 	user, _ := u.authService.GetUserSessionFromCtx(ctx)
+	if user == nil {
+		return nil, nil
+	}
 	return model.UserFromDBType(*user), nil
 }
 

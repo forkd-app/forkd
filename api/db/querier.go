@@ -32,6 +32,7 @@ type Querier interface {
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserById(ctx context.Context, id pgtype.UUID) (User, error)
 	GetUserBySessionId(ctx context.Context, id pgtype.UUID) (GetUserBySessionIdRow, error)
+	HasUserRatedRevision(ctx context.Context, arg HasUserRatedRevisionParams) (bool, error)
 	ListIngredientsByRecipeRevisionID(ctx context.Context, id pgtype.UUID) ([]RecipeIngredient, error)
 	ListRecipes(ctx context.Context, arg ListRecipesParams) ([]Recipe, error)
 	//Used when there is not a featured recipe

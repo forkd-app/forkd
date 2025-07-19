@@ -37,7 +37,9 @@ type RecipeService interface {
 	ListRecipeSteps(ctx context.Context, id uuid.UUID) ([]*model.RecipeStep, error)
 	CreateRecipe(ctx context.Context, input model.CreateRecipeInput) (*model.Recipe, error)
 	AddRecipeRevision(ctx context.Context, input model.AddRevisionInput) (*model.RecipeRevision, error)
-	GetRevisionRating(ctx context.Context, revision_id uuid.UUID) (float64, error)
+	GetRevisionRating(ctx context.Context, revisionId uuid.UUID) (float64, error)
+	AddRevisionRating(ctx context.Context, userId uuid.UUID, revisionId uuid.UUID, starValue int) (bool, error)
+	HasUserRatedRevision(ctx context.Context, userId uuid.UUID, revisionId uuid.UUID) (bool, error)
 }
 
 type recipeService struct {
@@ -45,6 +47,44 @@ type recipeService struct {
 	conn           *pgxpool.Pool
 	authService    auth.AuthService
 	storageService object_storage.ObjectStorageService
+}
+
+// HasUserRatedRevision implements RecipeService.
+func (r recipeService) HasUserRatedRevision(ctx context.Context, userId uuid.UUID, revisionId uuid.UUID) (bool, error) {
+	arg := db.HasUserRatedRevisionParams{
+		RevisionID: pgtype.UUID{
+			Bytes: revisionId,
+			Valid: true,
+		},
+		UserID: pgtype.UUID{
+			Bytes: userId,
+			Valid: true,
+		},
+	}
+	return r.queries.HasUserRatedRevision(ctx, arg)
+}
+
+// AddRevisionRating implements RecipeService.
+func (r recipeService) AddRevisionRating(ctx context.Context, userId uuid.UUID, revisionId uuid.UUID, starValue int) (bool, error) {
+	if starValue < 0 || starValue > 5 {
+		return false, fmt.Errorf("invalid star value: %d. Must be an integer between 1 and 5 inclusive", starValue)
+	}
+	arg := db.UpsertRatingParams{
+		RevisionID: pgtype.UUID{
+			Bytes: revisionId,
+			Valid: true,
+		},
+		UserID: pgtype.UUID{
+			Bytes: userId,
+			Valid: true,
+		},
+		StarValue: int16(starValue),
+	}
+	_, err := r.queries.UpsertRating(ctx, arg)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // GetRevisionRating implements RecipeService.
