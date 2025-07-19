@@ -239,6 +239,14 @@ services:
       - ./:/app
     profiles:
       - "scripts"
+  sqlfluff:
+    image: sqlfluff/sqlfluff:3.4.2
+    restart: no
+    volumes:
+      - ./db:/db
+    working_dir: /db
+    profiles:
+      - "scripts"
   seed:
     # This specifies the docker file/context to build for the api container
     build:
