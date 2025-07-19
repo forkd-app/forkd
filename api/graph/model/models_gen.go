@@ -16,6 +16,11 @@ type PaginatedResult interface {
 	GetPagination() *PaginationInfo
 }
 
+type AddRatingInput struct {
+	RevisionID uuid.UUID `json:"revisionId"`
+	StarValue  int       `json:"starValue"`
+}
+
 type AddRevisionInput struct {
 	ID       uuid.UUID                  `json:"id"`
 	Parent   uuid.UUID                  `json:"parent"`
@@ -142,6 +147,7 @@ type RecipeIngredient struct {
 type RecipeMutation struct {
 	Create      *Recipe         `json:"create"`
 	AddRevision *RecipeRevision `json:"addRevision"`
+	AddRating   bool            `json:"addRating"`
 }
 
 type RecipeQuery struct {
@@ -162,6 +168,7 @@ type RecipeRevision struct {
 	Steps             []*RecipeStep       `json:"steps"`
 	Rating            *float64            `json:"rating,omitempty"`
 	Photo             *string             `json:"photo,omitempty"`
+	HasRated          *bool               `json:"hasRated,omitempty"`
 }
 
 type RecipeStep struct {

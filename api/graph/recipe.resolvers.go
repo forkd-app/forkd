@@ -75,9 +75,22 @@ func (r *recipeRevisionResolver) Steps(ctx context.Context, obj *model.RecipeRev
 
 // Rating is the resolver for the rating field.
 func (r *recipeRevisionResolver) Rating(ctx context.Context, obj *model.RecipeRevision) (*float64, error) {
-	// TODO: Implement logic for computing the rating. This might be best done as a computed field inside the db, but might also be good to have a dedicated resolver for
 	rating, err := r.RecipeService.GetRevisionRating(ctx, obj.ID)
 	return &rating, err
+}
+
+// HasRated is the resolver for the hasRated field.
+func (r *recipeRevisionResolver) HasRated(ctx context.Context, obj *model.RecipeRevision) (*bool, error) {
+	user, err := r.UserService.GetCurrent(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if user == nil || obj == nil {
+		return nil, nil
+	}
+	result, err := r.RecipeService.HasUserRatedRevision(ctx, user.ID, obj.ID)
+	return &result, err
 }
 
 // Revision is the resolver for the revision field.

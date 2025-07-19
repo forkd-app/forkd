@@ -6,6 +6,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 	"forkd/graph/model"
 )
 
@@ -27,6 +28,15 @@ func (r *recipeMutationResolver) Create(ctx context.Context, obj *model.RecipeMu
 // AddRevision is the resolver for the addRevision field.
 func (r *recipeMutationResolver) AddRevision(ctx context.Context, obj *model.RecipeMutation, input model.AddRevisionInput) (*model.RecipeRevision, error) {
 	return r.RecipeService.AddRecipeRevision(ctx, input)
+}
+
+// AddRating is the resolver for the addRating field.
+func (r *recipeMutationResolver) AddRating(ctx context.Context, obj *model.RecipeMutation, input model.AddRatingInput) (bool, error) {
+	user, _ := r.AuthService.GetUserSessionFromCtx(ctx)
+	if user == nil {
+		return false, fmt.Errorf("no user on context")
+	}
+	return r.RecipeService.AddRevisionRating(ctx, user.ID.Bytes, input.RevisionID, input.StarValue)
 }
 
 // RequestMagicLink is the resolver for the requestMagicLink field.
