@@ -22,6 +22,7 @@ type RecipeRevision {
   steps: [RecipeStep!]! @goField(forceResolver: true)
   rating: Float @goField(forceResolver: true)
   photo: String
+  hasRated: Boolean @auth @goField(forceResolver: true)
 }
 
 type RecipeStep {

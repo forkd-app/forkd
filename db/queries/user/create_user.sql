@@ -1,17 +1,17 @@
 -- name: CreateUser :one
 INSERT INTO
-  users (
+users (
     email,
     display_name
-  )
+)
 VALUES (
-  $1,
-  $2
+    sqlc.arg('email'),
+    sqlc.arg('display_name')
 )
 RETURNING
-  users.id,
-  users.display_name,
-  users.email,
-  users.join_date,
-  users.updated_at,
-  users.photo;
+    users.id,
+    users.display_name,
+    users.email,
+    users.join_date,
+    users.updated_at,
+    users.photo;

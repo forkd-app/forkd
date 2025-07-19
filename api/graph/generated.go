@@ -122,6 +122,7 @@ type ComplexityRoot struct {
 	}
 
 	RecipeMutation struct {
+		AddRating   func(childComplexity int, input model.AddRatingInput) int
 		AddRevision func(childComplexity int, input model.AddRevisionInput) int
 		Create      func(childComplexity int, input model.CreateRecipeInput) int
 	}
@@ -134,6 +135,7 @@ type ComplexityRoot struct {
 
 	RecipeRevision struct {
 		ChangeComment     func(childComplexity int) int
+		HasRated          func(childComplexity int) int
 		ID                func(childComplexity int) int
 		Ingredients       func(childComplexity int) int
 		Parent            func(childComplexity int) int
@@ -211,6 +213,7 @@ type RecipeIngredientResolver interface {
 type RecipeMutationResolver interface {
 	Create(ctx context.Context, obj *model.RecipeMutation, input model.CreateRecipeInput) (*model.Recipe, error)
 	AddRevision(ctx context.Context, obj *model.RecipeMutation, input model.AddRevisionInput) (*model.RecipeRevision, error)
+	AddRating(ctx context.Context, obj *model.RecipeMutation, input model.AddRatingInput) (bool, error)
 }
 type RecipeQueryResolver interface {
 	ByID(ctx context.Context, obj *model.RecipeQuery, id uuid.UUID) (*model.Recipe, error)
@@ -225,6 +228,8 @@ type RecipeRevisionResolver interface {
 	Ingredients(ctx context.Context, obj *model.RecipeRevision) ([]*model.RecipeIngredient, error)
 	Steps(ctx context.Context, obj *model.RecipeRevision) ([]*model.RecipeStep, error)
 	Rating(ctx context.Context, obj *model.RecipeRevision) (*float64, error)
+
+	HasRated(ctx context.Context, obj *model.RecipeRevision) (*bool, error)
 }
 type RecipeStepResolver interface {
 	Revision(ctx context.Context, obj *model.RecipeStep) (*model.RecipeRevision, error)
@@ -494,6 +499,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.RecipeIngredient.Unit(childComplexity), true
 
+	case "RecipeMutation.addRating":
+		if e.complexity.RecipeMutation.AddRating == nil {
+			break
+		}
+
+		args, err := ec.field_RecipeMutation_addRating_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.RecipeMutation.AddRating(childComplexity, args["input"].(model.AddRatingInput)), true
+
 	case "RecipeMutation.addRevision":
 		if e.complexity.RecipeMutation.AddRevision == nil {
 			break
@@ -560,6 +577,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RecipeRevision.ChangeComment(childComplexity), true
+
+	case "RecipeRevision.hasRated":
+		if e.complexity.RecipeRevision.HasRated == nil {
+			break
+		}
+
+		return e.complexity.RecipeRevision.HasRated(childComplexity), true
 
 	case "RecipeRevision.id":
 		if e.complexity.RecipeRevision.ID == nil {
@@ -854,6 +878,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputAddRatingInput,
 		ec.unmarshalInputAddRevisionInput,
 		ec.unmarshalInputCreateRecipeInput,
 		ec.unmarshalInputCreateRecipeRevisionIngredient,
@@ -1013,6 +1038,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_RecipeMutation_addRating_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.AddRatingInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNAddRatingInput2forkdᚋgraphᚋmodelᚐAddRatingInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -1746,6 +1786,8 @@ func (ec *executionContext) fieldContext_Mutation_recipe(_ context.Context, fiel
 				return ec.fieldContext_RecipeMutation_create(ctx, field)
 			case "addRevision":
 				return ec.fieldContext_RecipeMutation_addRevision(ctx, field)
+			case "addRating":
+				return ec.fieldContext_RecipeMutation_addRating(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type RecipeMutation", field.Name)
 		},
@@ -1814,6 +1856,8 @@ func (ec *executionContext) fieldContext_PaginatedRecipeRevisions_items(_ contex
 				return ec.fieldContext_RecipeRevision_rating(ctx, field)
 			case "photo":
 				return ec.fieldContext_RecipeRevision_photo(ctx, field)
+			case "hasRated":
+				return ec.fieldContext_RecipeRevision_hasRated(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type RecipeRevision", field.Name)
 		},
@@ -2547,6 +2591,8 @@ func (ec *executionContext) fieldContext_Recipe_forkedFrom(_ context.Context, fi
 				return ec.fieldContext_RecipeRevision_rating(ctx, field)
 			case "photo":
 				return ec.fieldContext_RecipeRevision_photo(ctx, field)
+			case "hasRated":
+				return ec.fieldContext_RecipeRevision_hasRated(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type RecipeRevision", field.Name)
 		},
@@ -2717,6 +2763,8 @@ func (ec *executionContext) fieldContext_Recipe_featuredRevision(_ context.Conte
 				return ec.fieldContext_RecipeRevision_rating(ctx, field)
 			case "photo":
 				return ec.fieldContext_RecipeRevision_photo(ctx, field)
+			case "hasRated":
+				return ec.fieldContext_RecipeRevision_hasRated(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type RecipeRevision", field.Name)
 		},
@@ -2829,6 +2877,8 @@ func (ec *executionContext) fieldContext_RecipeIngredient_revision(_ context.Con
 				return ec.fieldContext_RecipeRevision_rating(ctx, field)
 			case "photo":
 				return ec.fieldContext_RecipeRevision_photo(ctx, field)
+			case "hasRated":
+				return ec.fieldContext_RecipeRevision_hasRated(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type RecipeRevision", field.Name)
 		},
@@ -3207,6 +3257,8 @@ func (ec *executionContext) fieldContext_RecipeMutation_addRevision(ctx context.
 				return ec.fieldContext_RecipeRevision_rating(ctx, field)
 			case "photo":
 				return ec.fieldContext_RecipeRevision_photo(ctx, field)
+			case "hasRated":
+				return ec.fieldContext_RecipeRevision_hasRated(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type RecipeRevision", field.Name)
 		},
@@ -3219,6 +3271,85 @@ func (ec *executionContext) fieldContext_RecipeMutation_addRevision(ctx context.
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_RecipeMutation_addRevision_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RecipeMutation_addRating(ctx context.Context, field graphql.CollectedField, obj *model.RecipeMutation) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RecipeMutation_addRating(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.RecipeMutation().AddRating(rctx, obj, fc.Args["input"].(model.AddRatingInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			required, err := ec.unmarshalOBoolean2ᚖbool(ctx, true)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.Auth == nil {
+				return nil, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, obj, directive0, required)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RecipeMutation_addRating(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RecipeMutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_RecipeMutation_addRating_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -3716,6 +3847,8 @@ func (ec *executionContext) fieldContext_RecipeRevision_parent(_ context.Context
 				return ec.fieldContext_RecipeRevision_rating(ctx, field)
 			case "photo":
 				return ec.fieldContext_RecipeRevision_photo(ctx, field)
+			case "hasRated":
+				return ec.fieldContext_RecipeRevision_hasRated(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type RecipeRevision", field.Name)
 		},
@@ -3963,6 +4096,67 @@ func (ec *executionContext) fieldContext_RecipeRevision_photo(_ context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _RecipeRevision_hasRated(ctx context.Context, field graphql.CollectedField, obj *model.RecipeRevision) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RecipeRevision_hasRated(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.RecipeRevision().HasRated(rctx, obj)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Auth == nil {
+				return nil, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, obj, directive0, nil)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *bool`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RecipeRevision_hasRated(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RecipeRevision",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _RecipeStep_id(ctx context.Context, field graphql.CollectedField, obj *model.RecipeStep) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_RecipeStep_id(ctx, field)
 	if err != nil {
@@ -4068,6 +4262,8 @@ func (ec *executionContext) fieldContext_RecipeStep_revision(_ context.Context, 
 				return ec.fieldContext_RecipeRevision_rating(ctx, field)
 			case "photo":
 				return ec.fieldContext_RecipeRevision_photo(ctx, field)
+			case "hasRated":
+				return ec.fieldContext_RecipeRevision_hasRated(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type RecipeRevision", field.Name)
 		},
@@ -7085,6 +7281,40 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(_ context.Context
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputAddRatingInput(ctx context.Context, obj interface{}) (model.AddRatingInput, error) {
+	var it model.AddRatingInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"revisionId", "starValue"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "revisionId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("revisionId"))
+			data, err := ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RevisionID = data
+		case "starValue":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("starValue"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StarValue = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputAddRevisionInput(ctx context.Context, obj interface{}) (model.AddRevisionInput, error) {
 	var it model.AddRevisionInput
 	asMap := map[string]interface{}{}
@@ -8408,6 +8638,42 @@ func (ec *executionContext) _RecipeMutation(ctx context.Context, sel ast.Selecti
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "addRating":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._RecipeMutation_addRating(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8773,6 +9039,39 @@ func (ec *executionContext) _RecipeRevision(ctx context.Context, sel ast.Selecti
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "photo":
 			out.Values[i] = ec._RecipeRevision_photo(ctx, field, obj)
+		case "hasRated":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._RecipeRevision_hasRated(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9730,6 +10029,11 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 // endregion **************************** object.gotpl ****************************
 
 // region    ***************************** type.gotpl *****************************
+
+func (ec *executionContext) unmarshalNAddRatingInput2forkdᚋgraphᚋmodelᚐAddRatingInput(ctx context.Context, v interface{}) (model.AddRatingInput, error) {
+	res, err := ec.unmarshalInputAddRatingInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
 
 func (ec *executionContext) unmarshalNAddRevisionInput2forkdᚋgraphᚋmodelᚐAddRevisionInput(ctx context.Context, v interface{}) (model.AddRevisionInput, error) {
 	res, err := ec.unmarshalInputAddRevisionInput(ctx, v)

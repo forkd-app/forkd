@@ -1,10 +1,10 @@
 -- name: GetIngredientById :one
 SELECT
-  ingredients.id,
-  ingredients.name,
-  ingredients.description
+    ingredients.id,
+    ingredients.name,
+    ingredients.description
 FROM
-  ingredients
+    ingredients
 WHERE
-  ingredients.id = $1
+    ingredients.id = sqlc.arg('id')
 LIMIT 1;

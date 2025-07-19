@@ -22,6 +22,9 @@ type RecipeMutation {
   addRevision(input: AddRevisionInput!): RecipeRevision!
     @auth(required: true)
     @goField(forceResolver: true)
+  addRating(input: AddRatingInput!): Boolean!
+    @auth(required: true)
+    @goField(forceResolver: true)
 }
 
 type LoginResponse {
@@ -69,4 +72,9 @@ input CreateRecipeRevisionStep {
   instruction: String!
   step: Int!
   photo: String
+}
+
+input AddRatingInput {
+  revisionId: UUID!
+  starValue: Int!
 }

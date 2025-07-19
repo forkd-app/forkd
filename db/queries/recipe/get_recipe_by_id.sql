@@ -1,14 +1,14 @@
 -- name: GetRecipeById :one
 SELECT
-  id,
-  author_id,
-  slug,
-  private,
-  initial_publish_date,
-  forked_from,
-  featured_revision
+    id,
+    author_id,
+    slug,
+    private,
+    initial_publish_date,
+    forked_from,
+    featured_revision
 FROM
-  recipes
+    recipes
 WHERE
-  id = $1
+    id = sqlc.arg('id')
 LIMIT 1;

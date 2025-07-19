@@ -1,28 +1,29 @@
 -- name: UpsertIngredient :one
 WITH upsert AS (
-  INSERT INTO
+    INSERT INTO
     ingredients (
-      name
+        name
     )
-  VALUES (
-    $1
-  )
-  ON CONFLICT (name)
-  DO NOTHING
-  RETURNING
-    ingredients.id,
-    ingredients.name
+    VALUES (
+        sqlc.arg('name')
+    )
+    ON CONFLICT (name)
+    DO NOTHING
+    RETURNING
+        ingredients.id,
+        ingredients.name
 )
+
 SELECT
-  upsert.id,
-	upsert.name
+    upsert.id,
+    upsert.name
 FROM
-  upsert
+    upsert
 UNION
 SELECT
     ingredients.id,
     ingredients.name
 FROM
-  ingredients
+    ingredients
 WHERE
-  ingredients.name = $1;
+    ingredients.name = sqlc.arg('name');

@@ -28,8 +28,8 @@ ORDER BY
   recipe_steps.index
 `
 
-func (q *Queries) ListStepsByRecipeRevisionID(ctx context.Context, id pgtype.UUID) ([]RecipeStep, error) {
-	rows, err := q.db.Query(ctx, listStepsByRecipeRevisionID, id)
+func (q *Queries) ListStepsByRecipeRevisionID(ctx context.Context, revisionID pgtype.UUID) ([]RecipeStep, error) {
+	rows, err := q.db.Query(ctx, listStepsByRecipeRevisionID, revisionID)
 	if err != nil {
 		return nil, err
 	}

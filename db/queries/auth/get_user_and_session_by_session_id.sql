@@ -1,11 +1,11 @@
 -- name: GetUserBySessionId :one
 SELECT
-  sqlc.embed(users),
-  sqlc.embed(sessions)
+    sqlc.embed(users) AS user, -- noqa: RF02,RF04
+    sqlc.embed(sessions) AS session -- noqa: RF02,RF04
 FROM
-  sessions
-JOIN
-  users ON users.id = sessions.user_id
+    sessions
+INNER JOIN
+    users ON sessions.user_id = users.id
 WHERE
-  sessions.id = $1
+    sessions.id = sqlc.arg('session_id')
 LIMIT 1;

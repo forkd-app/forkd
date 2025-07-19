@@ -1,15 +1,15 @@
 -- name: CreateMagicLink :one
 INSERT INTO
-  magic_links (
+magic_links (
     user_id,
     token,
     expiry
-  )
+)
 VALUES (
-  $1,
-  $2,
-  $3
+    sqlc.arg('user_id'),
+    sqlc.arg('token'),
+    sqlc.arg('expiry')
 )
 RETURNING
-  magic_links.id,
-  magic_links.token;
+    magic_links.id,
+    magic_links.token;

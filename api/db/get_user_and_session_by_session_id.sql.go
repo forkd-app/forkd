@@ -29,8 +29,8 @@ type GetUserBySessionIdRow struct {
 	Session Session
 }
 
-func (q *Queries) GetUserBySessionId(ctx context.Context, id pgtype.UUID) (GetUserBySessionIdRow, error) {
-	row := q.db.QueryRow(ctx, getUserBySessionId, id)
+func (q *Queries) GetUserBySessionId(ctx context.Context, sessionID pgtype.UUID) (GetUserBySessionIdRow, error) {
+	row := q.db.QueryRow(ctx, getUserBySessionId, sessionID)
 	var i GetUserBySessionIdRow
 	err := row.Scan(
 		&i.User.ID,

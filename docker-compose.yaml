@@ -97,6 +97,7 @@ services:
       POSTGRES_DB: forkd
   object-storage:
     image: minio/minio:RELEASE.2025-06-13T11-33-47Z
+    command: server --console-address ":9001" /data
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -236,6 +237,14 @@ services:
     restart: no
     volumes:
       - ./:/app
+    profiles:
+      - "scripts"
+  sqlfluff:
+    image: sqlfluff/sqlfluff:3.4.2
+    restart: no
+    volumes:
+      - ./db:/db
+    working_dir: /db
     profiles:
       - "scripts"
   seed:

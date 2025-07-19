@@ -20,25 +20,19 @@ import (
 )
 
 const (
-	USER_COUNT              = 50
-	RECIPE_PER_USER_MIN     = 0
-	RECIPE_PER_USER_MAX     = 20
-	REVISION_PER_RECIPE_MIN = 1
-	REVISION_PER_RECIPE_MAX = 12
-	INGREDIENT_COUNT_MIN    = 3
-	INGREDIENT_COUNT_MAX    = 9
-	STEP_COUNT_MIN          = 2
-	STEP_COUNT_MAX          = 10
-)
-
-const (
+	USER_COUNT                         = 100
+	RECIPE_PER_USER_MIN                = 0
+	RECIPE_PER_USER_MAX                = 20
+	REVISION_PER_RECIPE_MIN            = 1
+	REVISION_PER_RECIPE_MAX            = 12
+	INGREDIENT_COUNT_MIN               = 3
+	INGREDIENT_COUNT_MAX               = 9
+	STEP_COUNT_MIN                     = 2
+	STEP_COUNT_MAX                     = 10
 	RECIPE_REVISION_DESCRIPTION_MIN    = 4
 	RECIPE_REVISION_DESCRIPTION_MAX    = 10
 	RECIPE_REVISION_CHANGE_COMMENT_MIN = 2
 	RECIPE_REVISION_CHANGE_COMMENT_MAX = 5
-)
-
-const (
 	USER_PHOTO_CHANCE                  = 4.0 / 5.0
 	RECIPE_PHOTO_CHANCE                = 7.0 / 8.0
 	FORK_CHANCE                        = 1.0 / 3.0
@@ -59,6 +53,7 @@ const (
 	INGREDIENT_CHANGE_CHANCE           = 2.0 / 3.0
 	INGREDIENT_COMMENT_CHANGE_CHANCE   = 1.0 / 5.0
 	UNIT_CHANGE_CHANCE                 = 2.0 / 3.0
+	RATING_CHANCE                      = 1.0 / 16.0
 )
 
 type RevisionWithIngredients struct {
@@ -201,6 +196,8 @@ func main() {
 	users := createUsers(ctx, tx, qtx)
 	log.Println("inserting recipes")
 	recipes := make([]RecipeWithRevisions, 0)
+	ratings := make([]db.Rating, 0)
+	totalRevisions := make([]RevisionWithIngredients, 0)
 	for _, user := range users {
 		recipeCount := randBetween(RECIPE_PER_USER_MIN, RECIPE_PER_USER_MAX)
 		log.Printf("inserting %d recipes for user %s", recipeCount, user.DisplayName)
@@ -543,11 +540,36 @@ func main() {
 
 				log.Printf("inserted revision: %s with parent %s", uuid.UUID(revisionWithIngredients.revision.ID.Bytes).String(), uuid.UUID(parent.revision.ID.Bytes).String())
 				revisions = append(revisions, revisionWithIngredients)
+				totalRevisions = append(totalRevisions, revisionWithIngredients)
+				log.Printf("inserting ratings for revision %s", uuid.UUID(revisionWithIngredients.revision.ID.Bytes).String())
+				revisionRatings := make([]db.Rating, 0)
+				for _, user := range users {
+					if flipCoin(RATING_CHANCE) && recipe.AuthorID.Bytes != user.ID.Bytes {
+						params := db.UpsertRatingParams{
+							RevisionID: revisionWithIngredients.revision.ID,
+							UserID:     user.ID,
+							StarValue:  int16(randBetween(1, 5)),
+						}
+						rating, err := qtx.UpsertRating(ctx, params)
+						if err != nil {
+							// I know I shouldn't be ignoring this but whatever lol
+							_ = tx.Rollback(ctx)
+							log.Panicf("error upserting rating %+v", err)
+						}
+						revisionRatings = append(revisionRatings, rating)
+						ratings = append(ratings, rating)
+					}
+				}
+				log.Printf("inserted %d ratings", len(revisionRatings))
 			}
 			userRecipes = append(userRecipes, RecipeWithRevisions{recipe: recipe, revisions: revisions})
 		}
 		recipes = slices.Concat(recipes, userRecipes)
 	}
+	log.Printf("inserted %d total ratings", len(ratings))
+	log.Printf("inserted %d total users", len(users))
+	log.Printf("inserted %d total recipes", len(recipes))
+	log.Printf("inserted %d total revisions", len(totalRevisions))
 	_ = tx.Commit(ctx)
 }
 
