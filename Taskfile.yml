@@ -149,7 +149,7 @@ tasks:
 
   seed:
     desc: "Seed the DB"
-    cmd: docker-compose --profile "scripts" run --rm seed
+    cmd: docker-compose --profile "scripts" run --build --rm seed
 
   reset:
     desc: "Reset DB"
