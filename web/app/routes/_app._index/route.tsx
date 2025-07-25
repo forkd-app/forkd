@@ -46,28 +46,11 @@ export default function Index() {
         style={styles.grid}
       >
         {recipes?.items.map((recipe) => (
-          <div key={recipe.slug} style={styles.col}>
+          <div key={recipe.id} style={styles.col}>
             <RecipeCard recipe={recipe || {}} />
           </div>
         ))}
       </SimpleGrid>
     </>
   )
-}
-
-const styles = {
-  grid: {
-    background: "#fff",
-    width: "90%",
-    margin: "auto",
-  },
-  col: {
-    padding: 10,
-    margin: 10,
-    borderWidth: 0,
-    borderColor: "black",
-    borderStyle: "solid",
-    justifyContent: "space-evenly",
-    boxShadow: "0px  5px 15px #bfbfbf",
-  },
 }
