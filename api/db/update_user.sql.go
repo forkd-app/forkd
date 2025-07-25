@@ -13,8 +13,8 @@ import (
 
 const updateUser = `-- name: UpdateUser :one
 UPDATE users
-SET display_name = $2, email = $3, photo = $4
-WHERE id = $1
+SET display_name = $1, email = $2, photo = $3
+WHERE id = $4
 RETURNING
   id,
   display_name,
@@ -25,18 +25,18 @@ RETURNING
 `
 
 type UpdateUserParams struct {
-	ID          pgtype.UUID
 	DisplayName string
 	Email       string
 	Photo       pgtype.Text
+	ID          pgtype.UUID
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
 	row := q.db.QueryRow(ctx, updateUser,
-		arg.ID,
 		arg.DisplayName,
 		arg.Email,
 		arg.Photo,
+		arg.ID,
 	)
 	var i User
 	err := row.Scan(

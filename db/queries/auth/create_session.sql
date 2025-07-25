@@ -1,16 +1,21 @@
 -- name: CreateSession :one
 WITH sesh AS (
-  INSERT INTO
+    INSERT INTO
     sessions (
-      user_id,
-      expiry
+        user_id,
+        expiry
     )
-  VALUES (
-    $1,
-    $2
-  )
-  RETURNING
-    sessions.id,
-    sessions.user_id
+    VALUES (
+        sqlc.arg('user_id'),
+        sqlc.arg('expiry')
+    )
+    RETURNING
+        sessions.id,
+        sessions.user_id
 )
-SELECT sqlc.embed(users), sesh.id FROM sesh INNER JOIN users ON sesh.user_id = users.id;
+
+SELECT
+    sesh.id,
+    sqlc.embed(users) AS user -- noqa: RF02,RF04
+FROM sesh
+INNER JOIN users ON sesh.user_id = users.id;

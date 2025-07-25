@@ -31,15 +31,16 @@ type Querier interface {
 	GetUserByDisplayName(ctx context.Context, displayName string) (User, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserById(ctx context.Context, id pgtype.UUID) (User, error)
-	GetUserBySessionId(ctx context.Context, id pgtype.UUID) (GetUserBySessionIdRow, error)
-	ListIngredientsByRecipeRevisionID(ctx context.Context, id pgtype.UUID) ([]RecipeIngredient, error)
+	GetUserBySessionId(ctx context.Context, sessionID pgtype.UUID) (GetUserBySessionIdRow, error)
+	HasUserRatedRevision(ctx context.Context, arg HasUserRatedRevisionParams) (bool, error)
+	ListIngredientsByRecipeRevisionID(ctx context.Context, revisionID pgtype.UUID) ([]RecipeIngredient, error)
 	ListRecipes(ctx context.Context, arg ListRecipesParams) ([]Recipe, error)
 	//Used when there is not a featured recipe
 	//and recipe_id = 'ae1f8b91-3659-4f7e-b484-dd54e7f3d2b3'
 	//Used when there is a featured recipe
 	ListRecipesWithQuery(ctx context.Context, arg ListRecipesWithQueryParams) ([]ListRecipesWithQueryRow, error)
 	ListRevisions(ctx context.Context, arg ListRevisionsParams) ([]RecipeRevision, error)
-	ListStepsByRecipeRevisionID(ctx context.Context, id pgtype.UUID) ([]RecipeStep, error)
+	ListStepsByRecipeRevisionID(ctx context.Context, revisionID pgtype.UUID) ([]RecipeStep, error)
 	SeedRecipe(ctx context.Context, arg SeedRecipeParams) (Recipe, error)
 	SeedRevision(ctx context.Context, arg SeedRevisionParams) (RecipeRevision, error)
 	SeedUser(ctx context.Context, arg SeedUserParams) (User, error)
