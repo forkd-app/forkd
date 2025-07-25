@@ -97,6 +97,7 @@ services:
       POSTGRES_DB: forkd
   object-storage:
     image: minio/minio:RELEASE.2025-06-13T11-33-47Z
+    command: server --console-address ":9001" /data
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -192,8 +193,6 @@ services:
       - "scripts"
   mc:
     image: minio/mc:RELEASE.2025-05-21T01-59-54Z
-    environment:
-      MC_HOST_minio: http://minio:minio-password@minio:9000
     restart: no
     depends_on:
       - object-storage
