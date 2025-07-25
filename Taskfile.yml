@@ -23,6 +23,7 @@ tasks:
   pull:
     desc: "Pull docker images"
     cmd: docker-compose --profile "scripts" pull {{.CLI_ARGS}}
+
   # Database migration tasks
   migrate-new:
     desc: "Create a new migration"
@@ -134,6 +135,8 @@ tasks:
       - task: build
       - docker-compose --profile "scripts" run --rm mc alias set forkd http://minio:9000 minio minio-password
       - docker-compose --profile "scripts" run --rm mc admin accesskey create forkd --name forkd --access-key forkd --secret-key forkd-secret-key
+      - task: migrate-up
+      - task: seed
 
   setup-hooks:
     desc: "Setup githooks"
