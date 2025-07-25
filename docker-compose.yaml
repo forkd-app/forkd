@@ -192,6 +192,8 @@ services:
       - "scripts"
   mc:
     image: minio/mc:RELEASE.2025-05-21T01-59-54Z
+    environment:
+      MC_HOST_minio: http://minio:minio-password@minio:9000
     restart: no
     depends_on:
       - object-storage
