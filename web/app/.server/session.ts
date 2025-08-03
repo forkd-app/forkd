@@ -5,7 +5,7 @@ import {
   data,
   LoaderFunction,
   LoaderFunctionArgs,
-} from "@remix-run/node"
+} from "react-router"
 import { environment } from "app/.server/env"
 
 export const cookieSession = createCookieSessionStorage<

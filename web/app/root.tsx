@@ -5,7 +5,8 @@ import {
   Scripts,
   ScrollRestoration,
   useLoaderData,
-} from "@remix-run/react"
+  LoaderFunctionArgs,
+} from "react-router"
 import { MantineProvider } from "@mantine/core"
 import "@mantine/core/styles.css"
 import { getSessionOrThrow } from "~/.server/session"
@@ -14,7 +15,6 @@ import { environment } from "~/.server/env"
 import { store } from "~/stores/global"
 import { setUser } from "~/stores/user"
 import { Provider, useDispatch } from "react-redux"
-import { LoaderFunctionArgs } from "@remix-run/node"
 import { ClientError } from "graphql-request"
 import { useEffect } from "react"
 

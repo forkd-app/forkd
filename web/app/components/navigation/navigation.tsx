@@ -1,6 +1,6 @@
 import { Grid, NavLink, Button } from "@mantine/core"
 import { useGlobals } from "~/stores/global"
-import { Link } from "@remix-run/react"
+import { Link } from "react-router"
 
 export function Navigation() {
   const { user } = useGlobals()

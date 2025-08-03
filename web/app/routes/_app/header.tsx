@@ -9,7 +9,7 @@ import {
   ActionIcon,
 } from "@mantine/core"
 import { useMediaQuery } from "@mantine/hooks"
-import { Link } from "@remix-run/react"
+import { Link } from "react-router"
 import { MobileHeader } from "./mobileHeader"
 import { useSelector } from "react-redux"
 import type { RootState } from "~/stores/global"
