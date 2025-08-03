@@ -1,11 +1,10 @@
-import { SimpleGrid } from "@mantine/core"
-import { RecipeCard } from "../../components/recipeCard/recipeCard"
 import { MetaFunction, useLoaderData } from "@remix-run/react"
 import { LoaderFunctionArgs } from "@remix-run/node"
 import { ClientError } from "graphql-request"
 import { getSessionOrThrow } from "~/.server/session"
 import { getSDK } from "~/gql/client"
 import { environment } from "~/.server/env"
+import RecipeList from "../../components/recipeList/RecipeList"
 
 export const meta: MetaFunction = () => {
   return [
@@ -36,38 +35,7 @@ export async function loader(args: LoaderFunctionArgs) {
 export default function Index() {
   const recipes = useLoaderData<typeof loader>()
 
-  return (
-    <>
-      {/* recipe component */}
-      <SimpleGrid
-        cols={{ base: 1, sm: 2, md: 2, lg: 4 }}
-        pb={40}
-        pt={40}
-        style={styles.grid}
-      >
-        {recipes?.items.map((recipe) => (
-          <div key={recipe.slug} style={styles.col}>
-            <RecipeCard recipe={recipe || {}} />
-          </div>
-        ))}
-      </SimpleGrid>
-    </>
-  )
-}
+  if (!recipes) return null
 
-const styles = {
-  grid: {
-    background: "#fff",
-    width: "90%",
-    margin: "auto",
-  },
-  col: {
-    padding: 10,
-    margin: 10,
-    borderWidth: 0,
-    borderColor: "black",
-    borderStyle: "solid",
-    justifyContent: "space-evenly",
-    boxShadow: "0px  5px 15px #bfbfbf",
-  },
+  return <RecipeList recipes={recipes} />
 }
