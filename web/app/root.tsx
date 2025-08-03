@@ -11,13 +11,15 @@ import "@mantine/core/styles.css"
 import { getSessionOrThrow } from "~/.server/session"
 import { getSDK } from "~/gql/client"
 import { environment } from "~/.server/env"
-import { useGlobals } from "~/stores/global"
+import { store } from "~/stores/global"
+import { setUser } from "~/stores/user"
+import { Provider, useDispatch } from "react-redux"
 import { LoaderFunctionArgs } from "@remix-run/node"
 import { ClientError } from "graphql-request"
+import { useEffect } from "react"
 
 export async function loader(args: LoaderFunctionArgs) {
   const session = await getSessionOrThrow(args, false)
-  console.log("Session Token: ", session.get("sessionToken"))
   const auth = session.get("sessionToken")
   const sdk = getSDK(`${environment.BACKEND_URL}`, auth)
   try {
@@ -41,7 +43,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <MantineProvider>{children}</MantineProvider>
+        <MantineProvider>
+          <Provider store={store}>{children} </Provider>
+        </MantineProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -51,8 +55,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const data = useLoaderData<typeof loader>()
-  useGlobals.getInitialState().setUser(data)
-  console.log(useGlobals.getState().user, "user signing in")
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    dispatch(setUser(data))
+  }, [data, dispatch])
 
   return <Outlet />
 }

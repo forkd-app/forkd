@@ -1,21 +1,13 @@
-import { Grid } from "@mantine/core"
+import { Center, Text } from "@mantine/core"
+import { IconHeartFilled, IconBellFilled } from "@tabler/icons-react"
 
 export function Footer() {
   return (
-    <Grid style={styles.foot}>
-      <Grid.Col span={{ base: 12, md: 12, lg: 6 }}>1</Grid.Col>
-      <Grid.Col span={{ base: 12, md: 12, lg: 6 }}>2</Grid.Col>
-    </Grid>
+    <Center>
+      <Text size="1.25rem">
+        Made with <IconHeartFilled size={"1rem"} color="red" /> in Philly{" "}
+        <IconBellFilled size={"1rem"} color="gold" />
+      </Text>
+    </Center>
   )
-}
-
-const styles = {
-  foot: {
-    height: 80,
-    background: "black",
-    position: "fixed",
-    bottom: 0,
-    width: "100%",
-    color: "white",
-  },
 }
