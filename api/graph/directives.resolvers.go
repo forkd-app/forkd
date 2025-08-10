@@ -16,7 +16,7 @@ func AuthDirective(authService auth.AuthService) func(context.Context, any, grap
 		if (user == nil || session == nil) && required != nil && *required {
 			return nil, fmt.Errorf("missing auth")
 		}
-		if session.Expiry.Time.Before(time.Now()) {
+		if session != nil && session.Expiry.Time.Before(time.Now()) {
 			return nil, fmt.Errorf("session expired")
 		}
 		return next(ctx)
