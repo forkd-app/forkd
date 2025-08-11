@@ -1,0 +1,3 @@
+#!/bin/sh
+
+task commitlint -- --commit-msg-file $1
