@@ -4,8 +4,6 @@ version: "3"
 vars:
   DB_URL: "postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable"
 
-output: prefixed
-
 tasks:
   # Docker-related tasks
   up:
@@ -175,3 +173,9 @@ tasks:
       - task: migrate-drop
       - task: migrate-up
       - task: seed
+  commitlint:
+    desc: "Lint commit message for conventional commit structure"
+    cmd: docker-compose --profile "scripts" run -T --rm commitizen cz check {{.CLI_ARGS}}
+  commit:
+    desc: "Interactive builder for conventional commits"
+    cmd: docker-compose --profile "scripts" run -i --rm commitizen cz commit {{.CLI_ARGS}}

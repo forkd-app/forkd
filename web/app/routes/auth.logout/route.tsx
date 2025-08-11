@@ -1,7 +1,6 @@
-import { redirect } from "@remix-run/react"
+import { redirect, LoaderFunctionArgs } from "react-router"
 import { getSDK } from "~/gql/client"
 import { cookieSession, getSessionOrThrow } from "~/.server/session"
-import { LoaderFunctionArgs } from "@remix-run/node"
 import { environment } from "~/.server/env"
 
 export async function loader(args: LoaderFunctionArgs) {

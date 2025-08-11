@@ -19,6 +19,11 @@ export type Scalars = {
   UUID: { input: any; output: any; }
 };
 
+export type AddRatingInput = {
+  revisionId: Scalars['UUID']['input'];
+  starValue: Scalars['Int']['input'];
+};
+
 export type AddRevisionInput = {
   id: Scalars['UUID']['input'];
   parent: Scalars['UUID']['input'];
@@ -69,6 +74,7 @@ export type ListRecipeInput = {
   nextCursor?: InputMaybe<Scalars['String']['input']>;
   publishEnd?: InputMaybe<Scalars['Time']['input']>;
   publishStart?: InputMaybe<Scalars['Time']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
   sortCol?: InputMaybe<ListRecipeSortCol>;
   sortDir?: InputMaybe<SortDir>;
 };
@@ -165,8 +171,14 @@ export type RecipeIngredient = {
 
 export type RecipeMutation = {
   __typename?: 'RecipeMutation';
+  addRating: Scalars['Boolean']['output'];
   addRevision: RecipeRevision;
   create: Recipe;
+};
+
+
+export type RecipeMutationAddRatingArgs = {
+  input: AddRatingInput;
 };
 
 
@@ -205,6 +217,7 @@ export type RecipeQueryListArgs = {
 export type RecipeRevision = {
   __typename?: 'RecipeRevision';
   changeComment?: Maybe<Scalars['String']['output']>;
+  hasRated?: Maybe<Scalars['Boolean']['output']>;
   id: Scalars['UUID']['output'];
   ingredients: Array<RecipeIngredient>;
   parent?: Maybe<RecipeRevision>;

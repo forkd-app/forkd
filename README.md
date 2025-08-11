@@ -12,7 +12,7 @@ This is a monorepo with the following packages:
 - `Web`
   - path
     - `./web`
-  - [Remix](https://remix.run/)
+  - [React-Router](https://reactrouter.com/)
   - [Mantine](https://mantine.dev/)
 
 ## Development

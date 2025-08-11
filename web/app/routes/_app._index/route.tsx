@@ -1,5 +1,4 @@
-import { MetaFunction, useLoaderData } from "@remix-run/react"
-import { LoaderFunctionArgs } from "@remix-run/node"
+import { MetaFunction, useLoaderData, LoaderFunctionArgs } from "react-router"
 import { ClientError } from "graphql-request"
 import { getSessionOrThrow } from "~/.server/session"
 import { getSDK } from "~/gql/client"
@@ -22,7 +21,6 @@ export async function loader(args: LoaderFunctionArgs) {
   const sdk = getSDK(`${environment.BACKEND_URL}`, auth)
   try {
     const data = await sdk.ListRecipes()
-    // console.log(data?.recipe?.list || null)
     return data?.recipe?.list ?? null
   } catch (err) {
     if (err instanceof ClientError && err.message === "missing auth") {
