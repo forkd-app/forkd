@@ -1,8 +1,14 @@
 import { Container, Text, Button, TextInput } from "@mantine/core"
 import { IconMail } from "@tabler/icons-react"
-import { Form, useActionData, useNavigation, useSubmit } from "@remix-run/react"
+import {
+  Form,
+  useActionData,
+  useNavigation,
+  useSubmit,
+  ActionFunctionArgs,
+  redirect,
+} from "react-router"
 import { isEmail, useForm } from "@mantine/form"
-import { ActionFunctionArgs, redirect } from "@remix-run/node"
 import { object, string, email, pipe, parse } from "valibot"
 import { client } from "~/gql/client"
 import { cookieSession, getSessionOrThrow } from "~/.server/session"
@@ -34,7 +40,6 @@ export async function action(args: ActionFunctionArgs) {
       // TODO: Maybe revisit this and make it a little more resilient...
       // Lol, this is kinda whack.
       const msg = err.message.split(":", 2).slice(0, 2).join(":")
-      console.log(msg, err.message)
       if (msg.startsWith(NOT_REGISTERED_ERROR)) {
         return { errors: [{ field: "email", error: msg }] }
       }

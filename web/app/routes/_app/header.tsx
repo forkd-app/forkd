@@ -8,15 +8,14 @@ import {
   Popover,
   ActionIcon,
 } from "@mantine/core"
-import { Categories } from "../../components/categoriesList/categories"
 import { useMediaQuery } from "@mantine/hooks"
-import { Link } from "@remix-run/react"
-import { useGlobals } from "~/stores/global"
+import { Link } from "react-router"
 import { MobileHeader } from "./mobileHeader"
+import { useSelector } from "react-redux"
+import type { RootState } from "~/stores/global"
 
 export function Header() {
-  const { user } = useGlobals()
-
+  const user = useSelector((state: RootState) => state.user.value)
   const isMobile = useMediaQuery("(max-width: 1199px)")
 
   return isMobile ? (
@@ -114,7 +113,6 @@ export function Header() {
           )}
         </Grid.Col>
       </Grid>
-      <Categories />
     </div>
   )
 }

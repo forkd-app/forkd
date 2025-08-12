@@ -1,17 +1,14 @@
-import { create } from "zustand"
-import type { Maybe, CurrentUserQuery } from "~/gql/forkd.g"
+import { configureStore } from "@reduxjs/toolkit"
+import userReducer, { UserState } from "./user"
 
-type CurrentUser = Exclude<
-  CurrentUserQuery["user"],
-  null | undefined
->["current"]
-
-interface GlobalValues {
-  user: Maybe<CurrentUser>
-  setUser: (user: Maybe<CurrentUser>) => void
+export function getStore(state: { user: UserState }) {
+  return configureStore({
+    reducer: {
+      user: userReducer,
+    },
+    preloadedState: state,
+  })
 }
 
-export const useGlobals = create<GlobalValues>()((set) => ({
-  user: null,
-  setUser: (user) => set({ user }),
-}))
+export type RootState = ReturnType<ReturnType<typeof getStore>["getState"]>
+export type AppDispatch = ReturnType<typeof getStore>["dispatch"]

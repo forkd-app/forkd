@@ -1,7 +1,7 @@
 import { FC } from "react"
 import { Flex, Text, Button, Image, Rating, Title } from "@mantine/core"
 import { ListRecipesQuery } from "~/gql/forkd.g"
-import { Link } from "@remix-run/react"
+import { Link } from "react-router"
 
 interface Props {
   recipe: Recipe

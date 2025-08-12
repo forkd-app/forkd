@@ -11,11 +11,10 @@ import {
 } from "@mantine/core"
 import { IconArrowLeft, IconShare } from "@tabler/icons-react"
 import { useMediaQuery } from "@mantine/hooks"
-import { LoaderFunctionArgs } from "@remix-run/node"
+import { LoaderFunctionArgs, useLoaderData } from "react-router"
 import { getSessionOrThrow } from "~/.server/session"
 import { getSDK } from "~/gql/client"
 import { environment } from "~/.server/env"
-import { useLoaderData } from "@remix-run/react"
 import { RecipeBySlugQuery } from "~/gql/forkd.g"
 
 type Recipe = Exclude<RecipeBySlugQuery["recipe"], null | undefined>["bySlug"]
@@ -30,7 +29,6 @@ export async function loader(args: LoaderFunctionArgs) {
         slug: args.params.slug,
         authorDisplayName: args.params.author,
       })
-      console.log("recipe by author/ slug", data)
       return data?.recipe?.bySlug
     }
   } catch (error) {
@@ -42,11 +40,6 @@ export async function loader(args: LoaderFunctionArgs) {
 export default function Recipe() {
   const isMobile = useMediaQuery("(max-width: 1199px)")
   const recipe: Recipe = useLoaderData<typeof loader>()
-  console.log(
-    recipe?.featuredRevision?.photo
-      ? recipe.featuredRevision.photo
-      : "/images/image.png"
-  )
 
   return (
     <Flex style={styles.container} direction="column">

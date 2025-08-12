@@ -3,4 +3,5 @@ node_modules
 
 .env
 web/vite.config.ts.*
+web/.react-router/
 .opencode/

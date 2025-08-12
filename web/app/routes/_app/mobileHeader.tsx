@@ -14,7 +14,6 @@ import {
   IconSearch,
   IconGrillFork,
 } from "@tabler/icons-react"
-import { Categories } from "~/components/categoriesList/categories"
 import { Navigation } from "~/components/navigation/navigation"
 
 export function MobileHeader() {
@@ -103,7 +102,6 @@ export function MobileHeader() {
           </Popover>
         }
       />
-      <Categories />
     </Flex>
   )
 }
