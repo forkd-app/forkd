@@ -12,11 +12,10 @@ import "@mantine/core/styles.css"
 import { getSessionOrThrow } from "~/.server/session"
 import { getSDK } from "~/gql/client"
 import { environment } from "~/.server/env"
-import { store } from "~/stores/global"
-import { setUser } from "~/stores/user"
-import { Provider, useDispatch } from "react-redux"
+import { getStore } from "~/stores/global"
+import { Provider } from "react-redux"
 import { ClientError } from "graphql-request"
-import { useEffect } from "react"
+import { useMemo } from "react"
 
 export async function loader(args: LoaderFunctionArgs) {
   const session = await getSessionOrThrow(args, false)
@@ -34,6 +33,12 @@ export async function loader(args: LoaderFunctionArgs) {
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const data = useLoaderData<typeof loader>()
+  const store = useMemo(() => {
+    return getStore({ user: { value: data } })
+  }, [data])
+  console.log(data)
+
   return (
     <html lang="en" data-mantine-color-scheme="light">
       <head>
@@ -54,12 +59,5 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  const data = useLoaderData<typeof loader>()
-  const dispatch = useDispatch()
-
-  useEffect(() => {
-    dispatch(setUser(data))
-  }, [data, dispatch])
-
   return <Outlet />
 }
