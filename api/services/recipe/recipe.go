@@ -24,6 +24,16 @@ const (
 	DEFAULT_LIST_RECIPE_SORT_FIELD = "publish_date"
 )
 
+func validateTitle(title string) error {
+	if len(title) < 3 {
+		return fmt.Errorf("title must be at least 3 characters long")
+	}
+	if len(title) > 150 {
+		return fmt.Errorf("title must be no more than 150 characters long")
+	}
+	return nil
+}
+
 type RecipeService interface {
 	GetRecipeByID(ctx context.Context, id uuid.UUID) (*model.Recipe, error)
 	GetRecipeBySlug(ctx context.Context, slug string, displayName string) (*model.Recipe, error)
@@ -142,6 +152,10 @@ func (r recipeService) AddRecipeRevision(ctx context.Context, input model.AddRev
 		return nil, nil
 	}
 
+	if err := validateTitle(input.Revision.Title); err != nil {
+		return nil, err
+	}
+
 	tx, err := r.conn.Begin(ctx)
 	if err != nil {
 		return nil, err
@@ -246,6 +260,10 @@ func (r recipeService) CreateRecipe(ctx context.Context, input model.CreateRecip
 	if input.Revision == nil {
 		// TODO: Write an actual error here
 		return nil, nil
+	}
+
+	if err := validateTitle(input.Revision.Title); err != nil {
+		return nil, err
 	}
 
 	user, _ := r.authService.GetUserSessionFromCtx(ctx)
