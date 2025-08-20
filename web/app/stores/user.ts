@@ -1,16 +1,16 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 import type { Maybe, CurrentUserQuery } from "~/gql/forkd.g"
 
-type CurrentUser = Exclude<
+export type CurrentUser = Exclude<
   CurrentUserQuery["user"],
   null | undefined
 >["current"]
 
-interface GlobalState {
+export interface UserState {
   value: Maybe<CurrentUser>
 }
 
-const initialState: GlobalState = {
+const initialState: UserState = {
   value: null,
 }
 
