@@ -1,9 +1,10 @@
 import { Grid, NavLink, Button } from "@mantine/core"
-import { useGlobals } from "~/stores/global"
-import { Link } from "@remix-run/react"
+import { useSelector } from "react-redux"
+import { Link } from "react-router"
+import { RootState } from "~/stores/global"
 
 export function Navigation() {
-  const { user } = useGlobals()
+  const user = useSelector((state: RootState) => state.user.value)
 
   return (
     <>

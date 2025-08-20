@@ -5,19 +5,20 @@ import {
   Scripts,
   ScrollRestoration,
   useLoaderData,
-} from "@remix-run/react"
+  LoaderFunctionArgs,
+} from "react-router"
 import { MantineProvider } from "@mantine/core"
 import "@mantine/core/styles.css"
 import { getSessionOrThrow } from "~/.server/session"
 import { getSDK } from "~/gql/client"
 import { environment } from "~/.server/env"
-import { useGlobals } from "~/stores/global"
-import { LoaderFunctionArgs } from "@remix-run/node"
+import { getStore } from "~/stores/global"
+import { Provider } from "react-redux"
 import { ClientError } from "graphql-request"
+import { useMemo } from "react"
 
 export async function loader(args: LoaderFunctionArgs) {
   const session = await getSessionOrThrow(args, false)
-  console.log("Session Token: ", session.get("sessionToken"))
   const auth = session.get("sessionToken")
   const sdk = getSDK(`${environment.BACKEND_URL}`, auth)
   try {
@@ -32,6 +33,12 @@ export async function loader(args: LoaderFunctionArgs) {
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const data = useLoaderData<typeof loader>()
+  const store = useMemo(() => {
+    return getStore({ user: { value: data } })
+  }, [data])
+  console.log(data)
+
   return (
     <html lang="en" data-mantine-color-scheme="light">
       <head>
@@ -41,7 +48,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <MantineProvider>{children}</MantineProvider>
+        <MantineProvider>
+          <Provider store={store}>{children} </Provider>
+        </MantineProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -50,9 +59,5 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  const data = useLoaderData<typeof loader>()
-  useGlobals.getInitialState().setUser(data)
-  console.log(useGlobals.getState().user, "user signing in")
-
   return <Outlet />
 }
