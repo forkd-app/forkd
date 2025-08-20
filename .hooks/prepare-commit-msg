@@ -1,0 +1,5 @@
+#!/bin/sh
+
+if [[ $2 != "message" && $3 == "" ]]; then
+  exec </dev/tty && task commit -- --dry-run --write-message-to-file $1
+fi

@@ -268,3 +268,12 @@ services:
       - object-storage:minio
     profiles:
       - "scripts"
+  commitizen:
+    # This specifies the docker file/context to build for the api container
+    build:
+      context: .
+      dockerfile: commitizen.Dockerfile
+    volumes:
+      - .:/app
+    profiles:
+      - "scripts"
