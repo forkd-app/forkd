@@ -556,6 +556,8 @@ func (r recipeService) ListRecipeRevisions(ctx context.Context, input *model.Lis
 	var NextCursor *string = nil
 
 	if len(revisions) == int(params.Limit) {
+		// We have to do this to keep the cursor size from ballooning, since we don't care about this field anyway
+		input.NextCursor = nil
 		cursor := ListRevisionsCursor{
 			ListRevisionsInput: *input,
 		}
@@ -707,6 +709,9 @@ func (r recipeService) ListRecipes(ctx context.Context, input *model.ListRecipeI
 		if input != nil {
 			listInput = *input
 		}
+
+		// We have to do this to keep the cursor size from ballooning, since we don't care about this field anyway
+		listInput.NextCursor = nil
 
 		cursor := ListRecipesCursor{
 			ListRecipeInput: listInput,

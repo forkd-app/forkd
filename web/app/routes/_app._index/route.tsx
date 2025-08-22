@@ -1,9 +1,7 @@
-import { MetaFunction, useLoaderData, LoaderFunctionArgs } from "react-router"
-import { ClientError } from "graphql-request"
-import { getSessionOrThrow } from "~/.server/session"
-import { getSDK } from "~/gql/client"
-import { environment } from "~/.server/env"
+import { MetaFunction, useLoaderData } from "react-router"
+import { recipesLoader } from "~/.server/loaders/recipes"
 import RecipeList from "../../components/recipeList/RecipeList"
+import type { Route } from "./+types/route"
 
 export const meta: MetaFunction = () => {
   return [
@@ -15,20 +13,7 @@ export const meta: MetaFunction = () => {
   ]
 }
 
-export async function loader(args: LoaderFunctionArgs) {
-  const session = await getSessionOrThrow(args, false)
-  const auth = session.get("sessionToken")
-  const sdk = getSDK(`${environment.BACKEND_URL}`, auth)
-  try {
-    const data = await sdk.ListRecipes()
-    return data?.recipe?.list ?? null
-  } catch (err) {
-    if (err instanceof ClientError && err.message === "missing auth") {
-      return null
-    }
-    throw err
-  }
-}
+export const loader = recipesLoader<Route.LoaderArgs>
 
 export default function Index() {
   const recipes = useLoaderData<typeof loader>()
