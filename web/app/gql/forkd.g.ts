@@ -335,10 +335,12 @@ export type CheckUserSignupQueryVariables = Exact<{
 
 export type CheckUserSignupQuery = { __typename?: 'Query', user?: { __typename?: 'UserQuery', byEmail?: { __typename?: 'User', email: string } | null, byDisplayName?: { __typename?: 'User', displayName: string } | null } | null };
 
-export type ListRecipesQueryVariables = Exact<{ [key: string]: never; }>;
+export type ListRecipesQueryVariables = Exact<{
+  input?: InputMaybe<ListRecipeInput>;
+}>;
 
 
-export type ListRecipesQuery = { __typename?: 'Query', recipe?: { __typename?: 'RecipeQuery', list: { __typename?: 'PaginatedRecipes', items: Array<{ __typename?: 'Recipe', slug: string, id: any, author: { __typename?: 'User', displayName: string }, featuredRevision?: { __typename?: 'RecipeRevision', recipeDescription?: string | null, publishDate: any, rating?: number | null, title: string } | null }> } } | null };
+export type ListRecipesQuery = { __typename?: 'Query', recipe?: { __typename?: 'RecipeQuery', list: { __typename?: 'PaginatedRecipes', items: Array<{ __typename?: 'Recipe', slug: string, id: any, author: { __typename?: 'User', displayName: string }, featuredRevision?: { __typename?: 'RecipeRevision', recipeDescription?: string | null, publishDate: any, rating?: number | null, title: string } | null }>, pagination: { __typename?: 'PaginationInfo', nextCursor?: string | null } } } | null };
 
 export type LoginMutationVariables = Exact<{
   token: Scalars['String']['input'];
@@ -395,9 +397,9 @@ export const CheckUserSignupDocument = gql`
 }
     `;
 export const ListRecipesDocument = gql`
-    query ListRecipes {
+    query ListRecipes($input: ListRecipeInput) {
   recipe {
-    list {
+    list(input: $input) {
       items {
         slug
         id
@@ -410,6 +412,9 @@ export const ListRecipesDocument = gql`
           rating
           title
         }
+      }
+      pagination {
+        nextCursor
       }
     }
   }

@@ -1,6 +1,6 @@
-query ListRecipes {
+query ListRecipes($input: ListRecipeInput) {
   recipe {
-    list {
+    list(input: $input) {
       items {
         slug
         id
@@ -13,6 +13,9 @@ query ListRecipes {
           rating
           title
         }
+      }
+      pagination {
+        nextCursor
       }
     }
   }

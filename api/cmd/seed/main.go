@@ -239,6 +239,7 @@ func main() {
 			revisions := make([]RevisionWithIngredients, 0)
 			if forkdFrom.revision.ID.Valid {
 				initialRevision, err := qtx.SeedRevision(ctx, db.SeedRevisionParams{
+					Title:             forkdFrom.revision.Title,
 					RecipeID:          forkdFrom.revision.RecipeID,
 					RecipeDescription: forkdFrom.revision.RecipeDescription,
 					ChangeComment:     forkdFrom.revision.ChangeComment,
